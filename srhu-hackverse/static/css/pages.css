@@ -1,0 +1,85 @@
+/* ===== Login split screen ===== */
+.login-shell {
+  min-height: 100vh;
+  display: grid;
+  grid-template-columns: 1.1fr 1fr;
+}
+.login-brand {
+  background: linear-gradient(160deg, var(--primary) 0%, var(--primary-dark) 100%);
+  color: #fff;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 48px;
+  position: relative;
+  overflow: hidden;
+}
+.login-brand__mountains {
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  opacity: 0.18;
+  pointer-events: none;
+}
+.login-brand h1 { font-size: 34px; margin-bottom: 6px; letter-spacing: 0.3px; }
+.login-brand .tagline { font-size: 16px; color: rgba(255,255,255,0.8); margin-bottom: 20px; }
+.login-brand .subtagline { font-size: 13px; color: rgba(255,255,255,0.55); }
+
+.login-panel {
+  display: flex; align-items: center; justify-content: center;
+  padding: 32px;
+  background: var(--background);
+}
+.login-card {
+  width: 100%; max-width: 380px;
+  background: var(--surface);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-md);
+  padding: 32px;
+}
+.login-card h2 { margin-top: 0; font-size: 20px; }
+
+@media (max-width: 860px) {
+  .login-shell { grid-template-columns: 1fr; }
+  .login-brand { padding: 36px 24px; min-height: 220px; justify-content: flex-end; }
+}
+
+/* ===== Landing hero ===== */
+.hero {
+  background: linear-gradient(160deg, var(--primary) 0%, var(--primary-dark) 100%);
+  color: #fff;
+  border-radius: var(--radius);
+  padding: clamp(28px, 5vw, 56px);
+  position: relative;
+  overflow: hidden;
+  margin-bottom: 28px;
+}
+.hero__mountains { position: absolute; bottom: -10px; left: 0; right: 0; opacity: 0.15; pointer-events: none; }
+.hero h1 { font-size: clamp(28px, 4vw, 42px); margin: 0 0 8px; }
+.hero .tagline { font-size: 18px; color: rgba(255,255,255,0.85); margin-bottom: 14px; }
+.hero p { color: rgba(255,255,255,0.7); max-width: 560px; }
+
+/* ===== Leaderboard ===== */
+.leaderboard-row.rank-1 { background: linear-gradient(90deg, #fff8e6, transparent); }
+.leaderboard-row.rank-2 { background: linear-gradient(90deg, #f4f5f7, transparent); }
+.leaderboard-row.rank-3 { background: linear-gradient(90deg, #fbf0e6, transparent); }
+.rank-medal { display: inline-flex; align-items: center; justify-content: center; width: 26px; height: 26px; border-radius: 50%; font-weight: 700; font-size: 12px; color: #fff; }
+.rank-medal.gold { background: var(--gold); }
+.rank-medal.silver { background: var(--silver); }
+.rank-medal.bronze { background: var(--bronze); }
+
+/* ===== Jury session ===== */
+.session-panel {
+  background: var(--primary);
+  color: #fff;
+  border-radius: var(--radius);
+  padding: 24px;
+  margin-bottom: 20px;
+}
+.session-panel__label { font-size: 12px; text-transform: uppercase; letter-spacing: 0.6px; color: rgba(255,255,255,0.6); margin-bottom: 8px; }
+.session-panel__team { font-size: 22px; font-weight: 700; }
+.session-panel__project { color: rgba(255,255,255,0.75); margin-bottom: 16px; }
+.session-timer { font-size: 40px; font-weight: 700; font-variant-numeric: tabular-nums; }
+.session-panel__next { margin-top: 16px; font-size: 13px; color: rgba(255,255,255,0.6); }
+
+/* ===== Compass motif (subtle, near section headings) ===== */
+.compass-icon { display: inline-block; width: 16px; height: 16px; vertical-align: -2px; }

@@ -1,0 +1,229 @@
+{% extends "admin/base_admin.html" %}
+
+{% block admin_title %}Judge Assignments{% endblock %}
+
+{% block admin_content %}
+<!-- Page Header -->
+<div class="page-header">
+    <div>
+        <h1 class="page-title">Judge-Team Assignments</h1>
+        <p class="page-subtitle">Assign judges to evaluate specific teams</p>
+    </div>
+</div>
+
+<!-- Quick Assignment Form -->
+<div class="section">
+    <div class="card">
+        <div class="card-header">
+            <h3 class="card-title">Create New Assignment</h3>
+        </div>
+        <div class="card-body">
+            <form method="POST" action="{{ url_for('admin.create_assignment') }}" style="display: grid; grid-template-columns: 1fr 1fr auto; gap: var(--space-md); align-items: end;">
+                <div class="form-group" style="margin: 0;">
+                    <label for="judge_id" class="form-label required">Select Judge</label>
+                    <select id="judge_id" name="judge_id" class="form-select" required>
+                        <option value="">Choose judge...</option>
+                        {% for judge in judges %}
+                        <option value="{{ judge._id }}">
+                            {{ judge.name }} - 
+                            {% if judge.judge_type == 'internal' %}Internal{% else %}External{% endif %}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                
+                <div class="form-group" style="margin: 0;">
+                    <label for="team_id" class="form-label required">Select Team</label>
+                    <select id="team_id" name="team_id" class="form-select" required>
+                        <option value="">Choose team...</option>
+                        {% for team in teams %}
+                        <option value="{{ team._id }}">{{ team.team_name }} ({{ team.team_code }})</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                
+                <button type="submit" class="btn btn-primary">
+                    Assign
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Assignment Statistics -->
+<div class="grid grid-cols-4">
+    <div class="stat-card">
+        <div class="stat-value">{{ assignments|length }}</div>
+        <div class="stat-label">Total Assignments</div>
+    </div>
+    
+    <div class="stat-card" style="border-left-color: var(--success);">
+        <div class="stat-value" style="color: var(--success);">
+            {{ assignments|selectattr('judge_type', 'equalto', 'internal')|list|length }}
+        </div>
+        <div class="stat-label">Internal</div>
+    </div>
+    
+    <div class="stat-card" style="border-left-color: var(--info);">
+        <div class="stat-value" style="color: var(--info);">
+            {{ assignments|selectattr('judge_type', 'equalto', 'external')|list|length }}
+        </div>
+        <div class="stat-label">External</div>
+    </div>
+    
+    <div class="stat-card" style="border-left-color: var(--accent);">
+        <div class="stat-value" style="color: var(--accent);">
+            {{ teams|length }}
+        </div>
+        <div class="stat-label">Teams</div>
+    </div>
+</div>
+
+<!-- Assignments Table -->
+<div class="section">
+    <div class="section-header">
+        <h2 class="section-title">All Assignments</h2>
+        <input 
+            type="text" 
+            id="searchAssignments" 
+            placeholder="Search assignments..." 
+            class="form-input" 
+            style="max-width: 300px;"
+            onkeyup="filterAssignments()"
+        >
+    </div>
+    
+    {% if assignments %}
+    <div class="table-container">
+        <table class="table" id="assignmentsTable">
+            <thead>
+                <tr>
+                    <th>Judge</th>
+                    <th>Judge Type</th>
+                    <th>Team</th>
+                    <th>Team Code</th>
+                    <th>Panel</th>
+                    <th>Assigned Date</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for assignment in assignments %}
+                {% set judge = judges|selectattr('_id', 'equalto', assignment.judge_id)|first %}
+                {% set team = teams|selectattr('_id', 'equalto', assignment.team_id)|first %}
+                {% if judge and team %}
+                <tr>
+                    <td>{{ judge.name or 'Unknown' }}</td>
+                    <td>
+                        {% if assignment.judge_type == 'internal' %}
+                            <span class="badge badge-success">Internal</span>
+                        {% else %}
+                            <span class="badge badge-info">External</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <a href="{{ url_for('admin.team_detail', team_id=team._id) }}" style="font-weight: var(--font-medium); color: var(--primary);">
+                            {{ team.team_name }}
+                        </a>
+                    </td>
+                    <td><code>{{ team.team_code }}</code></td>
+                    <td>{{ assignment.panel_id or '-' }}</td>
+                    <td>{{ assignment.assigned_at.strftime('%d %b %Y') if assignment.assigned_at else '-' }}</td>
+                    <td>
+                        <form method="POST" action="{{ url_for('admin.delete_assignment', assignment_id=assignment._id) }}" style="display: inline;" onsubmit="return confirm('Remove this assignment?');">
+                            <button type="submit" class="btn btn-sm btn-danger">
+                                Remove
+                            </button>
+                        </form>
+                    </td>
+                </tr>
+                {% endif %}
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="empty-state">
+        <div class="empty-state-icon">🔗</div>
+        <h3 class="empty-state-title">No Assignments Yet</h3>
+        <p class="empty-state-description">
+            Create judge-team assignments using the form above to begin evaluation setup.
+        </p>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Assignment Guide -->
+<div class="section">
+    <div class="card">
+        <div class="card-header">
+            <h3 class="card-title">Assignment Guidelines</h3>
+        </div>
+        <div class="card-body">
+            <div style="display: grid; gap: var(--space-lg);">
+                <div style="display: flex; gap: var(--space-md);">
+                    <div style="flex-shrink: 0; width: 32px; height: 32px; border-radius: 50%; background: var(--success-light); color: var(--success-dark); display: flex; align-items: center; justify-content: center; font-weight: var(--font-bold);">
+                        1
+                    </div>
+                    <div>
+                        <div style="font-weight: var(--font-semibold); margin-bottom: var(--space-xs);">
+                            Balanced Distribution
+                        </div>
+                        <div style="font-size: var(--text-sm); color: var(--text-secondary);">
+                            Distribute teams evenly across judges to ensure fair workload
+                        </div>
+                    </div>
+                </div>
+                
+                <div style="display: flex; gap: var(--space-md);">
+                    <div style="flex-shrink: 0; width: 32px; height: 32px; border-radius: 50%; background: var(--info-light); color: var(--info-dark); display: flex; align-items: center; justify-content: center; font-weight: var(--font-bold);">
+                        2
+                    </div>
+                    <div>
+                        <div style="font-weight: var(--font-semibold); margin-bottom: var(--space-xs);">
+                            Both Judge Types Required
+                        </div>
+                        <div style="font-size: var(--text-sm); color: var(--text-secondary);">
+                            Each team needs at least one Internal and one External judge for proper scoring
+                        </div>
+                    </div>
+                </div>
+                
+                <div style="display: flex; gap: var(--space-md);">
+                    <div style="flex-shrink: 0; width: 32px; height: 32px; border-radius: 50%; background: var(--warning-light); color: var(--warning-dark); display: flex; align-items: center; justify-content: center; font-weight: var(--font-bold);">
+                        3
+                    </div>
+                    <div>
+                        <div style="font-weight: var(--font-semibold); margin-bottom: var(--space-xs);">
+                            Panel Organization
+                        </div>
+                        <div style="font-size: var(--text-sm); color: var(--text-secondary);">
+                            Organize assignments by jury panels for coordinated evaluation
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function filterAssignments() {
+    const input = document.getElementById('searchAssignments');
+    const filter = input.value.toLowerCase();
+    const table = document.getElementById('assignmentsTable');
+    const rows = table.getElementsByTagName('tr');
+    
+    for (let i = 1; i < rows.length; i++) {
+        const row = rows[i];
+        const text = row.textContent || row.innerText;
+        
+        if (text.toLowerCase().indexOf(filter) > -1) {
+            row.style.display = '';
+        } else {
+            row.style.display = 'none';
+        }
+    }
+}
+</script>
+{% endblock %}

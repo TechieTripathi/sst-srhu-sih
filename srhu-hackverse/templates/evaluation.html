@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+{% block title %}Evaluate {{ team.team_name }}{% endblock %}
+{% block page_title %}Evaluation{% endblock %}
+{% block content %}
+
+<div class="card" style="margin-bottom:20px;">
+  <h3 style="margin-top:0;">Project Information</h3>
+  <div class="form-row">
+    <div><strong>Team Name</strong><div style="color:var(--text-secondary);">{{ team.team_name }}</div></div>
+    <div><strong>Project Name</strong><div style="color:var(--text-secondary);">{{ team.project_name }}</div></div>
+  </div>
+  <div class="form-row" style="margin-top:12px;">
+    <div><strong>Track</strong><div style="color:var(--text-secondary);">{{ team.track }}</div></div>
+    <div><strong>Presentation Slot</strong><div style="color:var(--text-secondary);">{{ team.presentation_slot or '—' }}</div></div>
+  </div>
+  <div style="margin-top:12px;"><strong>Problem Statement</strong><p style="color:var(--text-secondary);">{{ team.problem_statement or '—' }}</p></div>
+  <div style="margin-top:12px;"><strong>Solution Summary</strong><p style="color:var(--text-secondary);">{{ team.solution or '—' }}</p></div>
+  <div style="margin-top:12px;"><strong>Technology Stack</strong><p style="color:var(--text-secondary);">{{ team.technologies|join(', ') if team.technologies else '—' }}</p></div>
+</div>
+
+<form method="POST" id="evaluationForm">
+  <div class="section-heading"><h2>Evaluation</h2>
+    <div><span data-preview-total>0 / 0</span> &middot; <span data-preview-percentage>0%</span></div>
+  </div>
+
+  {% for c in criteria %}
+  {% set existing_score = (existing.scores | selectattr('criterion_id', 'equalto', c._id|string) | first) if existing else none %}
+  <div class="criterion-row">
+    <div class="criterion-row__head">
+      <span class="criterion-row__name">{{ c.name }}</span>
+      <span style="font-size:12px; color:var(--text-secondary);">Max {{ c.max_score }}</span>
+    </div>
+    <div class="criterion-row__desc">{{ c.description }}</div>
+    <div class="criterion-row__score">
+      <input type="range" min="0" max="{{ c.max_score }}" step="1"
+             value="{{ existing_score.score|int if existing_score else 0 }}"
+             name="score_{{ c._id }}"
+             data-criterion-score data-max="{{ c.max_score }}">
+      <span class="criterion-row__score-value">{{ existing_score.score|int if existing_score else 0 }} / {{ c.max_score }}</span>
+    </div>
+  </div>
+  {% endfor %}
+
+  <div class="form-group">
+    <label for="comments">Jury Comments (optional)</label>
+    <textarea class="form-control" id="comments" name="comments" placeholder="Any notes for this team...">{{ existing.comments if existing else '' }}</textarea>
+  </div>
+
+  <div style="display:flex; gap:12px; flex-wrap:wrap;">
+    <button type="submit" name="action" value="save" class="btn btn-secondary">Save Draft</button>
+    <button type="button" class="btn btn-primary" data-submit-evaluation>Review &amp; Submit Evaluation</button>
+  </div>
+</form>
+
+<div class="modal-backdrop" id="confirmSubmitModal">
+  <div class="modal">
+    <h3>Review Evaluation</h3>
+    <p style="color:var(--text-secondary);">
+      Total score: <strong><span data-preview-total>0 / 0</span></strong>
+      (<span data-preview-percentage>0%</span>)
+    </p>
+    <p style="color:var(--danger); font-size:13px;">Once submitted, your evaluation may not be editable.</p>
+    <div class="modal__actions">
+      <button class="btn btn-secondary" data-modal-close>Cancel</button>
+      <button class="btn btn-primary" data-confirm-submit>Submit Evaluation</button>
+    </div>
+  </div>
+</div>
+
+{% endblock %}
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/evaluation.js') }}"></script>
+{% endblock %}

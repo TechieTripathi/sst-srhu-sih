@@ -1,0 +1,274 @@
+{% extends "super_admin/base_super_admin.html" %}
+
+{% block super_admin_title %}System Settings - Super Administration{% endblock %}
+{% block super_admin_page_heading %}Global System & Security Settings{% endblock %}
+
+{% block super_admin_content %}
+<div style="margin-bottom: 2rem;">
+    <h1 style="font-size: 1.75rem; font-weight: 800; color: var(--primary); margin: 0 0 0.25rem;">
+        ⚙️ Global System & Event Settings
+    </h1>
+    <p style="color: var(--text-secondary); margin: 0; font-size: 0.9rem;">
+        Configure application-wide security parameters, registration availability, judging lock status, and result publication.
+    </p>
+</div>
+
+<div style="display: grid; grid-template-columns: 1.5fr 1fr; gap: 2rem; align-items: start;">
+    <!-- Main Settings Form -->
+    <div class="card" style="box-shadow: var(--shadow-md);">
+        <div class="card-header" style="background: var(--white); border-bottom: 1px solid var(--border-light);">
+            <h3 class="card-title" style="font-size: 1.1rem; margin: 0; color: var(--primary);">
+                🎛️ Event Control Switches
+            </h3>
+        </div>
+        <div class="card-body" style="padding: 1.75rem;">
+            <form method="POST" action="{{ url_for('super_admin.system_settings') }}" id="systemSettingsForm">
+                
+                <!-- 1. Judging Lock -->
+                <div class="settings-toggle-card">
+                    <div class="settings-toggle-info">
+                        <div class="settings-toggle-title">
+                            🔒 Lock Judging Submissions
+                            {% if settings.judging_locked %}
+                                <span class="badge badge-danger" style="margin-left: 0.5rem;">LOCKED</span>
+                            {% else %}
+                                <span class="badge badge-success" style="margin-left: 0.5rem;">ACTIVE</span>
+                            {% endif %}
+                        </div>
+                        <div class="settings-toggle-desc">
+                            When locked, judges cannot submit new evaluations or edit existing ones. Final results become frozen for committee review.
+                        </div>
+                    </div>
+                    <div class="settings-toggle-action">
+                        <label class="custom-switch" for="judgingLockedToggle">
+                            <input 
+                                type="checkbox" 
+                                name="judging_locked" 
+                                id="judgingLockedToggle"
+                                {% if settings.judging_locked %}checked{% endif %}
+                            >
+                            <span class="custom-slider danger-slider"></span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- 2. Results Publication -->
+                <div class="settings-toggle-card">
+                    <div class="settings-toggle-info">
+                        <div class="settings-toggle-title">
+                            📢 Publish Final Results
+                            {% if settings.results_published %}
+                                <span class="badge badge-success" style="margin-left: 0.5rem;">PUBLISHED</span>
+                            {% else %}
+                                <span class="badge badge-warning" style="margin-left: 0.5rem;">DRAFT</span>
+                            {% endif %}
+                        </div>
+                        <div class="settings-toggle-desc">
+                            When enabled, finalized scores and leaderboard rankings become visible on public pages and student leader views.
+                        </div>
+                    </div>
+                    <div class="settings-toggle-action">
+                        <label class="custom-switch" for="resultsPublishedToggle">
+                            <input 
+                                type="checkbox" 
+                                name="results_published" 
+                                id="resultsPublishedToggle"
+                                {% if settings.results_published %}checked{% endif %}
+                            >
+                            <span class="custom-slider success-slider"></span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- 3. Registration Open -->
+                <div class="settings-toggle-card" style="margin-bottom: 2rem;">
+                    <div class="settings-toggle-info">
+                        <div class="settings-toggle-title">
+                            👥 Team Registration Portal
+                            {% if settings.get('registration_open', True) %}
+                                <span class="badge badge-primary" style="margin-left: 0.5rem;">OPEN</span>
+                            {% else %}
+                                <span class="badge badge-secondary" style="margin-left: 0.5rem;">CLOSED</span>
+                            {% endif %}
+                        </div>
+                        <div class="settings-toggle-desc">
+                            Allow student leaders to submit new team registrations for TechForge 3.0 via the public portal.
+                        </div>
+                    </div>
+                    <div class="settings-toggle-action">
+                        <label class="custom-switch" for="regOpenToggle">
+                            <input 
+                                type="checkbox" 
+                                name="registration_open" 
+                                id="regOpenToggle"
+                                {% if settings.get('registration_open', True) %}checked{% endif %}
+                            >
+                            <span class="custom-slider primary-slider"></span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Form Submit Button -->
+                <div style="display: flex; justify-content: flex-end; gap: 1rem; border-top: 1px solid var(--border-light); padding-top: 1.5rem;">
+                    <button type="submit" class="btn btn-primary" style="font-weight: 700; padding: 0.65rem 1.75rem;">
+                        💾 Save System Settings
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Security & Architecture Info Box -->
+    <div style="display: flex; flex-direction: column; gap: 1.5rem;">
+        <div class="card" style="box-shadow: var(--shadow-sm);">
+            <div class="card-header" style="background: var(--white); border-bottom: 1px solid var(--border-light);">
+                <h3 class="card-title" style="font-size: 1rem; margin: 0; color: var(--primary);">
+                    🛡️ Security Architecture
+                </h3>
+            </div>
+            <div class="card-body" style="font-size: 0.85rem; line-height: 1.6; color: var(--text-secondary); padding: 1.25rem;">
+                <div style="margin-bottom: 1rem; padding-bottom: 0.75rem; border-bottom: 1px solid var(--border-light);">
+                    <strong style="color: var(--text-primary); display: block; margin-bottom: 0.25rem;">Role Hierarchy:</strong>
+                    <div style="font-family: monospace; font-size: 0.775rem; color: var(--primary); background: #f0f4f8; padding: 0.35rem 0.6rem; border-radius: 4px;">
+                        SUPER_ADMIN &gt; ADMIN &gt; JUDGE &gt; STUDENT_LEADER
+                    </div>
+                </div>
+                <div style="margin-bottom: 1rem; padding-bottom: 0.75rem; border-bottom: 1px solid var(--border-light);">
+                    <strong style="color: var(--text-primary); display: block; margin-bottom: 0.25rem;">Submission Immutability:</strong>
+                    <span>Evaluations are sealed once submitted. Only Super Admin and Admin can execute audited reopening.</span>
+                </div>
+                <div>
+                    <strong style="color: var(--text-primary); display: block; margin-bottom: 0.25rem;">Database Constraints:</strong>
+                    <span>Compound index <code>(judge_id, team_id, stage_id)</code> prevents duplicate submissions at the database level.</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="card" style="box-shadow: var(--shadow-sm);">
+            <div class="card-header" style="background: var(--white); border-bottom: 1px solid var(--border-light);">
+                <h3 class="card-title" style="font-size: 1rem; margin: 0; color: var(--primary);">
+                    ⚡ Quick Navigation
+                </h3>
+            </div>
+            <div class="card-body" style="display: flex; flex-direction: column; gap: 0.75rem; padding: 1.25rem;">
+                <a href="{{ url_for('super_admin.manage_admins') }}" class="btn btn-sm btn-secondary" style="justify-content: flex-start;">
+                    🛡️ Manage Administrators
+                </a>
+                <a href="{{ url_for('admin.settings') }}" class="btn btn-sm btn-secondary" style="justify-content: flex-start;">
+                    📐 Configure Evaluation Criteria
+                </a>
+                <a href="{{ url_for('admin.checkpoints_management') }}" class="btn btn-sm btn-secondary" style="justify-content: flex-start;">
+                    📍 Manage 36H Checkpoints
+                </a>
+                <a href="{{ url_for('admin.export_results') }}" class="btn btn-sm btn-secondary" style="justify-content: flex-start;">
+                    ⬇️ Download Results Export (CSV)
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+/* Settings Toggle Card */
+.settings-toggle-card {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: var(--radius-lg);
+    padding: 1.25rem 1.5rem;
+    margin-bottom: 1.25rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1.5rem;
+    transition: all 0.2s ease;
+}
+
+.settings-toggle-card:hover {
+    border-color: #cbd5e1;
+    background: #ffffff;
+    box-shadow: var(--shadow-xs);
+}
+
+.settings-toggle-info {
+    flex: 1;
+}
+
+.settings-toggle-title {
+    font-weight: 700;
+    color: var(--text-primary);
+    font-size: 1rem;
+    display: flex;
+    align-items: center;
+    margin-bottom: 0.35rem;
+}
+
+.settings-toggle-desc {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    line-height: 1.45;
+}
+
+/* Custom CSS Toggle Switch with Draggable Knob */
+.custom-switch {
+    position: relative;
+    display: inline-block;
+    width: 54px;
+    height: 30px;
+    flex-shrink: 0;
+    cursor: pointer;
+}
+
+.custom-switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+    position: absolute;
+}
+
+.custom-slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #cbd5e1;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    border-radius: 30px;
+}
+
+.custom-slider::before {
+    position: absolute;
+    content: "";
+    height: 22px;
+    width: 22px;
+    left: 4px;
+    bottom: 4px;
+    background-color: #ffffff;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    border-radius: 50%;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+}
+
+/* Checked States */
+.custom-switch input:checked + .danger-slider {
+    background-color: #ef4444;
+}
+
+.custom-switch input:checked + .success-slider {
+    background-color: #10b981;
+}
+
+.custom-switch input:checked + .primary-slider {
+    background-color: #1a4d8f;
+}
+
+.custom-switch input:checked + .custom-slider::before {
+    transform: translateX(24px);
+}
+
+.custom-switch input:focus + .custom-slider {
+    box-shadow: 0 0 0 3px rgba(26, 77, 143, 0.2);
+}
+</style>
+{% endblock %}

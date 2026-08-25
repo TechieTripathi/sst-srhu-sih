@@ -1,0 +1,118 @@
+{% extends "admin/base_admin.html" %}
+
+{% block admin_title %}Create Judge{% endblock %}
+
+{% block admin_content %}
+<!-- Page Header -->
+<div class="page-header">
+    <div>
+        <a href="{{ url_for('admin.judges_list') }}" style="color: var(--primary); font-size: var(--text-sm); margin-bottom: var(--space-sm); display: inline-block;">
+            ← Back to Judges
+        </a>
+        <h1 class="page-title">Create New Judge</h1>
+        <p class="page-subtitle">Add a new internal or external judge to the evaluation system</p>
+    </div>
+</div>
+
+<!-- Create Judge Form -->
+<div style="max-width: 800px;">
+    <div class="card">
+        <div class="card-header">
+            <h3 class="card-title">Judge Information</h3>
+        </div>
+        <div class="card-body">
+            <form method="POST" action="{{ url_for('admin.create_judge_form') }}">
+                <div class="form-group">
+                    <label for="name" class="form-label required">Full Name</label>
+                    <input 
+                        type="text" 
+                        id="name" 
+                        name="name" 
+                        class="form-input" 
+                        placeholder="Dr. John Doe"
+                        required
+                        autofocus
+                    >
+                    <span class="form-help">Judge's full name with title</span>
+                </div>
+                
+                <div class="form-group">
+                    <label for="email" class="form-label required">Email Address</label>
+                    <input 
+                        type="email" 
+                        id="email" 
+                        name="email" 
+                        class="form-input" 
+                        placeholder="judge@example.com"
+                        required
+                    >
+                    <span class="form-help">This will be used as login username</span>
+                </div>
+                
+                <div class="form-group">
+                    <label for="phone" class="form-label">Phone Number</label>
+                    <input 
+                        type="tel" 
+                        id="phone" 
+                        name="phone" 
+                        class="form-input" 
+                        placeholder="10-digit mobile number"
+                        pattern="[0-9]{10}"
+                        maxlength="10"
+                    >
+                    <span class="form-help">Optional 10-digit mobile number</span>
+                </div>
+                
+                <div class="form-group">
+                    <label for="judge_type" class="form-label required">Judge Type</label>
+                    <select id="judge_type" name="judge_type" class="form-select" required>
+                        <option value="">Select judge type</option>
+                        <option value="internal">Internal Judge</option>
+                        <option value="external">External Judge</option>
+                    </select>
+                    <span class="form-help">Internal judges contribute 40% to final score, External 60%</span>
+                </div>
+                
+                <div class="form-group">
+                    <label for="panel_id" class="form-label">Jury Panel (Optional)</label>
+                    <select id="panel_id" name="panel_id" class="form-select">
+                        <option value="">No panel assignment</option>
+                        {% for panel in panels %}
+                        <option value="{{ panel.panel_id }}">{{ panel.panel_name }} ({{ panel.panel_id }})</option>
+                        {% endfor %}
+                    </select>
+                    <span class="form-help">Assign to a jury panel for organized evaluation</span>
+                </div>
+                
+                <div style="background: var(--warning-light); padding: var(--space-lg); border-radius: var(--radius-md); border-left: 4px solid var(--warning); margin: var(--space-xl) 0;">
+                    <div style="font-weight: var(--font-semibold); color: var(--warning-dark); margin-bottom: var(--space-xs);">
+                        Default Credentials
+                    </div>
+                    <div style="font-size: var(--text-sm); color: var(--warning-dark);">
+                        The judge will be created with default password: <code style="background: var(--white); padding: 0.2em 0.5em; border-radius: 3px; font-weight: var(--font-semibold);">judge123</code>
+                    </div>
+                    <div style="font-size: var(--text-sm); color: var(--warning-dark); margin-top: var(--space-xs);">
+                        Please inform the judge to change their password after first login.
+                    </div>
+                </div>
+                
+                <div class="form-actions">
+                    <a href="{{ url_for('admin.judges_list') }}" class="btn btn-secondary">
+                        Cancel
+                    </a>
+                    <button type="submit" class="btn btn-primary" style="flex: 1;">
+                        Create Judge
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Format phone number input
+    document.getElementById('phone').addEventListener('input', function(e) {
+        this.value = this.value.replace(/\D/g, '').slice(0, 10);
+    });
+</script>
+{% endblock %}

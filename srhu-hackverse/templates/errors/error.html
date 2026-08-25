@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+
+{% block title %}{{ title }} - Error {{ code }}{% endblock %}
+
+{% block body %}
+<div style="min-height: 100vh; display: flex; align-items: center; justify-content: center; background: var(--background);">
+    <div style="text-align: center; max-width: 600px; padding: var(--space-2xl);">
+        <div style="font-size: 120px; font-weight: var(--font-bold); color: var(--primary); line-height: 1; margin-bottom: var(--space-lg);">
+            {{ code }}
+        </div>
+        
+        <h1 style="font-size: var(--text-3xl); color: var(--text-primary); margin-bottom: var(--space-md);">
+            {{ title }}
+        </h1>
+        
+        <p style="font-size: var(--text-lg); color: var(--text-secondary); margin-bottom: var(--space-2xl);">
+            {{ message }}
+        </p>
+        
+        <a href="{{ url_for('index') }}" class="btn btn-primary">
+            Return to Home
+        </a>
+    </div>
+</div>
+{% endblock %}

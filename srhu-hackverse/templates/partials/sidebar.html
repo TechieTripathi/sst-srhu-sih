@@ -1,0 +1,30 @@
+<div class="sidebar__brand">
+  <div class="sidebar__brand-mark">SH</div>
+  <div class="sidebar__brand-text">
+    <strong>{{ event_name }}</strong>
+    <span>{{ event_tagline }}</span>
+  </div>
+</div>
+
+{% set role = session.get('role') %}
+
+{% if role == 'admin' %}
+<div class="sidebar__section-label">Main</div>
+<a class="sidebar__link {{ 'active' if request.endpoint == 'admin.dashboard' }}" href="{{ url_for('admin.dashboard') }}"><span class="icon">&#9632;</span> Dashboard</a>
+<a class="sidebar__link {{ 'active' if request.endpoint == 'admin.teams' }}" href="{{ url_for('admin.teams') }}"><span class="icon">&#9673;</span> Teams</a>
+<a class="sidebar__link {{ 'active' if request.endpoint == 'admin.jury_list' }}" href="{{ url_for('admin.jury_list') }}"><span class="icon">&#9737;</span> Jury</a>
+<a class="sidebar__link {{ 'active' if request.endpoint == 'admin.leaderboard' }}" href="{{ url_for('admin.leaderboard') }}"><span class="icon">&#9733;</span> Leaderboard</a>
+<a class="sidebar__link {{ 'active' if request.endpoint == 'admin.results' }}" href="{{ url_for('admin.results') }}"><span class="icon">&#127942;</span> Results</a>
+<div class="sidebar__section-label">Administration</div>
+<a class="sidebar__link {{ 'active' if request.endpoint == 'admin.criteria' }}" href="{{ url_for('admin.criteria') }}"><span class="icon">&#9881;</span> Criteria</a>
+
+{% elif role == 'jury' %}
+<div class="sidebar__section-label">Main</div>
+<a class="sidebar__link {{ 'active' if request.endpoint == 'jury.dashboard' }}" href="{{ url_for('jury.dashboard') }}"><span class="icon">&#9632;</span> Dashboard</a>
+<a class="sidebar__link {{ 'active' if request.endpoint == 'jury.session_view' }}" href="{{ url_for('jury.session_view') }}"><span class="icon">&#9201;</span> Live Session</a>
+
+{% elif role == 'team' %}
+<div class="sidebar__section-label">Main</div>
+<a class="sidebar__link {{ 'active' if request.endpoint == 'team.dashboard' }}" href="{{ url_for('team.dashboard') }}"><span class="icon">&#9632;</span> My Team</a>
+<a class="sidebar__link {{ 'active' if request.endpoint == 'team.my_results' }}" href="{{ url_for('team.my_results') }}"><span class="icon">&#127942;</span> Results</a>
+{% endif %}

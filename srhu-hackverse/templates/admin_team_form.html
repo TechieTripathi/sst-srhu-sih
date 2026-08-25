@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+{% block title %}{{ 'Edit Team' if team else 'Add Team' }}{% endblock %}
+{% block page_title %}{{ 'Edit Team' if team else 'Add Team' }}{% endblock %}
+{% block content %}
+
+<form method="POST" class="card" data-guard-submit style="max-width:640px;">
+  {% if not team %}
+  <div class="form-group">
+    <label for="team_id">Team ID</label>
+    <input class="form-control" id="team_id" name="team_id" required placeholder="e.g. T-2026-014">
+  </div>
+  {% endif %}
+  <div class="form-group">
+    <label for="team_name">Team Name</label>
+    <input class="form-control" id="team_name" name="team_name" required value="{{ team.team_name if team }}">
+  </div>
+  <div class="form-group">
+    <label for="project_name">Project Name</label>
+    <input class="form-control" id="project_name" name="project_name" value="{{ team.project_name if team }}">
+  </div>
+  <div class="form-row">
+    <div class="form-group">
+      <label for="track">Track</label>
+      <input class="form-control" id="track" name="track" value="{{ team.track if team }}">
+    </div>
+    <div class="form-group">
+      <label for="presentation_slot">Presentation Slot</label>
+      <input class="form-control" id="presentation_slot" name="presentation_slot" value="{{ team.presentation_slot if team }}">
+    </div>
+  </div>
+  <div class="form-group">
+    <label for="problem_statement">Problem Statement</label>
+    <textarea class="form-control" id="problem_statement" name="problem_statement">{{ team.problem_statement if team }}</textarea>
+  </div>
+  <div class="form-group">
+    <label for="solution">Solution Summary</label>
+    <textarea class="form-control" id="solution" name="solution">{{ team.solution if team }}</textarea>
+  </div>
+  {% if not team %}
+  <div class="form-group">
+    <label for="technologies">Technologies (comma-separated)</label>
+    <input class="form-control" id="technologies" name="technologies" placeholder="Python, Flask, MongoDB">
+  </div>
+  {% endif %}
+  <button type="submit" class="btn btn-primary">{{ 'Save Changes' if team else 'Create Team' }}</button>
+</form>
+{% endblock %}

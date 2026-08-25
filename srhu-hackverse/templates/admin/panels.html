@@ -1,0 +1,102 @@
+{% extends "admin/base_admin.html" %}
+
+{% block admin_title %}Jury Panels{% endblock %}
+
+{% block admin_content %}
+<!-- Page Header -->
+<div class="page-header">
+    <div>
+        <h1 class="page-title">Jury Panels</h1>
+        <p class="page-subtitle">Manage jury panel assignments and coordination</p>
+    </div>
+    <div class="page-header-actions">
+        <a href="{{ url_for('admin.create_panel_form') }}" class="btn btn-primary">
+            + Create Panel
+        </a>
+    </div>
+</div>
+
+<!-- Panels Grid -->
+{% if panels %}
+<div class="grid grid-cols-3">
+    {% for panel in panels %}
+    <div class="card">
+        <div class="card-header">
+            <h3 class="card-title">{{ panel.panel_name }}</h3>
+            <span class="badge badge-primary">{{ panel.panel_id }}</span>
+        </div>
+        <div class="card-body">
+            <div style="display: flex; flex-direction: column; gap: var(--space-md);">
+                <div style="display: flex; justify-content: space-between;">
+                    <span style="color: var(--text-secondary);">Coordinator</span>
+                    <span style="font-weight: var(--font-medium);">{{ panel.coordinator_name or 'Not Assigned' }}</span>
+                </div>
+                <div style="display: flex; justify-content: space-between;">
+                    <span style="color: var(--text-secondary);">Judges</span>
+                    <span style="font-weight: var(--font-semibold); color: var(--primary);">{{ panel.judge_count or 0 }}</span>
+                </div>
+                <div style="display: flex; justify-content: space-between;">
+                    <span style="color: var(--text-secondary);">Teams Assigned</span>
+                    <span style="font-weight: var(--font-semibold); color: var(--primary);">{{ panel.team_count or 0 }}</span>
+                </div>
+            </div>
+        </div>
+        <div class="card-footer">
+            <button class="btn btn-sm btn-secondary btn-block" onclick="alert('Panel details coming soon')">
+                View Panel
+            </button>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% else %}
+<div class="section">
+    <div class="empty-state">
+        <div class="empty-state-icon">🎯</div>
+        <h3 class="empty-state-title">No Jury Panels Created</h3>
+        <p class="empty-state-description">
+            Create jury panels to organize judges and distribute team evaluation responsibilities.
+            The official TechForge 3.0 structure includes 5 panels as per the task allocation document.
+        </p>
+        <button class="btn btn-primary" onclick="alert('Create panel feature coming soon')">
+            Create First Panel
+        </button>
+    </div>
+</div>
+{% endif %}
+
+<!-- Panel Information -->
+<div class="section">
+    <div class="card">
+        <div class="card-header">
+            <h3 class="card-title">About Jury Panels</h3>
+        </div>
+        <div class="card-body">
+            <p style="color: var(--text-secondary); margin-bottom: var(--space-lg);">
+                According to the official TechForge 3.0 task allocation, the jury structure consists of:
+            </p>
+            
+            <div style="display: grid; gap: var(--space-md);">
+                <div style="padding: var(--space-md); background: var(--surface-muted); border-radius: var(--radius-md); border-left: 4px solid var(--primary);">
+                    <div style="font-weight: var(--font-semibold); color: var(--primary); margin-bottom: var(--space-xs);">
+                        Panel 1 - Overall Jury Coordination
+                    </div>
+                    <div style="font-size: var(--text-sm); color: var(--text-secondary);">
+                        Dr. Neel Mani (Overall Coordinator), Dr. Deepak Srivastav, Dr. Vivek Katiyar, Ms. Shafaili Khattri, Mr. Sanjay Kumar
+                    </div>
+                </div>
+                
+                <div style="padding: var(--space-md); background: var(--surface-muted); border-radius: var(--radius-md); border-left: 4px solid var(--success);">
+                    <div style="font-weight: var(--font-semibold); color: var(--success); margin-bottom: var(--space-xs);">
+                        Panels 2-5
+                    </div>
+                    <div style="font-size: var(--text-sm); color: var(--text-secondary);">
+                        Four additional jury panels with designated coordinators and members for distributed evaluation
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

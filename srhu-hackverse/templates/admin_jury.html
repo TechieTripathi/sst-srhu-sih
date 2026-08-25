@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+{% block title %}Jury{% endblock %}
+{% block page_title %}Jury{% endblock %}
+{% block content %}
+
+<div class="section-heading">
+  <h2>Jury Members</h2>
+  <a href="{{ url_for('admin.new_jury') }}" class="btn btn-primary btn-sm">+ Add Jury</a>
+</div>
+
+{% if jury %}
+<div class="table-wrap table-scroll">
+  <table class="data-table">
+    <thead><tr><th>Name</th><th>Email</th><th>Designation</th><th>Assigned Teams</th><th>Actions</th></tr></thead>
+    <tbody>
+      {% for j in jury %}
+      <tr>
+        <td data-label="Name">{{ j.name }}</td>
+        <td data-label="Email">{{ j.email }}</td>
+        <td data-label="Designation">{{ j.designation or '—' }}</td>
+        <td data-label="Assigned Teams">{{ j.assigned_teams|length }}</td>
+        <td data-label="Actions">
+          <button class="btn btn-secondary btn-sm" data-modal-target="#assignModal-{{ j._id }}">Assign Team</button>
+        </td>
+      </tr>
+      <div class="modal-backdrop" id="assignModal-{{ j._id }}">
+        <div class="modal">
+          <h3>Assign a Team to {{ j.name }}</h3>
+          <form method="POST" action="{{ url_for('admin.assign', jury_id=j._id) }}">
+            <div class="form-group">
+              <label for="team_id-{{ j._id }}">Team</label>
+              <select class="form-control" id="team_id-{{ j._id }}" name="team_id" required>
+                {% for t in teams %}
+                <option value="{{ t._id }}">{{ t.team_name }} — {{ t.project_name }}</option>
+                {% endfor %}
+              </select>
+            </div>
+            <div class="modal__actions">
+              <button type="button" class="btn btn-secondary" data-modal-close>Cancel</button>
+              <button type="submit" class="btn btn-primary">Assign</button>
+            </div>
+          </form>
+        </div>
+      </div>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% else %}
+<div class="empty-state">
+  <h3>No Jury Yet</h3>
+  <p>Jury members will appear here once they are added.</p>
+</div>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,164 @@
+{% extends "admin/base_admin.html" %}
+
+{% block admin_title %}Results Overview{% endblock %}
+
+{% block admin_content %}
+<div class="page-header">
+    <div>
+        <h1 class="page-title">Results & Rankings</h1>
+        <p class="page-subtitle">Final scores — TechForge 3.0 Official Leaderboard</p>
+    </div>
+    <div style="display: flex; gap: var(--space-md);">
+        <form method="POST" action="{{ url_for('admin.toggle_results') }}" style="display:inline;">
+            {% if event_settings.results_published %}
+                <button type="submit" class="btn btn-sm btn-warning" onclick="return confirm('Unpublish results?')">Unpublish Results</button>
+            {% else %}
+                <button type="submit" class="btn btn-sm btn-success" onclick="return confirm('Publish final results? This will make them visible to all users.')">Publish Results</button>
+            {% endif %}
+        </form>
+        <a href="{{ url_for('admin.export_results', stage_id=stage_id) }}" class="btn btn-sm btn-secondary">Export CSV</a>
+    </div>
+</div>
+
+<!-- Coverage Stats -->
+<div class="stats-grid">
+    <div class="stat-card">
+        <div class="stat-value">{{ coverage.total_teams }}</div>
+        <div class="stat-label">Total Teams</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-value">{{ coverage.teams_evaluated }}</div>
+        <div class="stat-label">Evaluated</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-value">{{ coverage.total_evaluations }}</div>
+        <div class="stat-label">Evaluations</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-value">{{ "%.0f"|format(coverage.completion_percentage) }}%</div>
+        <div class="stat-label">Coverage</div>
+    </div>
+</div>
+
+<!-- Results Status Banner -->
+{% if event_settings.results_published %}
+<div style="background: var(--success); color: white; padding: var(--space-md) var(--space-xl); border-radius: var(--radius-md); margin-bottom: var(--space-lg); display: flex; align-items: center; gap: var(--space-md);">
+    <span>✓</span>
+    <strong>Results are published</strong> — visible to all authenticated users
+</div>
+{% else %}
+<div style="background: var(--surface-muted); border: 1px solid var(--border); padding: var(--space-md) var(--space-xl); border-radius: var(--radius-md); margin-bottom: var(--space-lg); display: flex; align-items: center; gap: var(--space-md);">
+    <span>🔒</span>
+    <strong>Results are not yet published</strong> — only visible to Admin
+</div>
+{% endif %}
+
+<!-- Scoring Model Info -->
+<div class="card" style="margin-bottom: var(--space-lg);">
+    <div class="card-body" style="display: flex; gap: var(--space-xl);">
+        <div style="flex: 1; text-align: center; padding: var(--space-md); background: var(--surface-muted); border-radius: var(--radius-md);">
+            <div style="font-size: var(--text-xl); font-weight: var(--font-bold); color: var(--primary);">40%</div>
+            <div style="color: var(--text-secondary); font-size: var(--text-sm);">Internal Judges Weight</div>
+        </div>
+        <div style="flex: 1; text-align: center; padding: var(--space-md); background: var(--surface-muted); border-radius: var(--radius-md);">
+            <div style="font-size: var(--text-xl); font-weight: var(--font-bold); color: var(--accent);">60%</div>
+            <div style="color: var(--text-secondary); font-size: var(--text-sm);">External Judges Weight</div>
+        </div>
+        <div style="flex: 1; text-align: center; padding: var(--space-md); background: var(--surface-muted); border-radius: var(--radius-md);">
+            <div style="font-size: var(--text-xl); font-weight: var(--font-bold); color: var(--success);">100</div>
+            <div style="color: var(--text-secondary); font-size: var(--text-sm);">Maximum Score</div>
+        </div>
+    </div>
+</div>
+
+<!-- Rankings Table -->
+<div class="card">
+    <div class="card-header">
+        <h3 class="card-title">Rankings — {{ stage_id|replace('_', ' ')|title }}</h3>
+    </div>
+    <div class="table-container">
+        {% if rankings %}
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Rank</th>
+                    <th>Team</th>
+                    <th>Team Code</th>
+                    <th>Leader</th>
+                    <th>Internal Avg</th>
+                    <th>External Avg</th>
+                    <th>Final Score</th>
+                    <th>Details</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for team in rankings %}
+                <tr {% if team.rank == 1 %}style="background: linear-gradient(90deg, rgba(212,175,55,0.08) 0%, transparent 100%);"{% elif team.rank == 2 %}style="background: linear-gradient(90deg, rgba(192,192,192,0.08) 0%, transparent 100%);"{% elif team.rank == 3 %}style="background: linear-gradient(90deg, rgba(205,127,50,0.08) 0%, transparent 100%);"{% endif %}>
+                    <td>
+                        {% if team.rank == 1 %}
+                            <span style="font-size: var(--text-xl);">🥇</span>
+                        {% elif team.rank == 2 %}
+                            <span style="font-size: var(--text-xl);">🥈</span>
+                        {% elif team.rank == 3 %}
+                            <span style="font-size: var(--text-xl);">🥉</span>
+                        {% else %}
+                            <span style="font-weight: var(--font-bold); color: var(--text-secondary);">{{ "%02d"|format(team.rank) }}</span>
+                        {% endif %}
+                    </td>
+                    <td><div style="font-weight: var(--font-semibold);">{{ team.team_name }}</div></td>
+                    <td><span class="badge badge-secondary">{{ team.team_code }}</span></td>
+                    <td>{{ team.leader_name }}</td>
+                    <td>
+                        {% if team.internal_count > 0 %}
+                            {{ "%.2f"|format(team.internal_average) }}
+                            <span style="font-size: var(--text-xs); color: var(--text-secondary);">({{ team.internal_count }})</span>
+                        {% else %}
+                            <span class="badge badge-warning">INCOMPLETE</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if team.external_count > 0 %}
+                            {{ "%.2f"|format(team.external_average) }}
+                            <span style="font-size: var(--text-xs); color: var(--text-secondary);">({{ team.external_count }})</span>
+                        {% else %}
+                            <span class="badge badge-warning">INCOMPLETE</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <strong style="font-size: var(--text-lg); color: var(--primary);">{{ "%.2f"|format(team.final_score) }}</strong>
+                        <span style="color: var(--text-secondary);">/100</span>
+                    </td>
+                    <td>
+                        <a href="{{ url_for('results.team_result', team_id=team.team_id, stage_id=stage_id) }}" 
+                           class="btn btn-sm btn-secondary">View</a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <div class="empty-state">
+            <div class="empty-state-icon">📊</div>
+            <div class="empty-state-title">No Results Yet</div>
+            <div class="empty-state-description">
+                Results will appear here once evaluations are submitted.<br>
+                Make sure judges have been assigned and have submitted their evaluations.
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Tie-Breaking Notice -->
+<div class="card" style="margin-top: var(--space-lg);">
+    <div class="card-body">
+        <h4 style="color: var(--text-primary); margin-bottom: var(--space-md);">Tie-Breaking Rules (Official)</h4>
+        <ol style="color: var(--text-secondary); line-height: 1.8;">
+            <li>Prototype & Implementation score (highest weight: 25%)</li>
+            <li>Technical Design & Feasibility score (20%)</li>
+            <li>Innovation & Differentiation score (15%)</li>
+            <li>Jury discretion — repository history, test evidence, repeat demonstration</li>
+        </ol>
+    </div>
+</div>
+{% endblock %}

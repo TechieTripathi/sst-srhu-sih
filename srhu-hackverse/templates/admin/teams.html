@@ -1,0 +1,125 @@
+{% extends "admin/base_admin.html" %}
+
+{% block admin_title %}Teams Management{% endblock %}
+
+{% block admin_content %}
+<!-- Page Header -->
+<div class="page-header">
+    <div>
+        <h1 class="page-title">Teams Management</h1>
+        <p class="page-subtitle">View and manage all registered teams</p>
+    </div>
+</div>
+
+<!-- Statistics -->
+<div class="grid grid-cols-3">
+    <div class="stat-card">
+        <div class="stat-value">{{ teams|length }}</div>
+        <div class="stat-label">Total Teams</div>
+    </div>
+    
+    <div class="stat-card" style="border-left-color: var(--success);">
+        <div class="stat-value" style="color: var(--success);">
+            {{ teams|selectattr('status', 'equalto', 'registered')|list|length }}
+        </div>
+        <div class="stat-label">Registered</div>
+    </div>
+    
+    <div class="stat-card" style="border-left-color: var(--info);">
+        <div class="stat-value" style="color: var(--info);">0</div>
+        <div class="stat-label">With Evaluations</div>
+    </div>
+</div>
+
+<!-- Teams Table -->
+<div class="section">
+    <div class="section-header">
+        <h2 class="section-title">All Teams</h2>
+        <div style="display: flex; gap: var(--space-md);">
+            <input 
+                type="text" 
+                id="searchInput" 
+                placeholder="Search teams..." 
+                class="form-input" 
+                style="max-width: 300px;"
+                onkeyup="filterTable()"
+            >
+        </div>
+    </div>
+    
+    {% if teams %}
+    <div class="table-container">
+        <table class="table" id="teamsTable">
+            <thead>
+                <tr>
+                    <th>Team Name</th>
+                    <th>Team Code</th>
+                    <th>Leader</th>
+                    <th>Email</th>
+                    <th>Mobile</th>
+                    <th>Registered</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for team in teams %}
+                <tr>
+                    <td>
+                        <div style="font-weight: var(--font-semibold); color: var(--primary);">
+                            {{ team.team_name }}
+                        </div>
+                    </td>
+                    <td>
+                        <code style="background: var(--surface-muted); padding: var(--space-xs) var(--space-sm); border-radius: var(--radius-sm); font-size: var(--text-sm);">
+                            {{ team.team_code }}
+                        </code>
+                    </td>
+                    <td>{{ team.leader_name }}</td>
+                    <td>{{ team.leader_email }}</td>
+                    <td>{{ team.leader_mobile }}</td>
+                    <td>{{ team.created_at.strftime('%d %b %Y, %H:%M') if team.created_at else '-' }}</td>
+                    <td>
+                        <span class="badge badge-success">{{ team.status }}</span>
+                    </td>
+                    <td>
+                        <a href="{{ url_for('admin.team_detail', team_id=team._id) }}" class="btn btn-sm btn-primary">
+                            View Details
+                        </a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="empty-state">
+        <div class="empty-state-icon">📋</div>
+        <h3 class="empty-state-title">No Teams Registered</h3>
+        <p class="empty-state-description">
+            No teams have registered yet. Teams will appear here after registration.
+        </p>
+    </div>
+    {% endif %}
+</div>
+
+<script>
+function filterTable() {
+    const input = document.getElementById('searchInput');
+    const filter = input.value.toLowerCase();
+    const table = document.getElementById('teamsTable');
+    const rows = table.getElementsByTagName('tr');
+    
+    for (let i = 1; i < rows.length; i++) {
+        const row = rows[i];
+        const text = row.textContent || row.innerText;
+        
+        if (text.toLowerCase().indexOf(filter) > -1) {
+            row.style.display = '';
+        } else {
+            row.style.display = 'none';
+        }
+    }
+}
+</script>
+{% endblock %}

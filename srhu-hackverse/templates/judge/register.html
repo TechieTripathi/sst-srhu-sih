@@ -1,0 +1,650 @@
+{% extends "base.html" %}
+
+{% block title %}Jury Registration — TechForge 3.0{% endblock %}
+
+{% block extra_css %}
+<style>
+    .jury-reg-page {
+        min-height: 88vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 2.5rem 1rem;
+        background: radial-gradient(circle at 10% 20%, rgba(26, 77, 143, 0.08) 0%, transparent 40%),
+                    radial-gradient(circle at 90% 80%, rgba(196, 30, 58, 0.05) 0%, transparent 40%),
+                    #f8fafc;
+    }
+
+    .jury-reg-card {
+        width: 100%;
+        max-width: 500px;
+        background: #ffffff;
+        border-radius: 16px;
+        box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(226, 232, 240, 0.8);
+        overflow: hidden;
+    }
+
+    .jury-reg-header {
+        background: linear-gradient(135deg, #07192f 0%, #0d2e59 100%);
+        color: #ffffff;
+        padding: 2.25rem 2rem 1.75rem;
+        text-align: center;
+        position: relative;
+    }
+
+    .jury-brand-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        background: rgba(255, 255, 255, 0.12);
+        backdrop-filter: blur(8px);
+        padding: 0.35rem 0.85rem;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: #93c5fd;
+        margin-bottom: 0.75rem;
+        border: 1px solid rgba(255, 255, 255, 0.15);
+    }
+
+    .jury-reg-title {
+        font-size: 1.6rem;
+        font-weight: 800;
+        letter-spacing: -0.01em;
+        margin: 0 0 0.25rem;
+        color: #ffffff;
+    }
+
+    .jury-reg-sub {
+        font-size: 0.85rem;
+        color: #94a3b8;
+        margin: 0;
+        line-height: 1.4;
+    }
+
+    .jury-reg-body {
+        padding: 2.25rem 2rem;
+    }
+
+    /* Steps Tracker */
+    .reg-steps-tracker {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        margin-bottom: 2rem;
+    }
+
+    .reg-step-dot {
+        display: flex;
+        align-items: center;
+        gap: 0.4rem;
+        font-size: 0.8rem;
+        font-weight: 700;
+        color: #94a3b8;
+    }
+
+    .reg-step-dot.active {
+        color: #1a4d8f;
+    }
+
+    .reg-step-circle {
+        width: 24px;
+        height: 24px;
+        border-radius: 50%;
+        background: #e2e8f0;
+        color: #64748b;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.75rem;
+        font-weight: 700;
+    }
+
+    .reg-step-dot.active .reg-step-circle {
+        background: #1a4d8f;
+        color: #ffffff;
+    }
+
+    .reg-step-line {
+        width: 40px;
+        height: 2px;
+        background: #e2e8f0;
+    }
+
+    .form-group {
+        margin-bottom: 1.25rem;
+    }
+
+    .form-label {
+        display: block;
+        font-size: 0.875rem;
+        font-weight: 600;
+        color: #1e293b;
+        margin-bottom: 0.4rem;
+    }
+
+    .input-wrapper {
+        position: relative;
+    }
+
+    .input-icon {
+        position: absolute;
+        left: 1rem;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #64748b;
+        pointer-events: none;
+        display: flex;
+        align-items: center;
+    }
+
+    .form-control {
+        width: 100%;
+        padding: 0.8rem 1rem 0.8rem 2.85rem;
+        font-size: 0.95rem;
+        border: 1.5px solid #cbd5e1;
+        border-radius: 10px;
+        color: #0f172a;
+        background-color: #ffffff;
+        transition: all 0.2s ease;
+        box-sizing: border-box;
+    }
+
+    .form-control:focus {
+        outline: none;
+        border-color: #1a4d8f;
+        box-shadow: 0 0 0 4px rgba(26, 77, 143, 0.12);
+    }
+
+    select.form-control {
+        appearance: auto;
+    }
+
+    .btn-auth-primary {
+        width: 100%;
+        padding: 0.9rem 1.5rem;
+        background: linear-gradient(135deg, #1a4d8f 0%, #0d2e59 100%);
+        color: #ffffff;
+        font-size: 1rem;
+        font-weight: 700;
+        border: none;
+        border-radius: 10px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        box-shadow: 0 4px 12px rgba(26, 77, 143, 0.25);
+        margin-top: 1.5rem;
+    }
+
+    .btn-auth-primary:hover {
+        background: linear-gradient(135deg, #153e73 0%, #092040 100%);
+        transform: translateY(-1px);
+        box-shadow: 0 6px 16px rgba(26, 77, 143, 0.35);
+    }
+
+    .btn-auth-primary:disabled {
+        opacity: 0.65;
+        cursor: not-allowed;
+        transform: none;
+    }
+
+    /* OTP Split Inputs */
+    .otp-inputs-grid {
+        display: grid;
+        grid-template-columns: repeat(6, 1fr);
+        gap: 0.5rem;
+        margin: 1.5rem 0 1rem;
+    }
+
+    .otp-digit-input {
+        width: 100%;
+        height: 52px;
+        text-align: center;
+        font-size: 1.5rem;
+        font-weight: 700;
+        font-family: monospace;
+        border: 2px solid #cbd5e1;
+        border-radius: 10px;
+        color: #0f172a;
+        background: #f8fafc;
+        transition: all 0.2s ease;
+        box-sizing: border-box;
+    }
+
+    .otp-digit-input:focus {
+        outline: none;
+        border-color: #1a4d8f;
+        background: #ffffff;
+        box-shadow: 0 0 0 4px rgba(26, 77, 143, 0.15);
+    }
+
+    .otp-info-pill {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        background: #f1f5f9;
+        border: 1px solid #e2e8f0;
+        padding: 0.75rem 1rem;
+        border-radius: 8px;
+        font-size: 0.85rem;
+        color: #334155;
+        margin-bottom: 1.25rem;
+    }
+
+    .auth-alert {
+        display: none;
+        padding: 0.85rem 1rem;
+        border-radius: 8px;
+        font-size: 0.875rem;
+        margin-bottom: 1.25rem;
+        line-height: 1.4;
+    }
+
+    .alert-danger {
+        background: #fef2f2;
+        color: #991b1b;
+        border: 1px solid #fecaca;
+    }
+
+    .alert-success {
+        background: #f0fdf4;
+        color: #166534;
+        border: 1px solid #bbf7d0;
+    }
+
+    .auth-footer-links {
+        margin-top: 1.75rem;
+        padding-top: 1.25rem;
+        border-top: 1px solid #f1f5f9;
+        text-align: center;
+        font-size: 0.875rem;
+        color: #64748b;
+        display: flex;
+        flex-direction: column;
+        gap: 0.6rem;
+    }
+
+    .auth-footer-links a {
+        color: #1a4d8f;
+        text-decoration: none;
+        font-weight: 600;
+    }
+
+    .auth-footer-links a:hover {
+        text-decoration: underline;
+    }
+</style>
+{% endblock %}
+
+{% block body %}
+<div class="jury-reg-page">
+    <div class="jury-reg-card">
+        <!-- Header -->
+        <div class="jury-reg-header">
+            <div class="jury-brand-badge">
+                ⚖️ TechForge 3.0
+            </div>
+            <h1 class="jury-reg-title">Jury Registration</h1>
+            <p class="jury-reg-sub">Create your Evaluator Account with Secure Email OTP Verification</p>
+        </div>
+
+        <!-- Body -->
+        <div class="jury-reg-body">
+            <!-- Step Tracker -->
+            <div class="reg-steps-tracker">
+                <div class="reg-step-dot active" id="dotStep1">
+                    <div class="reg-step-circle">1</div>
+                    <span>Credentials</span>
+                </div>
+                <div class="reg-step-line"></div>
+                <div class="reg-step-dot" id="dotStep2">
+                    <div class="reg-step-circle">2</div>
+                    <span>Email OTP</span>
+                </div>
+            </div>
+
+            <!-- Dynamic Alert Box -->
+            <div id="alertBox" class="auth-alert"></div>
+
+            <!-- STEP 1: Registration Form -->
+            <form id="step1Form">
+                <div class="form-group">
+                    <label for="regName" class="form-label">Full Name & Title</label>
+                    <div class="input-wrapper">
+                        <span class="input-icon">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+                        </span>
+                        <input type="text" id="regName" name="name" class="form-control" placeholder="e.g. Dr. Jane Doe / Er. Rahul Sharma" required autofocus>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="regEmail" class="form-label">Email Address (for OTP Delivery)</label>
+                    <div class="input-wrapper">
+                        <span class="input-icon">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg>
+                        </span>
+                        <input type="email" id="regEmail" name="email" class="form-control" placeholder="judge@example.com" required autocomplete="email">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="regType" class="form-label">Jury Role / Affiliation</label>
+                    <div class="input-wrapper">
+                        <span class="input-icon">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15 8.5 22 9.3 17 14 18.5 21 12 17.3 5.5 21 7 14 2 9.3 9 8.5 12 2"></polygon></svg>
+                        </span>
+                        <select id="regType" name="judge_type" class="form-control">
+                            <option value="INTERNAL_JUDGE">Internal Jury (SRHU Faculty / SST)</option>
+                            <option value="EXTERNAL_JUDGE">External Jury (Industry / Expert)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="regPassword" class="form-label">Create Password (min. 6 characters)</label>
+                    <div class="input-wrapper">
+                        <span class="input-icon">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+                        </span>
+                        <input type="password" id="regPassword" name="password" class="form-control" placeholder="••••••••" minlength="6" required autocomplete="new-password">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="regConfirmPassword" class="form-label">Confirm Password</label>
+                    <div class="input-wrapper">
+                        <span class="input-icon">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+                        </span>
+                        <input type="password" id="regConfirmPassword" name="confirm_password" class="form-control" placeholder="••••••••" minlength="6" required autocomplete="new-password">
+                    </div>
+                </div>
+
+                <button type="submit" class="btn-auth-primary" id="btnSendOtp">
+                    <span>Send Verification OTP</span>
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+                </button>
+            </form>
+
+            <!-- STEP 2: OTP Verification Form -->
+            <form id="step2Form" style="display: none;">
+                <div class="otp-info-pill">
+                    <div>
+                        <span>OTP sent to: </span>
+                        <strong id="displayEmail" style="color: #1a4d8f;"></strong>
+                    </div>
+                    <button type="button" id="btnChangeEmail" style="background: none; border: none; color: #1a4d8f; font-weight: 700; cursor: pointer; text-decoration: underline; font-size: 0.8rem;">
+                        Change
+                    </button>
+                </div>
+
+                <p style="font-size: 0.875rem; color: #64748b; margin-bottom: 0.5rem; text-align: center;">
+                    Enter the 6-digit numeric verification code sent to your email:
+                </p>
+
+                <div class="otp-inputs-grid">
+                    <input type="text" maxlength="1" class="otp-digit-input" data-index="0" inputmode="numeric" pattern="[0-9]*" autofocus>
+                    <input type="text" maxlength="1" class="otp-digit-input" data-index="1" inputmode="numeric" pattern="[0-9]*">
+                    <input type="text" maxlength="1" class="otp-digit-input" data-index="2" inputmode="numeric" pattern="[0-9]*">
+                    <input type="text" maxlength="1" class="otp-digit-input" data-index="3" inputmode="numeric" pattern="[0-9]*">
+                    <input type="text" maxlength="1" class="otp-digit-input" data-index="4" inputmode="numeric" pattern="[0-9]*">
+                    <input type="text" maxlength="1" class="otp-digit-input" data-index="5" inputmode="numeric" pattern="[0-9]*">
+                </div>
+
+                <div style="display: flex; justify-content: space-between; align-items: center; margin: 0.75rem 0 1.25rem; font-size: 0.825rem; color: #64748b;">
+                    <span id="expiryNotice">OTP valid for 5 minutes</span>
+                    <button type="button" id="btnResendOtp" style="background: none; border: none; color: #1a4d8f; font-weight: 600; cursor: pointer; padding: 0;">
+                        Resend OTP (<span id="resendCountdown">45</span>s)
+                    </button>
+                </div>
+
+                <button type="submit" class="btn-auth-primary" id="btnVerifyOtp">
+                    <span>Verify OTP & Create Account</span>
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+                </button>
+            </form>
+
+            <div class="auth-footer-links">
+                <div>
+                    Already registered? <a href="{{ url_for('judge.login') }}">Log in with Email & Password</a>
+                </div>
+                <div>
+                    <a href="{{ url_for('index') }}">← Back to Homepage</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    let currentEmail = '';
+    let currentPassword = '';
+    let currentName = '';
+    let currentJudgeType = 'INTERNAL_JUDGE';
+    let resendTimer = null;
+    let resendSeconds = 45;
+
+    const step1Form = document.getElementById('step1Form');
+    const step2Form = document.getElementById('step2Form');
+    const dotStep1 = document.getElementById('dotStep1');
+    const dotStep2 = document.getElementById('dotStep2');
+    const alertBox = document.getElementById('alertBox');
+    const displayEmail = document.getElementById('displayEmail');
+    const btnSendOtp = document.getElementById('btnSendOtp');
+    const btnVerifyOtp = document.getElementById('btnVerifyOtp');
+    const btnResendOtp = document.getElementById('btnResendOtp');
+    const btnChangeEmail = document.getElementById('btnChangeEmail');
+    const resendCountdown = document.getElementById('resendCountdown');
+    const otpInputs = document.querySelectorAll('.otp-digit-input');
+
+    function showAlert(message, type = 'danger') {
+        alertBox.className = `auth-alert alert-${type}`;
+        alertBox.textContent = message;
+        alertBox.style.display = 'block';
+    }
+
+    function hideAlert() {
+        alertBox.style.display = 'none';
+        alertBox.textContent = '';
+    }
+
+    // Step 1: Send OTP
+    step1Form.addEventListener('submit', async function(e) {
+        e.preventDefault();
+        hideAlert();
+
+        const name = document.getElementById('regName').value.trim();
+        const email = document.getElementById('regEmail').value.trim().toLowerCase();
+        const judgeType = document.getElementById('regType').value;
+        const password = document.getElementById('regPassword').value;
+        const confirmPassword = document.getElementById('regConfirmPassword').value;
+
+        if (password !== confirmPassword) {
+            showAlert('Passwords do not match. Please re-enter your password.', 'danger');
+            return;
+        }
+
+        if (password.length < 6) {
+            showAlert('Password must be at least 6 characters.', 'danger');
+            return;
+        }
+
+        currentName = name;
+        currentEmail = email;
+        currentPassword = password;
+        currentJudgeType = judgeType;
+
+        btnSendOtp.disabled = true;
+        btnSendOtp.innerHTML = '<span>Sending OTP...</span>';
+
+        try {
+            const res = await fetch('/api/auth/judge/register-request-otp', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    email: email,
+                    password: password,
+                    name: name,
+                    judge_type: judgeType
+                })
+            });
+
+            const data = await res.json();
+            if (data.success) {
+                displayEmail.textContent = email;
+                step1Form.style.display = 'none';
+                step2Form.style.display = 'block';
+                dotStep1.classList.remove('active');
+                dotStep2.classList.add('active');
+                showAlert(data.message || 'OTP sent to your email.', 'success');
+                startResendTimer(data.cooldown_seconds || 45);
+                setTimeout(() => otpInputs[0].focus(), 100);
+            } else {
+                showAlert(data.message || 'Failed to send OTP. Please check your details.', 'danger');
+            }
+        } catch (err) {
+            showAlert('Network error. Please try again.', 'danger');
+        } finally {
+            btnSendOtp.disabled = false;
+            btnSendOtp.innerHTML = '<span>Send Verification OTP</span><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>';
+        }
+    });
+
+    // OTP Input Navigation
+    otpInputs.forEach((input, index) => {
+        input.addEventListener('input', (e) => {
+            const val = e.target.value;
+            if (val.length === 1 && index < 5) {
+                otpInputs[index + 1].focus();
+            }
+        });
+
+        input.addEventListener('keydown', (e) => {
+            if (e.key === 'Backspace' && !input.value && index > 0) {
+                otpInputs[index - 1].focus();
+            }
+        });
+
+        input.addEventListener('paste', (e) => {
+            e.preventDefault();
+            const pasteData = (e.clipboardData || window.clipboardData).getData('text').trim();
+            if (/^\d{6}$/.test(pasteData)) {
+                pasteData.split('').forEach((char, i) => {
+                    if (otpInputs[i]) otpInputs[i].value = char;
+                });
+                otpInputs[5].focus();
+            }
+        });
+    });
+
+    // Step 2: Verify OTP
+    step2Form.addEventListener('submit', async function(e) {
+        e.preventDefault();
+        hideAlert();
+
+        let otp = '';
+        otpInputs.forEach(input => { otp += input.value.trim(); });
+
+        if (otp.length !== 6) {
+            showAlert('Please enter the complete 6-digit OTP.', 'danger');
+            return;
+        }
+
+        btnVerifyOtp.disabled = true;
+        btnVerifyOtp.innerHTML = '<span>Verifying & Creating Account...</span>';
+
+        try {
+            const res = await fetch('/api/auth/judge/register-verify-otp', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    email: currentEmail,
+                    otp: otp
+                })
+            });
+
+            const data = await res.json();
+            if (data.success) {
+                showAlert('Account created successfully! Redirecting to Dashboard...', 'success');
+                setTimeout(() => {
+                    window.location.href = data.redirect_url || '/judge/dashboard';
+                }, 1000);
+            } else {
+                showAlert(data.message || 'Invalid OTP. Please try again.', 'danger');
+                otpInputs.forEach(i => i.value = '');
+                otpInputs[0].focus();
+            }
+        } catch (err) {
+            showAlert('Network error. Please try again.', 'danger');
+        } finally {
+            btnVerifyOtp.disabled = false;
+            btnVerifyOtp.innerHTML = '<span>Verify OTP & Create Account</span><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>';
+        }
+    });
+
+    // Change Email
+    btnChangeEmail.addEventListener('click', () => {
+        step2Form.style.display = 'none';
+        step1Form.style.display = 'block';
+        dotStep2.classList.remove('active');
+        dotStep1.classList.add('active');
+        hideAlert();
+        if (resendTimer) clearInterval(resendTimer);
+    });
+
+    // Resend OTP
+    btnResendOtp.addEventListener('click', async () => {
+        if (resendSeconds > 0) return;
+        hideAlert();
+
+        btnResendOtp.disabled = true;
+        try {
+            const res = await fetch('/api/auth/judge/register-request-otp', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    email: currentEmail,
+                    password: currentPassword,
+                    name: currentName,
+                    judge_type: currentJudgeType
+                })
+            });
+            const data = await res.json();
+            if (data.success) {
+                showAlert('A new OTP has been sent to your email.', 'success');
+                startResendTimer(data.cooldown_seconds || 45);
+            } else {
+                showAlert(data.message || 'Could not resend OTP.', 'danger');
+            }
+        } catch (err) {
+            showAlert('Network error resending OTP.', 'danger');
+        }
+    });
+
+    function startResendTimer(seconds) {
+        resendSeconds = seconds;
+        btnResendOtp.disabled = true;
+        resendCountdown.textContent = resendSeconds;
+
+        if (resendTimer) clearInterval(resendTimer);
+        resendTimer = setInterval(() => {
+            resendSeconds--;
+            resendCountdown.textContent = resendSeconds;
+            if (resendSeconds <= 0) {
+                clearInterval(resendTimer);
+                btnResendOtp.disabled = false;
+                btnResendOtp.innerHTML = 'Resend OTP';
+            }
+        }, 1000);
+    }
+});
+</script>
+{% endblock %}

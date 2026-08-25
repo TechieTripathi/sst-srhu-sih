@@ -1,0 +1,244 @@
+{% extends "base.html" %}
+
+{% block title %}Login - {{ event_name }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .login-container {
+        min-height: 100vh;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+    }
+    
+    .login-left {
+        background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+        color: var(--white);
+        padding: var(--space-3xl);
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .login-left::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-image: 
+            radial-gradient(circle at 20% 50%, rgba(255, 255, 255, 0.05) 0%, transparent 50%),
+            radial-gradient(circle at 80% 80%, rgba(255, 255, 255, 0.05) 0%, transparent 50%);
+        pointer-events: none;
+    }
+    
+    .login-content {
+        position: relative;
+        z-index: 1;
+        max-width: 500px;
+    }
+    
+    .login-logo {
+        font-size: var(--text-4xl);
+        font-weight: var(--font-bold);
+        margin-bottom: var(--space-sm);
+        letter-spacing: -0.02em;
+    }
+    
+    .login-subtitle {
+        font-size: var(--text-lg);
+        margin-bottom: var(--space-xs);
+        opacity: 0.95;
+    }
+    
+    .login-university {
+        font-size: var(--text-sm);
+        opacity: 0.8;
+        margin-bottom: var(--space-2xl);
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+    }
+    
+    .login-tagline {
+        font-size: var(--text-2xl);
+        font-weight: var(--font-semibold);
+        margin-bottom: var(--space-xl);
+        letter-spacing: 0.02em;
+    }
+    
+    .login-features {
+        list-style: none;
+        margin: 0;
+    }
+    
+    .login-features li {
+        display: flex;
+        align-items: center;
+        gap: var(--space-md);
+        margin-bottom: var(--space-lg);
+        font-size: var(--text-base);
+        opacity: 0.9;
+    }
+    
+    .login-features li::before {
+        content: '✓';
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 24px;
+        height: 24px;
+        background: rgba(255, 255, 255, 0.2);
+        border-radius: 50%;
+        flex-shrink: 0;
+    }
+    
+    .login-right {
+        background: var(--white);
+        padding: var(--space-3xl);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    .login-form-container {
+        width: 100%;
+        max-width: 400px;
+    }
+    
+    .login-form-header {
+        margin-bottom: var(--space-2xl);
+    }
+    
+    .login-form-title {
+        font-size: var(--text-3xl);
+        font-weight: var(--font-bold);
+        color: var(--text-primary);
+        margin-bottom: var(--space-sm);
+    }
+    
+    .login-form-subtitle {
+        color: var(--text-secondary);
+        font-size: var(--text-base);
+    }
+    
+    .login-form {
+        margin-bottom: var(--space-xl);
+    }
+    
+    .login-help {
+        text-align: center;
+        padding-top: var(--space-xl);
+        border-top: 1px solid var(--border-light);
+    }
+    
+    .login-help-text {
+        color: var(--text-secondary);
+        font-size: var(--text-sm);
+        margin-bottom: var(--space-md);
+    }
+    
+    @media (max-width: 1024px) {
+        .login-container {
+            grid-template-columns: 1fr;
+        }
+        
+        .login-left {
+            min-height: 300px;
+            padding: var(--space-2xl);
+        }
+        
+        .login-features {
+            display: none;
+        }
+    }
+    
+    @media (max-width: 768px) {
+        .login-left,
+        .login-right {
+            padding: var(--space-xl);
+        }
+        
+        .login-logo {
+            font-size: var(--text-3xl);
+        }
+        
+        .login-tagline {
+            font-size: var(--text-xl);
+        }
+    }
+</style>
+{% endblock %}
+
+{% block body %}
+<div class="login-container">
+    <!-- Left Side - Branding -->
+    <div class="login-left">
+        <div class="login-content">
+            <div class="login-logo">TECHFORGE 3.0</div>
+            <div class="login-subtitle">Internal Hackathon</div>
+            <div class="login-university">{{ school_name }} • {{ university_name }}</div>
+            
+            <div class="login-tagline">{{ event_tagline }}</div>
+            
+            <ul class="login-features">
+                <li>Fair & Transparent Evaluation</li>
+                <li>Real-time Judging Platform</li>
+                <li>Comprehensive Scoring System</li>
+                <li>Official SRHU Selection Process</li>
+            </ul>
+        </div>
+    </div>
+    
+    <!-- Right Side - Login Form -->
+    <div class="login-right">
+        <div class="login-form-container">
+            <div class="login-form-header">
+                <h1 class="login-form-title">Welcome Back</h1>
+                <p class="login-form-subtitle">Sign in to access the evaluation platform</p>
+            </div>
+            
+            <form method="POST" action="{{ url_for('auth.login') }}" class="login-form">
+                <div class="form-group">
+                    <label for="email" class="form-label required">Email Address</label>
+                    <input 
+                        type="email" 
+                        id="email" 
+                        name="email" 
+                        class="form-input" 
+                        placeholder="your.email@srhu.edu.in"
+                        required
+                        autofocus
+                    >
+                </div>
+                
+                <div class="form-group">
+                    <label for="password" class="form-label required">Password</label>
+                    <input 
+                        type="password" 
+                        id="password" 
+                        name="password" 
+                        class="form-input" 
+                        placeholder="Enter your password"
+                        required
+                    >
+                </div>
+                
+                <button type="submit" class="btn btn-primary btn-lg btn-block">
+                    Sign In
+                </button>
+            </form>
+            
+            <div class="login-help">
+                <p class="login-help-text">
+                    Need help accessing your account?
+                </p>
+                <p style="color: var(--text-tertiary); font-size: var(--text-sm);">
+                    Contact the event coordinators for assistance
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

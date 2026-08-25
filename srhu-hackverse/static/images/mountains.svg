@@ -1,0 +1,22 @@
+<svg viewBox="0 0 1440 280" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none">
+  <defs>
+    <linearGradient id="mtn-grad-1" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.15" />
+      <stop offset="100%" stop-color="#ffffff" stop-opacity="0.02" />
+    </linearGradient>
+    <linearGradient id="mtn-grad-2" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.08" />
+      <stop offset="100%" stop-color="#ffffff" stop-opacity="0.01" />
+    </linearGradient>
+  </defs>
+
+  <!-- Far Himalayan Peaks -->
+  <polygon points="0,280 0,180 140,80 260,150 380,50 510,140 640,30 760,120 890,60 1020,150 1150,40 1290,130 1440,70 1440,280" fill="url(#mtn-grad-2)" />
+  
+  <!-- Subtle Ridge Accents -->
+  <polyline points="0,180 140,80 260,150 380,50 510,140 640,30 760,120 890,60 1020,150 1150,40 1290,130 1440,70" fill="none" stroke="#ffffff" stroke-opacity="0.2" stroke-width="1.5" />
+  
+  <!-- Foreground Foothills & Contours -->
+  <polygon points="0,280 0,220 120,160 250,210 390,130 530,190 680,110 810,180 960,120 1100,190 1260,140 1380,180 1440,150 1440,280" fill="url(#mtn-grad-1)" />
+  <polyline points="0,220 120,160 250,210 390,130 530,190 680,110 810,180 960,120 1100,190 1260,140 1380,180 1440,150" fill="none" stroke="#ffffff" stroke-opacity="0.25" stroke-width="1.5" />
+</svg>

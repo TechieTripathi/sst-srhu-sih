@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% block title %}My Team{% endblock %}
+{% block page_title %}My Team{% endblock %}
+{% block content %}
+
+{% if team %}
+<div class="card">
+  <h3 style="margin-top:0;">{{ team.team_name }}</h3>
+  <p><strong>Project:</strong> {{ team.project_name }}</p>
+  <p><strong>Track:</strong> {{ team.track }}</p>
+  <p><strong>Presentation Slot:</strong> {{ team.presentation_slot or 'Not scheduled yet' }}</p>
+  <p><strong>Status:</strong> <span class="badge badge-progress">{{ team.status }}</span></p>
+</div>
+{% else %}
+<div class="empty-state">
+  <h3>No Team Profile Found</h3>
+  <p>Your team profile hasn't been linked to this account yet. Contact the Admin.</p>
+</div>
+{% endif %}
+{% endblock %}

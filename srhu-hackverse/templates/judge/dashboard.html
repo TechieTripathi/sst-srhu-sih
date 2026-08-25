@@ -1,0 +1,227 @@
+{% extends "base.html" %}
+
+{% block title %}{{ judge_type_display }} Dashboard - TechForge 3.0{% endblock %}
+
+{% block content %}
+<div class="container" style="padding: var(--space-xl) var(--space-lg); max-width: 1200px; margin: 0 auto;">
+    <!-- Top Header Banner -->
+    <div style="background: linear-gradient(135deg, #07192f 0%, #0d2e59 100%); border-radius: var(--radius-xl); padding: 2rem 2.5rem; color: #ffffff; margin-bottom: 2rem; box-shadow: 0 10px 25px -5px rgba(7, 25, 47, 0.2); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1.5rem;">
+        <div>
+            <div style="display: inline-flex; align-items: center; gap: 0.5rem; background: rgba(255, 255, 255, 0.12); padding: 0.35rem 0.85rem; border-radius: 20px; font-size: 0.75rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: #93c5fd; margin-bottom: 0.5rem; border: 1px solid rgba(255, 255, 255, 0.15);">
+                ⚡ TECHFORGE 3.0 • SST SRHU
+            </div>
+            <h1 style="font-size: 1.85rem; font-weight: 800; margin: 0 0 0.4rem; color: #ffffff;">
+                {{ judge_type_display }} Dashboard
+            </h1>
+            <div style="font-size: 0.95rem; color: #cbd5e1; display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap;">
+                <span>Welcome, <strong>{{ user.name }}</strong></span>
+                <span>•</span>
+                {% if judge_type == 'INTERNAL_JUDGE' %}
+                    <span class="badge badge-success" style="background: #10b981; color: #ffffff; font-weight: 700;">Internal Jury</span>
+                    <span>•</span>
+                    <span style="color: #fbbf24; font-weight: 700;">📍 {{ panel_id }}</span>
+                {% else %}
+                    <span class="badge badge-info" style="background: #3b82f6; color: #ffffff; font-weight: 700;">External Jury</span>
+                    <span>•</span>
+                    <span style="color: #60a5fa; font-weight: 700;">🌐 External Jury</span>
+                {% endif %}
+            </div>
+        </div>
+
+        <div>
+            <a href="{{ url_for('auth.logout') }}" class="btn btn-secondary" style="background: rgba(255, 255, 255, 0.15); color: #ffffff; border: 1px solid rgba(255, 255, 255, 0.25); font-weight: 600; padding: 0.65rem 1.25rem; border-radius: 8px;">
+                🚪 Logout
+            </a>
+        </div>
+    </div>
+
+    <!-- Judging Locked Banner (if active) -->
+    {% if judging_status and judging_status.is_locked %}
+    <div style="background: #fef2f2; border: 1.5px solid #f87171; border-radius: var(--radius-lg); padding: 1.25rem 1.5rem; margin-bottom: 2rem; display: flex; align-items: center; gap: 1rem;">
+        <div style="font-size: 1.75rem;">🔒</div>
+        <div style="flex: 1;">
+            <div style="font-weight: 800; color: #991b1b; font-size: 1rem; margin-bottom: 0.25rem;">
+                Judging Submissions are Locked
+            </div>
+            <div style="color: #b91c1c; font-size: 0.85rem;">
+                {% if judging_status.lock_reason %}
+                    {{ judging_status.lock_reason }}
+                {% else %}
+                    Evaluation submissions have been sealed for final committee review. You can view existing scores but cannot make modifications.
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Metric Cards Grid -->
+    <div class="grid grid-cols-4" style="margin-bottom: 2rem; gap: 1.25rem;">
+        <!-- Assigned Teams -->
+        <div class="card" style="padding: 1.5rem; border-left: 4px solid var(--primary); box-shadow: var(--shadow-sm);">
+            <div style="font-size: 0.8rem; font-weight: 700; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.5rem;">
+                Assigned Teams
+            </div>
+            <div style="font-size: 2rem; font-weight: 800; color: var(--primary);">
+                {{ teams|length }}
+            </div>
+        </div>
+
+        <!-- Completed Evaluations -->
+        <div class="card" style="padding: 1.5rem; border-left: 4px solid #10b981; box-shadow: var(--shadow-sm);">
+            <div style="font-size: 0.8rem; font-weight: 700; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.5rem;">
+                Completed
+            </div>
+            <div style="font-size: 2rem; font-weight: 800; color: #10b981;">
+                {{ evaluations_count }}
+            </div>
+        </div>
+
+        <!-- Pending Evaluations -->
+        <div class="card" style="padding: 1.5rem; border-left: 4px solid #f59e0b; box-shadow: var(--shadow-sm);">
+            <div style="font-size: 0.8rem; font-weight: 700; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.5rem;">
+                Pending
+            </div>
+            <div style="font-size: 2rem; font-weight: 800; color: #f59e0b;">
+                {{ pending_count }}
+            </div>
+        </div>
+
+        <!-- Average Score Given -->
+        <div class="card" style="padding: 1.5rem; border-left: 4px solid #8b5cf6; box-shadow: var(--shadow-sm);">
+            <div style="font-size: 0.8rem; font-weight: 700; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.5rem;">
+                Average Score
+            </div>
+            <div style="font-size: 2rem; font-weight: 800; color: #8b5cf6;">
+                {{ avg_score }} <span style="font-size: 1rem; color: #94a3b8; font-weight: 600;">/ 100</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Assigned Teams Table -->
+    <div class="card" style="margin-bottom: 2rem; box-shadow: var(--shadow-md); overflow: hidden;">
+        <div class="card-header" style="background: #ffffff; border-bottom: 1px solid var(--border-light); padding: 1.25rem 1.5rem; display: flex; justify-content: space-between; align-items: center;">
+            <h2 class="card-title" style="font-size: 1.1rem; margin: 0; color: var(--primary);">
+                📋 Assigned Teams for Evaluation
+            </h2>
+            <span style="font-size: 0.85rem; color: var(--text-secondary);">
+                Only showing teams assigned to your jury panel
+            </span>
+        </div>
+
+        {% if teams %}
+        <div class="table-container">
+            <table class="table" style="width: 100%; margin: 0;">
+                <thead>
+                    <tr style="background: #f8fafc;">
+                        <th>Team Code</th>
+                        <th>Team Name</th>
+                        <th>Leader</th>
+                        <th>Theme / Problem</th>
+                        <th>Status</th>
+                        <th style="text-align: right;">Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for team in teams %}
+                    <tr>
+                        <td>
+                            <code style="font-size: 0.85rem; font-weight: 700; color: var(--primary); background: #e0f2fe; padding: 0.25rem 0.5rem; border-radius: 4px;">
+                                {{ team.team_code }}
+                            </code>
+                        </td>
+                        <td style="font-weight: 700; color: #1e293b;">
+                            {{ team.team_name }}
+                        </td>
+                        <td style="color: #475569;">
+                            {{ team.leader_name }}
+                        </td>
+                        <td style="color: #64748b; font-size: 0.85rem;">
+                            {{ team.theme_name or team.theme or '-' }}
+                        </td>
+                        <td>
+                            {% if team.evaluated %}
+                                <span class="badge badge-success" style="background: #dcfce7; color: #166534; font-weight: 700; border: 1px solid #bbf7d0;">
+                                    ✓ Evaluated
+                                </span>
+                            {% else %}
+                                <span class="badge badge-warning" style="background: #fef3c7; color: #92400e; font-weight: 700; border: 1px solid #fde68a;">
+                                    ⏳ Pending
+                                </span>
+                            {% endif %}
+                        </td>
+                        <td style="text-align: right;">
+                            {% if team.evaluated %}
+                                <button class="btn btn-sm btn-secondary" disabled style="opacity: 0.75;">
+                                    ✓ Submitted
+                                </button>
+                            {% elif judging_status and judging_status.is_locked %}
+                                <button class="btn btn-sm btn-secondary" disabled title="Judging is locked">
+                                    🔒 Locked
+                                </button>
+                            {% else %}
+                                <a href="{{ url_for('judge.evaluate_team', team_id=team._id) }}" class="btn btn-sm btn-primary" style="font-weight: 700;">
+                                    Evaluate →
+                                </a>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div style="text-align: center; padding: 3.5rem 1.5rem;">
+            <div style="font-size: 3rem; margin-bottom: 0.75rem;">📋</div>
+            <h3 style="font-size: 1.1rem; font-weight: 700; color: #1e293b; margin: 0 0 0.5rem;">No Teams Assigned Yet</h3>
+            <p style="color: #64748b; font-size: 0.85rem; max-width: 420px; margin: 0 auto;">
+                The steering committee has not allocated team presentations to your jury panel yet. Please check back shortly.
+            </p>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Official Evaluation Guidelines Box -->
+    <div class="card" style="box-shadow: var(--shadow-sm); border: 1px solid var(--border-light);">
+        <div class="card-header" style="background: #ffffff; border-bottom: 1px solid var(--border-light); padding: 1.25rem 1.5rem;">
+            <h3 class="card-title" style="font-size: 1rem; margin: 0; color: var(--primary);">
+                📐 Official TechForge 3.0 Evaluation Matrix
+            </h3>
+        </div>
+        <div class="card-body" style="padding: 1.5rem;">
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem;">
+                <div>
+                    <div style="font-weight: 700; color: var(--primary); font-size: 0.9rem; margin-bottom: 0.75rem;">
+                        Six Evaluation Criteria (0 - 10 Scale)
+                    </div>
+                    <ul style="font-size: 0.85rem; color: #475569; padding-left: 1.25rem; margin: 0; line-height: 1.8;">
+                        <li><strong>Problem Understanding & Relevance:</strong> 15%</li>
+                        <li><strong>Innovation & Differentiation:</strong> 15%</li>
+                        <li><strong>Technical Design & Feasibility:</strong> 20%</li>
+                        <li><strong>Prototype & Implementation:</strong> 25%</li>
+                        <li><strong>Impact, Scalability & Sustainability:</strong> 15%</li>
+                        <li><strong>Presentation & Team Response:</strong> 10%</li>
+                    </ul>
+                </div>
+
+                <div>
+                    <div style="font-weight: 700; color: var(--primary); font-size: 0.9rem; margin-bottom: 0.75rem;">
+                        Jury Weightage & Aggregation
+                    </div>
+                    <div style="font-size: 0.85rem; color: #475569; line-height: 1.6;">
+                        <p style="margin: 0 0 0.5rem;">
+                            {% if judge_type == 'INTERNAL_JUDGE' %}
+                                As an <strong>Internal Jury Member</strong>, your scores contribute <strong>40%</strong> to the final composite score.
+                            {% else %}
+                                As an <strong>External Jury Member</strong>, your scores contribute <strong>60%</strong> to the final composite score.
+                            {% endif %}
+                        </p>
+                        <p style="margin: 0; color: #64748b;">
+                            ⚠️ <em>Submissions are immutable once completed. Ensure thorough review before final submission.</em>
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,173 @@
+{% extends "base.html" %}
+
+{% block title %}{% block super_admin_title %}Super Admin{% endblock %} - TECHFORGE 3.0 | SRHU SST{% endblock %}
+
+{% block body %}
+<div class="app-layout">
+    <!-- Super Admin Sidebar -->
+    <aside class="sidebar" style="border-right: 1px solid rgba(26, 77, 143, 0.15);">
+        <div class="sidebar-header" style="background: linear-gradient(135deg, #07192f 0%, #0d2e59 100%);">
+            <div style="display: inline-flex; align-items: center; gap: 0.35rem; background: var(--accent); color: var(--white); font-size: 0.65rem; font-weight: 800; padding: 0.15rem 0.5rem; border-radius: 4px; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.35rem;">
+                SUPER ADMIN
+            </div>
+            <div class="sidebar-title" style="font-size: 1.15rem; font-weight: 800;">TECHFORGE 3.0</div>
+            <div class="sidebar-subtitle" style="font-size: 0.75rem; opacity: 0.85; letter-spacing: 0.05em;">Super Administration • SST</div>
+        </div>
+        
+        <nav class="sidebar-nav">
+            <!-- Overview -->
+            <div class="sidebar-nav-section">
+                <div class="sidebar-nav-label">Overview</div>
+                <a href="{{ url_for('super_admin.dashboard') }}" class="sidebar-nav-item {% if request.endpoint == 'super_admin.dashboard' %}active{% endif %}">
+                    <span class="sidebar-nav-icon">📊</span>
+                    <span>Dashboard</span>
+                </a>
+            </div>
+
+            <!-- Administration (Super Admin Exclusive) -->
+            <div class="sidebar-nav-section">
+                <div class="sidebar-nav-label" style="color: var(--accent); font-weight: 700;">Governance</div>
+                <a href="{{ url_for('super_admin.manage_admins') }}" class="sidebar-nav-item {% if request.endpoint == 'super_admin.manage_admins' %}active{% endif %}">
+                    <span class="sidebar-nav-icon">🛡️</span>
+                    <span>Admin Management</span>
+                </a>
+                <a href="{{ url_for('super_admin.audit_logs') }}" class="sidebar-nav-item {% if request.endpoint == 'super_admin.audit_logs' %}active{% endif %}">
+                    <span class="sidebar-nav-icon">📋</span>
+                    <span>Audit Logs</span>
+                </a>
+                <a href="{{ url_for('super_admin.system_settings') }}" class="sidebar-nav-item {% if request.endpoint == 'super_admin.system_settings' %}active{% endif %}">
+                    <span class="sidebar-nav-icon">⚙️</span>
+                    <span>System Settings</span>
+                </a>
+            </div>
+            
+            <!-- Participants -->
+            <div class="sidebar-nav-section">
+                <div class="sidebar-nav-label">Participants</div>
+                <a href="{{ url_for('admin.teams_list') }}" class="sidebar-nav-item {% if 'teams' in request.endpoint %}active{% endif %}">
+                    <span class="sidebar-nav-icon">👥</span>
+                    <span>Teams & Roster</span>
+                </a>
+            </div>
+            
+            <!-- Jury -->
+            <div class="sidebar-nav-section">
+                <div class="sidebar-nav-label">Jury & Panels</div>
+                <a href="{{ url_for('admin.judges_list') }}" class="sidebar-nav-item {% if 'judges' in request.endpoint %}active{% endif %}">
+                    <span class="sidebar-nav-icon">⚖️</span>
+                    <span>All Judges</span>
+                </a>
+                <a href="{{ url_for('admin.panels_list') }}" class="sidebar-nav-item {% if 'panels' in request.endpoint %}active{% endif %}">
+                    <span class="sidebar-nav-icon">🎯</span>
+                    <span>Jury Panels</span>
+                </a>
+                <a href="{{ url_for('admin.assignments_management') }}" class="sidebar-nav-item {% if 'assignments' in request.endpoint %}active{% endif %}">
+                    <span class="sidebar-nav-icon">🔗</span>
+                    <span>Assignments</span>
+                </a>
+            </div>
+            
+            <!-- Evaluation -->
+            <div class="sidebar-nav-section">
+                <div class="sidebar-nav-label">Evaluation Engine</div>
+                <a href="{{ url_for('admin.evaluations_list') }}" class="sidebar-nav-item {% if 'evaluations_list' in request.endpoint %}active{% endif %}">
+                    <span class="sidebar-nav-icon">📝</span>
+                    <span>All Evaluations</span>
+                </a>
+                <a href="{{ url_for('admin.checkpoints_management') }}" class="sidebar-nav-item {% if 'checkpoints' in request.endpoint %}active{% endif %}">
+                    <span class="sidebar-nav-icon">📍</span>
+                    <span>36H Checkpoints</span>
+                </a>
+                <a href="{{ url_for('admin.settings') }}" class="sidebar-nav-item {% if request.endpoint == 'admin.settings' %}active{% endif %}">
+                    <span class="sidebar-nav-icon">📐</span>
+                    <span>6 Criteria & Weights</span>
+                </a>
+            </div>
+            
+            <!-- Results -->
+            <div class="sidebar-nav-section">
+                <div class="sidebar-nav-label">Results & Leaderboard</div>
+                <a href="{{ url_for('admin.results_overview') }}" class="sidebar-nav-item {% if 'results_overview' in request.endpoint %}active{% endif %}">
+                    <span class="sidebar-nav-icon">🏆</span>
+                    <span>Rankings & Tie-Break</span>
+                </a>
+                <a href="{{ url_for('results.leaderboard') }}" class="sidebar-nav-item">
+                    <span class="sidebar-nav-icon">📊</span>
+                    <span>Live Leaderboard</span>
+                </a>
+                <a href="{{ url_for('admin.export_results') }}" class="sidebar-nav-item">
+                    <span class="sidebar-nav-icon">⬇️</span>
+                    <span>Export Results (CSV)</span>
+                </a>
+                <a href="{{ url_for('admin.export_teams') }}" class="sidebar-nav-item">
+                    <span class="sidebar-nav-icon">📤</span>
+                    <span>Export Teams (CSV)</span>
+                </a>
+            </div>
+
+            <!-- Exit -->
+            <div class="sidebar-nav-section">
+                <div class="sidebar-nav-label">Session</div>
+                <a href="{{ url_for('index') }}" class="sidebar-nav-item">
+                    <span class="sidebar-nav-icon">🌐</span>
+                    <span>Public Homepage</span>
+                </a>
+                <a href="{{ url_for('auth.logout') }}" class="sidebar-nav-item" style="color: var(--danger);">
+                    <span class="sidebar-nav-icon">🚪</span>
+                    <span>Sign Out</span>
+                </a>
+            </div>
+        </nav>
+    </aside>
+    
+    <!-- Main Content Area -->
+    <main class="main-content">
+        <!-- Top Navigation Bar -->
+        <div style="background: var(--white); border-bottom: 1px solid var(--border-light); padding: 1rem 2rem; display: flex; justify-content: space-between; align-items: center; box-shadow: var(--shadow-xs);">
+            <div style="display: flex; align-items: center; gap: 1rem;">
+                <button onclick="TechForge.toggleSidebar()" class="btn btn-sm btn-secondary" style="display: none;" id="super-mobile-menu-btn">
+                    ☰ Menu
+                </button>
+                <div>
+                    <h2 style="font-size: 1.15rem; font-weight: 700; color: var(--primary); margin: 0;">
+                        {% block super_admin_page_heading %}Super Administration{% endblock %}
+                    </h2>
+                    <span style="font-size: 0.75rem; color: var(--text-tertiary);">
+                        Swami Rama Himalayan University • School of Science & Technology
+                    </span>
+                </div>
+            </div>
+            
+            <div style="display: flex; align-items: center; gap: 1.25rem;">
+                <a href="{{ url_for('index') }}" class="btn btn-sm btn-secondary" style="font-size: 0.8rem;">
+                    🌐 Public View
+                </a>
+                <div style="text-align: right;">
+                    <div style="font-size: 0.875rem; font-weight: 700; color: var(--text-primary);">
+                        {{ user_name or 'Super Administrator' }}
+                    </div>
+                    <div style="font-size: 0.725rem; font-weight: 600; color: var(--accent);">
+                        SUPER ADMIN
+                    </div>
+                </div>
+                <div style="width: 38px; height: 38px; border-radius: 50%; background: linear-gradient(135deg, var(--accent) 0%, var(--accent-dark) 100%); color: var(--white); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.9rem; box-shadow: 0 2px 8px rgba(196, 30, 58, 0.3);">
+                    SA
+                </div>
+            </div>
+        </div>
+        
+        <!-- Content Wrapper -->
+        <div class="content-wrapper" style="padding: 2rem;">
+            {% block super_admin_content %}{% endblock %}
+        </div>
+    </main>
+</div>
+
+<style>
+    @media (max-width: 768px) {
+        #super-mobile-menu-btn {
+            display: inline-flex !important;
+        }
+    }
+</style>
+{% endblock %}

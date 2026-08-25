@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+{% block title %}Jury Session{% endblock %}
+{% block page_title %}Jury Session{% endblock %}
+{% block content %}
+
+{% if current %}
+<div class="session-panel">
+  <div class="session-panel__label">Current Presentation</div>
+  <div class="session-panel__team">{{ current.team.team_name }}</div>
+  <div class="session-panel__project">{{ current.team.project_name }}</div>
+  <div class="session-timer" data-timer data-seconds="{{ timer_seconds }}">00:00</div>
+  {% if next_row %}
+  <div class="session-panel__next">Next: {{ next_row.team.team_name }} — {{ next_row.team.project_name }}</div>
+  {% else %}
+  <div class="session-panel__next">This is the last team in your queue.</div>
+  {% endif %}
+  <div style="margin-top:16px;">
+    <a class="btn btn-primary btn-sm" href="{{ url_for('jury.evaluate', team_id=current.team._id) }}">Evaluate Now</a>
+  </div>
+</div>
+{% else %}
+<div class="empty-state">
+  <h3>No Pending Presentations</h3>
+  <p>All your assigned teams have been evaluated.</p>
+</div>
+{% endif %}
+
+<div class="section-heading"><h2>Session Queue</h2></div>
+{% if rows %}
+<div class="table-wrap table-scroll">
+  <table class="data-table">
+    <thead><tr><th>Team</th><th>Project</th><th>Slot</th><th>Status</th></tr></thead>
+    <tbody>
+      {% for row in rows %}
+      <tr>
+        <td data-label="Team">{{ row.team.team_name }}</td>
+        <td data-label="Project">{{ row.team.project_name }}</td>
+        <td data-label="Slot">{{ row.team.presentation_slot or '—' }}</td>
+        <td data-label="Status">
+          {% if row.status == 'submitted' %}<span class="badge badge-completed">Completed</span>
+          {% elif row.status == 'in_progress' %}<span class="badge badge-progress">In Progress</span>
+          {% else %}<span class="badge badge-pending">Pending</span>{% endif %}
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% else %}
+<div class="empty-state"><h3>No Teams Assigned</h3></div>
+{% endif %}
+{% endblock %}
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/timer.js') }}"></script>
+{% endblock %}

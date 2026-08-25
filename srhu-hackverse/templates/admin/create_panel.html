@@ -1,0 +1,109 @@
+{% extends "admin/base_admin.html" %}
+
+{% block admin_title %}Create Jury Panel{% endblock %}
+
+{% block admin_content %}
+<!-- Page Header -->
+<div class="page-header">
+    <div>
+        <a href="{{ url_for('admin.panels_list') }}" style="color: var(--primary); font-size: var(--text-sm); margin-bottom: var(--space-sm); display: inline-block;">
+            ← Back to Panels
+        </a>
+        <h1 class="page-title">Create Jury Panel</h1>
+        <p class="page-subtitle">Organize judges into panels for distributed evaluation</p>
+    </div>
+</div>
+
+<!-- Create Panel Form -->
+<div style="max-width: 800px;">
+    <div class="card">
+        <div class="card-header">
+            <h3 class="card-title">Panel Information</h3>
+        </div>
+        <div class="card-body">
+            <form method="POST" action="{{ url_for('admin.create_panel_form') }}">
+                <div class="form-group">
+                    <label for="panel_name" class="form-label required">Panel Name</label>
+                    <input 
+                        type="text" 
+                        id="panel_name" 
+                        name="panel_name" 
+                        class="form-input" 
+                        placeholder="Jury Panel 1"
+                        required
+                        autofocus
+                    >
+                    <span class="form-help">Descriptive name for the panel</span>
+                </div>
+                
+                <div class="form-group">
+                    <label for="panel_id" class="form-label required">Panel ID</label>
+                    <input 
+                        type="text" 
+                        id="panel_id" 
+                        name="panel_id" 
+                        class="form-input" 
+                        placeholder="panel_1"
+                        required
+                        pattern="[a-z0-9_]+"
+                    >
+                    <span class="form-help">Unique identifier (lowercase, numbers, underscores only)</span>
+                </div>
+                
+                <div class="form-group">
+                    <label for="coordinator_name" class="form-label">Panel Coordinator</label>
+                    <input 
+                        type="text" 
+                        id="coordinator_name" 
+                        name="coordinator_name" 
+                        class="form-input" 
+                        placeholder="Dr. Neel Mani"
+                    >
+                    <span class="form-help">Optional: Name of the overall panel coordinator</span>
+                </div>
+                
+                <div class="form-group">
+                    <label for="description" class="form-label">Description</label>
+                    <textarea 
+                        id="description" 
+                        name="description" 
+                        class="form-textarea" 
+                        placeholder="Overall Jury Coordination and Panel 1"
+                        rows="3"
+                    ></textarea>
+                    <span class="form-help">Optional description of the panel's role</span>
+                </div>
+                
+                <div style="background: var(--info-light); padding: var(--space-lg); border-radius: var(--radius-md); border-left: 4px solid var(--info); margin: var(--space-xl) 0;">
+                    <div style="font-weight: var(--font-semibold); color: var(--info-dark); margin-bottom: var(--space-sm);">
+                        TechForge 3.0 Official Panels
+                    </div>
+                    <ul style="margin: 0; padding-left: var(--space-lg); color: var(--info-dark); font-size: var(--text-sm);">
+                        <li style="margin-bottom: var(--space-xs);"><strong>panel_1:</strong> Overall Jury Coordination and Jury Panel 1</li>
+                        <li style="margin-bottom: var(--space-xs);"><strong>panel_2:</strong> Judging and Jury — Panel 2</li>
+                        <li style="margin-bottom: var(--space-xs);"><strong>panel_3:</strong> Judging and Jury — Panel 3</li>
+                        <li style="margin-bottom: var(--space-xs);"><strong>panel_4:</strong> Judging and Jury — Panel 4</li>
+                        <li style="margin-bottom: var(--space-xs);"><strong>panel_5:</strong> Judging and Jury — Panel 5</li>
+                    </ul>
+                </div>
+                
+                <div class="form-actions">
+                    <a href="{{ url_for('admin.panels_list') }}" class="btn btn-secondary">
+                        Cancel
+                    </a>
+                    <button type="submit" class="btn btn-primary" style="flex: 1;">
+                        Create Panel
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Convert panel_id to lowercase and replace spaces with underscores
+    document.getElementById('panel_id').addEventListener('input', function(e) {
+        this.value = this.value.toLowerCase().replace(/[^a-z0-9_]/g, '_');
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% block title %}Teams{% endblock %}
+{% block page_title %}Teams{% endblock %}
+{% block content %}
+
+<div class="section-heading">
+  <h2>All Teams</h2>
+  <a href="{{ url_for('admin.new_team') }}" class="btn btn-primary btn-sm">+ Add Team</a>
+</div>
+
+{% if teams %}
+<div class="table-wrap table-scroll">
+  <table class="data-table">
+    <thead><tr><th>Team ID</th><th>Team</th><th>Project</th><th>Track</th><th>Status</th><th>Actions</th></tr></thead>
+    <tbody>
+      {% for t in teams %}
+      <tr>
+        <td data-label="Team ID">{{ t.team_id }}</td>
+        <td data-label="Team">{{ t.team_name }}</td>
+        <td data-label="Project">{{ t.project_name }}</td>
+        <td data-label="Track">{{ t.track }}</td>
+        <td data-label="Status"><span class="badge badge-progress">{{ t.status }}</span></td>
+        <td data-label="Actions">
+          <a class="btn btn-secondary btn-sm" href="{{ url_for('admin.edit_team', team_id=t._id) }}">Edit</a>
+          <form method="POST" action="{{ url_for('admin.remove_team', team_id=t._id) }}" style="display:inline;" onsubmit="return confirm('Delete this team?');">
+            <button type="submit" class="btn btn-outline btn-sm">Delete</button>
+          </form>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% else %}
+<div class="empty-state">
+  <h3>No Teams Yet</h3>
+  <p>Teams will appear here once they are added.</p>
+</div>
+{% endif %}
+{% endblock %}

@@ -1,6 +1,6 @@
-# Flask Application with Jinja Templates
+# Flask Jinja2 Demo Application
 
-A simple Flask web application demonstrating Jinja2 templating features.
+A simple Flask application demonstrating Jinja2 templating features.
 
 ## Features
 
@@ -14,10 +14,9 @@ A simple Flask web application demonstrating Jinja2 templating features.
 ## Project Structure
 
 ```
-Hackathon_Platforms/
+demo_app/
 │
 ├── app.py                 # Main Flask application
-├── requirements.txt       # Python dependencies
 ├── README.md             # This file
 │
 └── templates/            # Jinja2 templates
@@ -28,25 +27,21 @@ Hackathon_Platforms/
     └── contact.html      # Contact form
 ```
 
-## Installation
+## Running the Demo App
 
-1. Install Python 3.x if not already installed
-
-2. Install Flask:
+1. Navigate to the demo_app directory:
 ```bash
-pip install -r requirements.txt
+cd demo_app
 ```
 
-## Running the Application
-
-1. Run the Flask app:
+2. Run the Flask app (uses port 5001 to avoid conflicts):
 ```bash
 python app.py
 ```
 
-2. Open your browser and navigate to:
+3. Open your browser and navigate to:
 ```
-http://127.0.0.1:5000
+http://127.0.0.1:5001
 ```
 
 ## Jinja2 Features Demonstrated
@@ -54,6 +49,7 @@ http://127.0.0.1:5000
 ### Template Inheritance
 - `{% extends "base.html" %}` - Inherit from base template
 - `{% block content %}` - Define content blocks
+- `{% block extra_styles %}` - Additional CSS blocks
 
 ### Variables
 - `{{ variable }}` - Display variable values
@@ -76,13 +72,9 @@ http://127.0.0.1:5000
 - **Gallery** (`/gallery`) - Image grid demonstrating loops
 - **Contact** (`/contact`) - Form with GET/POST handling
 
-## Customization
+## Integration with Main App
 
-Feel free to modify:
-- Add more routes in `app.py`
-- Create new templates in `templates/`
-- Update styles in `base.html`
-- Add static files (CSS, JS, images) in a `static/` folder
+This demo app runs separately on port 5001 to avoid conflicts with your main hackathon application (port 5000). You can study the Jinja2 patterns here and apply them to your main application.
 
 ## License
 

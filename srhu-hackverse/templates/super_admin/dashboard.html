@@ -1,0 +1,271 @@
+{% extends "super_admin/base_super_admin.html" %}
+
+{% block super_admin_title %}Dashboard - Super Administration{% endblock %}
+{% block super_admin_page_heading %}Super Administration Dashboard{% endblock %}
+
+{% block super_admin_content %}
+<!-- Welcome & Quick Status Bar -->
+<div style="background: linear-gradient(135deg, #07192f 0%, #0d2f5a 60%, #1a4d8f 100%); color: var(--white); border-radius: var(--radius-xl); padding: 2rem; margin-bottom: 2rem; box-shadow: var(--shadow-lg); position: relative; overflow: hidden;">
+    <div style="position: relative; z-index: 2;">
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: gap: 1rem;">
+            <div>
+                <span style="background: var(--accent); color: var(--white); font-size: 0.7rem; font-weight: 700; padding: 0.2rem 0.6rem; border-radius: var(--radius-full); text-transform: uppercase; letter-spacing: 0.05em;">
+                    Apex Authority • Super Admin
+                </span>
+                <h1 style="font-size: 2rem; font-weight: 800; color: var(--white); margin: 0.5rem 0 0.25rem;">
+                    TECHFORGE 3.0
+                </h1>
+                <p style="font-size: 1rem; color: rgba(255, 255, 255, 0.85); margin: 0;">
+                    Institutional Selection Round aligned with Smart India Hackathon (SIH) 2026 • School of Science & Technology, SRHU
+                </p>
+            </div>
+            <div style="display: flex; gap: 0.75rem; flex-wrap: wrap;">
+                <a href="{{ url_for('super_admin.manage_admins') }}" class="btn btn-sm" style="background: rgba(255, 255, 255, 0.15); color: var(--white); border: 1px solid rgba(255, 255, 255, 0.25);">
+                    🛡️ Manage Admins
+                </a>
+                <a href="{{ url_for('admin.checkpoints_management') }}" class="btn btn-sm" style="background: rgba(255, 255, 255, 0.15); color: var(--white); border: 1px solid rgba(255, 255, 255, 0.25);">
+                    📍 36H Checkpoints
+                </a>
+                <a href="{{ url_for('results.leaderboard') }}" class="btn btn-sm" style="background: var(--accent); color: var(--white); border: 1px solid rgba(255, 255, 255, 0.2);">
+                    🏆 View Leaderboard
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Primary Metrics Grid -->
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1.25rem; margin-bottom: 2rem;">
+    <!-- Teams Card -->
+    <div class="stat-card" style="border-left-color: var(--primary);">
+        <div class="stat-value" style="color: var(--primary);">{{ stats.total_teams }}</div>
+        <div class="stat-label">Total Teams</div>
+        <div style="font-size: 0.8rem; color: var(--text-tertiary); margin-top: 0.35rem;">
+            {{ stats.registered_teams }} active registrations
+        </div>
+    </div>
+
+    <!-- Judges Card -->
+    <div class="stat-card" style="border-left-color: #6366f1;">
+        <div class="stat-value" style="color: #4f46e5;">{{ stats.total_judges }}</div>
+        <div class="stat-label">Total Judges</div>
+        <div style="font-size: 0.8rem; color: var(--text-tertiary); margin-top: 0.35rem;">
+            {{ stats.internal_judges }} Internal (40%) • {{ stats.external_judges }} External (60%)
+        </div>
+    </div>
+
+    <!-- Admins Card -->
+    <div class="stat-card" style="border-left-color: var(--accent);">
+        <div class="stat-value" style="color: var(--accent);">{{ stats.total_admins }}</div>
+        <div class="stat-label">Administrators</div>
+        <div style="font-size: 0.8rem; color: var(--text-tertiary); margin-top: 0.35rem;">
+            Super Admins & Event Admins
+        </div>
+    </div>
+
+    <!-- Evaluations Card -->
+    <div class="stat-card" style="border-left-color: var(--success);">
+        <div class="stat-value" style="color: var(--success);">
+            {{ stats.evaluations_completed }}
+        </div>
+        <div class="stat-label">Evaluations Done</div>
+        <div style="font-size: 0.8rem; color: var(--text-tertiary); margin-top: 0.35rem;">
+            {{ stats.evaluations_pending }} pending evaluations
+        </div>
+    </div>
+</div>
+
+<!-- Secondary Statistics Strip -->
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1.25rem; margin-bottom: 2rem;">
+    <div class="card" style="padding: 1.25rem;">
+        <div style="font-size: 0.8rem; font-weight: 700; color: var(--text-secondary); text-transform: uppercase;">Judge Assignments</div>
+        <div style="font-size: 1.75rem; font-weight: 800; color: var(--text-primary); margin: 0.25rem 0;">{{ stats.total_assignments }}</div>
+        <div class="progress" style="height: 6px; margin-top: 0.5rem;">
+            <div class="progress-bar progress-bar-success" style="width: {{ stats.completion_percentage }}%;"></div>
+        </div>
+        <div style="font-size: 0.75rem; color: var(--text-tertiary); margin-top: 0.35rem; text-align: right;">{{ stats.completion_percentage }}% complete</div>
+    </div>
+
+    <div class="card" style="padding: 1.25rem;">
+        <div style="font-size: 0.8rem; font-weight: 700; color: var(--text-secondary); text-transform: uppercase;">Judging Lock Status</div>
+        <div style="display: flex; align-items: center; gap: 0.5rem; margin-top: 0.5rem;">
+            {% if stats.judging_locked %}
+                <span class="badge badge-danger" style="font-size: 0.85rem; padding: 0.3rem 0.8rem;">🔒 Locked</span>
+            {% else %}
+                <span class="badge badge-success" style="font-size: 0.85rem; padding: 0.3rem 0.8rem;">🟢 Open / Active</span>
+            {% endif %}
+        </div>
+        <div style="font-size: 0.75rem; color: var(--text-tertiary); margin-top: 0.5rem;">
+            Controlled in System Settings
+        </div>
+    </div>
+
+    <div class="card" style="padding: 1.25rem;">
+        <div style="font-size: 0.8rem; font-weight: 700; color: var(--text-secondary); text-transform: uppercase;">Results Publication</div>
+        <div style="display: flex; align-items: center; gap: 0.5rem; margin-top: 0.5rem;">
+            {% if stats.results_published %}
+                <span class="badge badge-success" style="font-size: 0.85rem; padding: 0.3rem 0.8rem;">📢 Published</span>
+            {% else %}
+                <span class="badge badge-warning" style="font-size: 0.85rem; padding: 0.3rem 0.8rem;">🔒 Draft / Restricted</span>
+            {% endif %}
+        </div>
+        <div style="font-size: 0.75rem; color: var(--text-tertiary); margin-top: 0.5rem;">
+            Visible on leaderboards when published
+        </div>
+    </div>
+
+    <div class="card" style="padding: 1.25rem;">
+        <div style="font-size: 0.8rem; font-weight: 700; color: var(--text-secondary); text-transform: uppercase;">Team Registration</div>
+        <div style="display: flex; align-items: center; gap: 0.5rem; margin-top: 0.5rem;">
+            {% if stats.registration_open %}
+                <span class="badge badge-success" style="font-size: 0.85rem; padding: 0.3rem 0.8rem;">🟢 Open</span>
+            {% else %}
+                <span class="badge badge-danger" style="font-size: 0.85rem; padding: 0.3rem 0.8rem;">🔴 Closed</span>
+            {% endif %}
+        </div>
+        <div style="font-size: 0.75rem; color: var(--text-tertiary); margin-top: 0.5rem;">
+            Public portal status
+        </div>
+    </div>
+</div>
+
+<!-- Two-Column Grid: System Status & Recent Activity -->
+<div style="display: grid; grid-template-columns: 1fr 1.3fr; gap: 2rem; margin-bottom: 2rem;">
+    <!-- System Status Box -->
+    <div class="card">
+        <div class="card-header" style="display: flex; justify-content: space-between; align-items: center;">
+            <h3 class="card-title" style="font-size: 1.1rem; margin: 0;">🛡️ System & Architecture Status</h3>
+            <span class="badge badge-info">System Operational</span>
+        </div>
+        <div class="card-body">
+            <div style="display: flex; flex-direction: column; gap: 1rem;">
+                <div style="display: flex; justify-content: space-between; border-bottom: 1px solid var(--border-light); padding-bottom: 0.75rem;">
+                    <span style="font-size: 0.875rem; color: var(--text-secondary);">Database Engine</span>
+                    <span style="font-size: 0.875rem; font-weight: 600; color: var(--success-dark);">{{ system_status.database }}</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; border-bottom: 1px solid var(--border-light); padding-bottom: 0.75rem;">
+                    <span style="font-size: 0.875rem; color: var(--text-secondary);">Authentication Protocol</span>
+                    <span style="font-size: 0.875rem; font-weight: 600; color: var(--primary);">{{ system_status.auth_engine }}</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; border-bottom: 1px solid var(--border-light); padding-bottom: 0.75rem;">
+                    <span style="font-size: 0.875rem; color: var(--text-secondary);">Judging Lock</span>
+                    <span style="font-size: 0.875rem; font-weight: 600; color: var(--text-primary);">{{ system_status.judging_engine }}</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; border-bottom: 1px solid var(--border-light); padding-bottom: 0.75rem;">
+                    <span style="font-size: 0.875rem; color: var(--text-secondary);">Results Publication</span>
+                    <span style="font-size: 0.875rem; font-weight: 600; color: var(--text-primary);">{{ system_status.results_status }}</span>
+                </div>
+                <div style="display: flex; justify-content: space-between;">
+                    <span style="font-size: 0.875rem; color: var(--text-secondary);">Server Timestamp</span>
+                    <span style="font-size: 0.875rem; font-family: monospace; color: var(--text-tertiary);">{{ system_status.server_time }}</span>
+                </div>
+            </div>
+
+            <div style="margin-top: 1.5rem; padding-top: 1rem; border-top: 1px solid var(--border-light); display: flex; gap: 0.75rem;">
+                <a href="{{ url_for('super_admin.system_settings') }}" class="btn btn-sm btn-primary" style="flex: 1;">
+                    Configure System Settings
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Audit Logs Feed -->
+    <div class="card">
+        <div class="card-header" style="display: flex; justify-content: space-between; align-items: center;">
+            <h3 class="card-title" style="font-size: 1.1rem; margin: 0;">📋 Recent System & Audit Activity</h3>
+            <a href="{{ url_for('super_admin.audit_logs') }}" style="font-size: 0.8rem; font-weight: 600; color: var(--primary);">View All →</a>
+        </div>
+        <div class="card-body" style="padding: 0;">
+            {% if recent_logs %}
+            <div style="overflow-x: auto;">
+                <table class="table table-sm" style="margin: 0;">
+                    <thead>
+                        <tr>
+                            <th>Action</th>
+                            <th>Actor</th>
+                            <th>Target</th>
+                            <th>Time</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for log in recent_logs %}
+                        <tr>
+                            <td>
+                                <span class="badge {% if 'created' in log.action or 'success' in log.action %}badge-success{% elif 'failed' in log.action or 'locked' in log.action %}badge-danger{% elif 'reopened' in log.action %}badge-warning{% else %}badge-info{% endif %}" style="font-size: 0.7rem;">
+                                    {{ log.action }}
+                                </span>
+                            </td>
+                            <td>
+                                <div style="font-weight: 600; font-size: 0.825rem;">{{ log.actor_name }}</div>
+                                <div style="font-size: 0.7rem; color: var(--text-tertiary);">{{ log.actor_role }}</div>
+                            </td>
+                            <td style="font-size: 0.8rem; color: var(--text-secondary);">
+                                {{ log.entity_type }}
+                            </td>
+                            <td style="font-size: 0.75rem; color: var(--text-tertiary); font-family: monospace;">
+                                {{ log.created_at.strftime('%H:%M:%S') if log.created_at else '' }}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div style="padding: 2rem; text-align: center; color: var(--text-tertiary);">
+                No recent activity logged.
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Recent Teams Section -->
+<div class="card">
+    <div class="card-header" style="display: flex; justify-content: space-between; align-items: center;">
+        <h3 class="card-title" style="font-size: 1.1rem; margin: 0;">👥 Recently Registered Teams</h3>
+        <a href="{{ url_for('admin.teams_list') }}" style="font-size: 0.8rem; font-weight: 600; color: var(--primary);">All Teams →</a>
+    </div>
+    <div class="card-body" style="padding: 0;">
+        {% if recent_teams %}
+        <div style="overflow-x: auto;">
+            <table class="table" style="margin: 0;">
+                <thead>
+                    <tr>
+                        <th>Team Code</th>
+                        <th>Team Name</th>
+                        <th>Team Leader</th>
+                        <th>Email</th>
+                        <th>Mobile</th>
+                        <th>Registered At</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for team in recent_teams %}
+                    <tr>
+                        <td><code>{{ team.team_code }}</code></td>
+                        <td style="font-weight: 600; color: var(--primary);">{{ team.team_name }}</td>
+                        <td>{{ team.leader_name }}</td>
+                        <td style="font-size: 0.85rem;">{{ team.leader_email }}</td>
+                        <td style="font-size: 0.85rem;">{{ team.leader_mobile }}</td>
+                        <td style="font-size: 0.8rem; color: var(--text-tertiary);">
+                            {{ team.created_at.strftime('%Y-%m-%d %H:%M') if team.created_at else 'N/A' }}
+                        </td>
+                        <td>
+                            <a href="{{ url_for('admin.team_detail', team_id=team._id) }}" class="btn btn-sm btn-secondary">
+                                View
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div style="padding: 2rem; text-align: center; color: var(--text-tertiary);">
+            No teams registered yet.
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

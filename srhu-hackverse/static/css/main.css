@@ -1,0 +1,274 @@
+/**
+ * TechForge 3.0 Main Stylesheet
+ * SRHU - School of Science & Technology
+ * Internal Hackathon Jury & Evaluation Platform
+ */
+
+/* Import design system modules in order */
+@import url('variables.css');
+@import url('base.css');
+@import url('layout.css');
+@import url('components.css');
+
+/* Import Google Font - Inter */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+/* Custom Styles */
+body {
+    display: flex;
+    flex-direction: column;
+}
+
+/* Compass Motif (subtle) */
+.compass-pattern {
+    position: relative;
+}
+
+.compass-pattern::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 200px;
+    height: 200px;
+    background-image: radial-gradient(circle, var(--primary) 1px, transparent 1px);
+    background-size: 20px 20px;
+    opacity: 0.03;
+    pointer-events: none;
+}
+
+/* Flash Messages */
+.flash-messages {
+    position: fixed;
+    top: var(--space-lg);
+    right: var(--space-lg);
+    z-index: 1100;
+    min-width: 300px;
+    max-width: 500px;
+}
+
+.flash-message {
+    padding: var(--space-lg);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-xl);
+    margin-bottom: var(--space-md);
+    display: flex;
+    align-items: center;
+    gap: var(--space-md);
+    animation: slideIn 0.3s ease;
+}
+
+@keyframes slideIn {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+.flash-message-success {
+    background: var(--success-light);
+    color: var(--success-dark);
+    border-left: 4px solid var(--success);
+}
+
+.flash-message-error {
+    background: var(--danger-light);
+    color: var(--danger-dark);
+    border-left: 4px solid var(--danger);
+}
+
+.flash-message-warning {
+    background: var(--warning-light);
+    color: var(--warning-dark);
+    border-left: 4px solid var(--warning);
+}
+
+.flash-message-info {
+    background: var(--info-light);
+    color: var(--info-dark);
+    border-left: 4px solid var(--info);
+}
+
+/* Score Display */
+.score-display {
+    font-size: var(--text-2xl);
+    font-weight: var(--font-bold);
+    color: var(--primary);
+    text-align: center;
+}
+
+.score-display-small {
+    font-size: var(--text-lg);
+}
+
+/* Evaluation Criteria Grid */
+.criteria-grid {
+    display: grid;
+    gap: var(--space-lg);
+}
+
+.criterion-card {
+    background: var(--surface);
+    padding: var(--space-xl);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-sm);
+    border-left: 4px solid var(--primary);
+}
+
+.criterion-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: var(--space-md);
+}
+
+.criterion-name {
+    font-size: var(--text-lg);
+    font-weight: var(--font-semibold);
+    color: var(--text-primary);
+}
+
+.criterion-weight {
+    font-size: var(--text-sm);
+    font-weight: var(--font-semibold);
+    color: var(--primary);
+    background: var(--primary-light);
+    padding: var(--space-xs) var(--space-md);
+    border-radius: var(--radius-full);
+    color: var(--white);
+}
+
+.criterion-description {
+    font-size: var(--text-sm);
+    color: var(--text-tertiary);
+    margin-bottom: var(--space-lg);
+}
+
+.score-input-wrapper {
+    display: flex;
+    align-items: center;
+    gap: var(--space-md);
+}
+
+.score-input {
+    flex: 1;
+    max-width: 200px;
+}
+
+.score-slider {
+    width: 100%;
+    height: 8px;
+    border-radius: var(--radius-full);
+    background: var(--surface-muted);
+    outline: none;
+    -webkit-appearance: none;
+}
+
+.score-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: var(--primary);
+    cursor: pointer;
+}
+
+.score-slider::-moz-range-thumb {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: var(--primary);
+    cursor: pointer;
+    border: none;
+}
+
+/* Team Card */
+.team-card {
+    background: var(--surface);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-sm);
+    padding: var(--space-xl);
+    transition: all var(--transition-base);
+    border: 2px solid transparent;
+}
+
+.team-card:hover {
+    box-shadow: var(--shadow-md);
+    border-color: var(--primary-light);
+}
+
+.team-name {
+    font-size: var(--text-xl);
+    font-weight: var(--font-semibold);
+    color: var(--primary);
+    margin-bottom: var(--space-sm);
+}
+
+.team-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-md);
+    font-size: var(--text-sm);
+    color: var(--text-secondary);
+    margin-bottom: var(--space-lg);
+}
+
+/* Rank Display */
+.rank-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    font-size: var(--text-lg);
+    font-weight: var(--font-bold);
+    background: var(--primary);
+    color: var(--white);
+}
+
+.rank-badge.rank-1 {
+    background: linear-gradient(135deg, #ffd700, #ffed4e);
+    color: #7d5c00;
+}
+
+.rank-badge.rank-2 {
+    background: linear-gradient(135deg, #c0c0c0, #e8e8e8);
+    color: #4a4a4a;
+}
+
+.rank-badge.rank-3 {
+    background: linear-gradient(135deg, #cd7f32, #e49958);
+    color: #ffffff;
+}
+
+/* Responsive Typography */
+@media (max-width: 768px) {
+    h1 { font-size: var(--text-3xl); }
+    h2 { font-size: var(--text-2xl); }
+    h3 { font-size: var(--text-xl); }
+    
+    .page-title { font-size: var(--text-2xl); }
+}
+
+/* Print Styles */
+@media print {
+    .navbar,
+    .sidebar,
+    .page-header-actions,
+    .btn {
+        display: none !important;
+    }
+    
+    .main-content {
+        margin-left: 0;
+    }
+    
+    body {
+        background: white;
+    }
+}
