@@ -36,7 +36,7 @@ def get_smtp_config():
         'username': smtp_username.strip(),
         'password': smtp_password,
         'from_addr': smtp_from.strip(),
-        'use_tls': smtp_use_tls,
+        'use_tls': smtp_use_tls,  # informational only; the port picks the TLS mode
         'is_testing': is_testing,
         'is_configured': bool(smtp_host.strip() and smtp_username.strip())
     }
@@ -182,11 +182,18 @@ Swami Rama Himalayan University
         msg.attach(part1)
         msg.attach(part2)
 
-        if cfg['use_tls']:
-            server = smtplib.SMTP(cfg['host'], cfg['port'], timeout=10)
-            server.starttls()
+        # Port decides the TLS mode (unambiguous, unlike a string flag that may arrive
+        # as "True"/"false"/quoted from a hosting dashboard):
+        #   465 -> implicit SSL from the first byte
+        #   587 / 25 / anything else -> plain connection upgraded with STARTTLS
+        if cfg['port'] == 465:
+            server = smtplib.SMTP_SSL(cfg['host'], cfg['port'], timeout=15)
         else:
-            server = smtplib.SMTP_SSL(cfg['host'], cfg['port'], timeout=10)
+            server = smtplib.SMTP(cfg['host'], cfg['port'], timeout=15)
+            server.ehlo()
+            if server.has_extn('STARTTLS'):
+                server.starttls()
+                server.ehlo()
 
         if cfg['username'] and cfg['password']:
             server.login(cfg['username'], cfg['password'])
@@ -201,8 +208,10 @@ Swami Rama Himalayan University
     except smtplib.SMTPRecipientsRefused:
         return {'success': False, 'error': 'RECIPIENT_REFUSED'}         # bad recipient address
     except (smtplib.SMTPException, OSError) as exc:
-        # Network / TLS / server error. Log the class only — never the credentials.
-        return {'success': False, 'error': f'EMAIL_SEND_FAILED:{type(exc).__name__}'}
+        # Network / TLS / server error. Class + short message — never the credentials.
+        detail = str(exc).split('\n')[0][:90]
+        logger.warning("SMTP send failed: %s: %s", type(exc).__name__, detail)
+        return {'success': False, 'error': f'EMAIL_SEND_FAILED:{type(exc).__name__}: {detail}'}
 
 
 def get_email_status():

@@ -1,4 +1,5 @@
-from flask import Blueprint, render_template, session, request, redirect, url_for, flash, jsonify
+import os
+from flask import current_app, Blueprint, render_template, session, request, redirect, url_for, flash, jsonify
 from werkzeug.security import generate_password_hash
 from bson.objectid import ObjectId
 from datetime import datetime
@@ -14,6 +15,7 @@ from models.database import (
 )
 from services.audit import log_audit
 from services.results_calculator import get_evaluation_coverage
+from services.email_service import get_email_status
 
 super_admin_bp = Blueprint('super_admin', __name__)
 
@@ -71,7 +73,11 @@ def dashboard():
         'auth_engine': 'Active (Role-Based Access Control)',
         'judging_engine': 'Locked' if stats['judging_locked'] else 'Active (Open for Submissions)',
         'results_status': 'Published' if stats['results_published'] else 'Unpublished (Restricted)',
-        'server_time': datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S UTC')
+        'server_time': datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S UTC'),
+        'email': (lambda e: f"Configured — {e['host']}:{e['port']} as {e['from_address']}" if e['configured'] else
+                  "NOT configured — SMTP_HOST / SMTP_USERNAME missing in this deployment's environment")(get_email_status()),
+        'frontend_url': current_app.config.get('FRONTEND_URL') or 'not set (links use the request host)',
+        'env': os.environ.get('VERCEL_ENV') or os.environ.get('FLASK_ENV') or 'unknown',
     }
     
     # Recent Audit Log Activity

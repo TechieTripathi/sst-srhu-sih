@@ -28,6 +28,9 @@
             <dt class="text-slate-500">Authentication</dt><dd class="text-navy-900">{{ system_status.auth_engine }}</dd>
             <dt class="text-slate-500">Judging</dt><dd class="text-navy-900">{{ system_status.judging_engine }}</dd>
             <dt class="text-slate-500">Results</dt><dd class="text-navy-900">{{ system_status.results_status }}</dd>
+            <dt class="text-slate-500">Email (SMTP)</dt><dd class="{{ 'text-green-700' if system_status.email.startswith('Configured') else 'text-crimson-700 font-semibold' }}">{{ system_status.email }}</dd>
+            <dt class="text-slate-500">Frontend URL</dt><dd class="text-navy-900 font-mono text-xs">{{ system_status.frontend_url }}</dd>
+            <dt class="text-slate-500">Environment</dt><dd class="text-navy-900">{{ system_status.env }}</dd>
             <dt class="text-slate-500">Server time</dt><dd class="text-navy-900 font-mono text-xs">{{ system_status.server_time }}</dd>
         </dl></div>
     <div class="card min-w-0"><div class="card-header"><h2 class="card-title">Recent activity</h2><a href="{{ url_for('super_admin.audit_logs') }}" class="btn-ghost btn-sm">Full audit trail →</a></div>
