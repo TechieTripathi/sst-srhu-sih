@@ -34,6 +34,21 @@
 {% endif %}
 
 {% if teams %}
+{% set next_team = (teams|rejectattr('evaluated')|list)[0] if pending_count else None %}
+<div class="card mb-4"><div class="card-body py-3 flex flex-wrap items-center gap-2">
+    <span class="text-[11px] font-semibold uppercase tracking-wider text-slate-500 mr-1">Quick actions</span>
+    {% if next_team and not locked %}
+        <a href="{{ url_for('judge.evaluate_team', team_id=next_team._id) }}" class="btn-primary">▶ Score next team: {{ next_team.team_name }}</a>
+    {% elif locked %}
+        <span class="btn-secondary opacity-70 cursor-default">🔒 Judging is locked</span>
+    {% else %}
+        <span class="btn-secondary opacity-70 cursor-default">✓ All {{ total }} teams scored — thank you</span>
+    {% endif %}
+    <button type="button" class="btn-secondary" onclick="document.querySelector('[data-filter=pending]').click(); document.getElementById('teamList').scrollIntoView({behavior:'smooth'})">⏳ Show teams to score ({{ pending_count }})</button>
+    <button type="button" class="btn-secondary" onclick="document.getElementById('teamSearch').focus()">🔍 Find a team</button>
+    <button type="button" class="btn-ghost" onclick="document.querySelector('details.card').open = true; document.querySelector('details.card').scrollIntoView({behavior:'smooth'})">❓ How scoring works</button>
+    <a href="{{ url_for('auth.logout') }}" class="btn-ghost ml-auto">Sign out</a>
+</div></div>
 <div class="flex flex-wrap items-center gap-2 mb-4" role="group" aria-label="Filter teams">
     <button type="button" class="tab tab-active" data-filter="all">All <span class="opacity-80">({{ total }})</span></button>
     <button type="button" class="tab" data-filter="pending">⏳ To score <span class="opacity-80">({{ pending_count }})</span></button>

@@ -6,7 +6,7 @@
     <div><h1 class="font-display text-2xl sm:text-3xl font-bold text-navy-900">Rankings</h1><p class="mt-1 text-slate-600">Live standings from submitted scores. Publish when the jury is done.</p></div>
     <div class="flex flex-wrap gap-2">
         <a href="{{ url_for('admin.export_results', stage_id=stage_id) }}" class="btn-secondary">⬇️ CSV</a>
-        <form method="POST" action="{{ url_for('admin.toggle_results') }}" onsubmit="return confirm('{{ 'Unpublish results? The leaderboard hides final scores again.' if event_settings.results_published else 'Publish results? Final rankings become visible on the leaderboard.' }}')">
+        <form method="POST" action="{{ url_for('admin.toggle_results') }}" data-confirm="{{ 'The leaderboard hides final scores again. Nothing is deleted.' if event_settings.results_published else 'Final rankings become visible on the leaderboard to everyone who can open it.' }}" data-confirm-title="{{ 'Unpublish results?' if event_settings.results_published else 'Publish results?' }}" data-confirm-button="{{ 'Unpublish results' if event_settings.results_published else 'Publish results' }}" data-confirm-tone="{{ 'navy' if event_settings.results_published else 'primary' }}" data-confirm-icon="{{ '🙈' if event_settings.results_published else '📢' }}">
             <button class="{{ 'btn-secondary' if event_settings.results_published else 'btn-primary' }}">{{ 'Unpublish results' if event_settings.results_published else '📢 Publish results' }}</button>
         </form>
     </div>

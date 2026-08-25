@@ -43,6 +43,28 @@ def get_smtp_config():
     }
 
 
+def frontend_base_url():
+    """Public base URL for links in emails, resolved in this order:
+    FRONTEND_URL (Flask config / environment) -> current request host -> local dev default."""
+    base = ''
+    try:
+        base = (current_app.config.get('FRONTEND_URL') or '').strip()
+    except Exception:
+        pass
+    base = base or os.environ.get('FRONTEND_URL', '').strip()
+    if not base:
+        try:
+            from flask import request
+            base = request.url_root
+        except Exception:
+            base = 'http://127.0.0.1:5002'
+    return base.rstrip('/')
+
+
+def jury_login_url():
+    return frontend_base_url() + '/judge/login'
+
+
 def send_jury_credentials_email(recipient_email, password, login_url=None, judge_name=None, deliver_to=None):
     """
     Send pre-provisioned Jury login credentials via SMTP email.
@@ -60,13 +82,7 @@ def send_jury_credentials_email(recipient_email, password, login_url=None, judge
     """
     cfg = get_smtp_config()
     name = judge_name or "Jury Member"
-    if not login_url:
-        try:
-            from utils.urls import public_url
-            login_url = public_url('judge.login')
-        except Exception:
-            login_url = "http://127.0.0.1:5002/judge/login"
-    url = login_url
+    url = login_url or jury_login_url()
     # Pre-fill the email on the sign-in page, so the judge only has to type/paste the password.
     from urllib.parse import quote
     signin_url = f"{url}{'&' if '?' in url else '?'}email={quote(recipient_email)}"

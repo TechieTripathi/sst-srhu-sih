@@ -42,7 +42,7 @@
         <label class="text-sm text-slate-600 flex items-center gap-2"><input type="checkbox" name="include_sent" class="rounded border-navy-300" {% if not bulk_enabled %}disabled{% endif %}> include already-emailed</label>
         <label class="text-sm text-slate-600 flex items-center gap-1.5" title="Emails per batch (max 10)">batch <input type="number" name="batch_size" value="5" min="1" max="10" class="input min-h-9 w-16 py-1 text-sm text-center" {% if not bulk_enabled %}disabled{% endif %}></label>
         <label class="text-sm text-slate-600 flex items-center gap-1.5" title="Pause between batches, in seconds (0 = none)">pause <input type="number" name="interval" value="3" min="0" max="300" class="input min-h-9 w-16 py-1 text-sm text-center" {% if not bulk_enabled %}disabled{% endif %}> s</label>
-        <button type="submit" class="btn-navy btn-sm" {% if not bulk_enabled or counts[tab] == 0 %}disabled{% endif %} title="{{ 'Disabled by the Super Admin in System Settings' if not bulk_enabled else 'Emails new sign-in details to every judge in this tab, in batches' }}">✉️ Email {{ 'internal' if tab == 'all' else tab }} judges</button>
+        <button type="submit" class="btn-navy btn-sm" {% if not bulk_enabled or counts[tab] == 0 %}disabled{% endif %} title="{{ 'Disabled by the Super Admin in System Settings' if not bulk_enabled else 'Emails new sign-in details to every judge in this tab, in batches' }}">✉️ Email passwords to {{ 'internal' if tab == 'all' else tab }} judges</button>
         {% if not bulk_enabled %}<span class="badge-neutral">Disabled by Super Admin</span>{% endif %}
     </form>
 </div>
@@ -62,12 +62,12 @@
 {% if not credential_notices %}<span id="juryLoginUrl" class="hidden">{{ jury_login_url }}</span>{% endif %}
 {% if judges %}
 <div class="card overflow-hidden"><div class="overflow-x-auto"><table class="table-base">
-    <thead><tr><th>Judge</th><th>Type</th><th>Sign-in details</th><th>Status</th><th class="text-right">Sign-in details</th></tr></thead>
+    <thead><tr><th>Judge</th><th>Jury type</th><th>Credentials</th><th>Account</th><th class="text-right">Actions</th></tr></thead>
     <tbody>{% for judge in judges %}
     <tr>
         <td><div class="font-semibold text-navy-900">{{ judge.name or 'N/A' }}{% if judge.is_overall_jury_coordinator %} <span class="badge-warning ml-1">Coordinator</span>{% endif %}</div><div class="text-xs text-slate-500">{{ judge.email }}</div></td>
         <td>{% if judge.kind == 'internal' %}<span class="badge-success">Internal</span>{% else %}<span class="badge-info">External</span>{% endif %}</td>
-        <td class="text-sm" data-cred-cell>{% if judge.credentials_sent %}<span class="badge-success">✓ Emailed</span><div class="text-xs text-slate-500 mt-1">to {{ judge.credentials_sent_to or judge.email }}{% if judge.credentials_sent_at %} · {{ judge.credentials_sent_at.strftime('%d %b %H:%M') }}{% endif %}</div>{% else %}<span class="badge-neutral">Not emailed</span>{% endif %}</td>
+        <td class="text-sm" data-cred-cell>{% if judge.credentials_sent %}<span class="badge-success">✓ Emailed</span><div class="text-xs text-slate-500 mt-1">to {{ judge.credentials_sent_to or judge.email }}{% if judge.credentials_sent_at %} · {{ judge.credentials_sent_at.strftime('%d %b %H:%M') }}{% endif %}</div>{% else %}<span class="badge-neutral">Not emailed yet</span>{% endif %}</td>
         <td>{% if judge.status|lower == 'inactive' %}<span class="badge-danger">Inactive</span>{% else %}<span class="badge-success">Active</span>{% endif %}</td>
         <td class="text-right"><div class="inline-flex flex-wrap justify-end gap-2">
             {% if judge.kind == 'external' %}
@@ -75,22 +75,22 @@
                 {% if judge.temp_password %}
                 <span class="inline-flex items-center gap-1 rounded-lg border border-navy-200 bg-white pl-2 pr-1 py-0.5">
                     <code class="font-mono text-sm text-navy-900 select-all" data-pw="{{ judge.temp_password|e }}" aria-label="Current password">••••••••••••</code>
-                    <button type="button" class="btn-ghost btn-sm !min-h-8 px-2" onclick="togglePw(this)" aria-label="Show current password">👁 Show</button>
+                    <button type="button" class="btn-ghost btn-sm !min-h-8 px-2" onclick="togglePw(this)" aria-label="Show current password">👁 Show password</button>
                     <button type="button" class="btn-navy btn-sm !min-h-8" onclick="copyText(credText('{{ judge.email|e }}', '{{ judge.temp_password|e }}'), this)">📋 Copy sign-in details</button>
                 </span>
                 {% endif %}
-                <form method="POST" action="{{ url_for('admin.regenerate_password', judge_id=judge._id) }}" onsubmit="return confirm('Generate a new password for {{ judge.name|e }}? The current one stops working.')"><button class="btn-secondary btn-sm" title="New password, kept in this table">{{ '↻ New password' if judge.temp_password else '🔑 Generate password' }}</button></form>
+                <form method="POST" action="{{ url_for('admin.regenerate_password', judge_id=judge._id) }}" onsubmit="return confirm('Generate a new password for {{ judge.name|e }}? The current one stops working.')"><button class="btn-secondary btn-sm" title="New password, kept in this table">{{ '↻ Regenerate password' if judge.temp_password else '🔑 Generate password' }}</button></form>
                 <form method="POST" action="{{ url_for('admin.send_credentials', judge_id=judge._id) }}" class="inline-flex gap-1" data-email-form data-judge="{{ judge.name|e }}" data-judge-email="{{ judge.email|e }}" onsubmit="return confirm('Generate a new password for {{ judge.name|e }} and email it to ' + this.recipient.value + '?')">
-                    <input type="email" name="recipient" class="input min-h-9 text-sm w-44 py-1" placeholder="email to someone" aria-label="Email sign-in details to" required><button class="btn-secondary btn-sm">Send</button></form>
+                    <input type="email" name="recipient" class="input min-h-9 text-sm w-44 py-1" placeholder="Email address" aria-label="Email sign-in details to this address" required><button class="btn-secondary btn-sm">✉️ Email sign-in details</button></form>
             {% else %}
-                <form method="POST" action="{{ url_for('admin.send_credentials', judge_id=judge._id) }}" data-email-form data-judge="{{ judge.name|e }}" data-judge-email="{{ judge.email|e }}" onsubmit="return confirm('Generate a new password for {{ judge.name|e }} and email it to {{ judge.email|e }}?')"><button class="btn-secondary btn-sm">✉️ To judge</button></form>
+                <form method="POST" action="{{ url_for('admin.send_credentials', judge_id=judge._id) }}" data-email-form data-judge="{{ judge.name|e }}" data-judge-email="{{ judge.email|e }}" onsubmit="return confirm('Generate a new password for {{ judge.name|e }} and email it to {{ judge.email|e }}?')"><button class="btn-secondary btn-sm">✉️ Email password to judge</button></form>
                 <form method="POST" action="{{ url_for('admin.send_credentials', judge_id=judge._id) }}" class="inline-flex gap-1" data-email-form data-judge="{{ judge.name|e }}" data-judge-email="{{ judge.email|e }}" onsubmit="return confirm('Generate a new password for {{ judge.name|e }} and email it to ' + this.recipient.value + '?')">
-                    <input type="email" name="recipient" class="input min-h-9 text-sm w-44 py-1" placeholder="other email" aria-label="Email sign-in details to" required><button class="btn-secondary btn-sm">Send</button></form>
-                <form method="POST" action="{{ url_for('admin.regenerate_password', judge_id=judge._id) }}" onsubmit="return confirm('Generate a new password for {{ judge.name|e }} and show it once? The current one stops working.')"><button class="btn-ghost btn-sm" title="New password, shown once">🔑 Show once</button></form>
+                    <input type="email" name="recipient" class="input min-h-9 text-sm w-44 py-1" placeholder="Other email address" aria-label="Email sign-in details to another address" required><button class="btn-secondary btn-sm">✉️ Email to this address</button></form>
+                <form method="POST" action="{{ url_for('admin.regenerate_password', judge_id=judge._id) }}" onsubmit="return confirm('Generate a new password for {{ judge.name|e }} and show it once? The current one stops working.')"><button class="btn-ghost btn-sm" title="Generate a new password and show it once on screen">🔑 Show password once</button></form>
             {% endif %}
         </div></td>
     </tr>{% endfor %}</tbody></table></div></div>
-<p class="help mt-3">Every action here creates a <strong>new</strong> password; the old one stops working.<br><strong>External judges:</strong> the current password is kept, so use <em>Show</em> / <em>Copy sign-in details</em> any time — e.g. to hand over on event day. <strong>Internal judges:</strong> passwords are never stored — email them, or use <em>Show once</em> and copy immediately.</p>
+<p class="help mt-3">Every action here creates a <strong>new</strong> password; the old one stops working.<br><strong>External judges:</strong> the current password is kept, so use <em>Show password</em> / <em>Copy sign-in details</em> any time — e.g. to hand over on event day. <strong>Internal judges:</strong> passwords are never stored — email them, or use <em>Show password once</em> and copy immediately.</p>
 {% else %}
 {{ empty_state('⚖️', 'No ' ~ (tab if tab != 'all' else '') ~ ' judges yet', 'Add judges and email them their sign-in details from here.', url_for('admin.create_judge_form'), 'Add a judge') }}
 {% endif %}
@@ -190,7 +190,7 @@
         var tick = function () { status.textContent = done + ' of ' + res.total + ' processed · next batch of ' + Math.min(res.queued, form.batch_size.value) + ' in ' + left + 's'; if (left-- <= 0) { clearInterval(timer); post({action: 'next'}).then(function (r) { run(r, interval); }); } };
         tick(); timer = setInterval(tick, 1000);
     }
-    if (form.include_external) form.include_external.addEventListener('change', function () { form.querySelector('button[type=submit]').textContent = '✉️ Email ' + (this.checked ? 'all' : 'internal') + ' judges'; });
+    if (form.include_external) form.include_external.addEventListener('change', function () { form.querySelector('button[type=submit]').textContent = '✉️ Email passwords to ' + (this.checked ? 'all' : 'internal') + ' judges'; });
     form.addEventListener('submit', function (e) {
         e.preventDefault();
         var inc = form.include_sent.checked, ext = form.include_external && form.include_external.checked;

@@ -67,6 +67,47 @@
         </main>
     </div>
 </div>
+
+<!-- Confirm modal: any <form data-confirm="…"> opens this instead of window.confirm -->
+<div id="confirmModal" class="modal-backdrop fixed inset-0 z-50 hidden items-center justify-center bg-navy-900/50 p-4" style="display:none">
+    <div class="card w-full max-w-md" role="dialog" aria-modal="true" aria-labelledby="cmTitle" aria-describedby="cmBody">
+        <div class="card-body">
+            <div class="flex items-start gap-4">
+                <span id="cmIcon" class="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-navy-100 text-navy-800 text-xl" aria-hidden="true">⚙️</span>
+                <div class="min-w-0">
+                    <h2 id="cmTitle" class="font-display text-lg font-semibold text-navy-900">Are you sure?</h2>
+                    <p id="cmBody" class="mt-1 text-sm text-slate-600"></p>
+                    <p id="cmEffect" class="mt-3 text-sm text-slate-700 hidden"></p>
+                </div>
+            </div>
+            <div class="mt-6 flex justify-end gap-2">
+                <button type="button" class="btn-ghost" id="cmCancel">Cancel</button>
+                <button type="button" class="btn-navy" id="cmOk">Confirm</button>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+(function () {
+    var modal = document.getElementById('confirmModal'), ok = document.getElementById('cmOk'), pending = null;
+    var tones = {danger: ['bg-crimson-100 text-crimson-700', 'btn-danger'], primary: ['bg-saffron-100 text-saffron-700', 'btn-primary'], navy: ['bg-navy-100 text-navy-800', 'btn-navy']};
+    document.addEventListener('submit', function (e) {
+        var f = e.target; if (!(f instanceof HTMLFormElement) || !f.hasAttribute('data-confirm') || f.dataset.confirmed === '1') return;
+        e.preventDefault(); pending = f;
+        var tone = tones[f.dataset.confirmTone] || tones.navy;
+        document.getElementById('cmTitle').textContent = f.dataset.confirmTitle || 'Are you sure?';
+        document.getElementById('cmBody').textContent = f.dataset.confirm;
+        var eff = document.getElementById('cmEffect'); eff.textContent = f.dataset.confirmEffect || ''; eff.classList.toggle('hidden', !f.dataset.confirmEffect);
+        document.getElementById('cmIcon').className = 'inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-xl ' + tone[0];
+        document.getElementById('cmIcon').textContent = f.dataset.confirmIcon || '⚙️';
+        ok.className = tone[1]; ok.textContent = f.dataset.confirmButton || 'Confirm';
+        openModal('confirmModal'); ok.focus();
+    }, true);
+    ok.addEventListener('click', function () { if (!pending) return; ok.disabled = true; ok.textContent = 'Working…'; pending.dataset.confirmed = '1'; pending.submit(); });
+    document.getElementById('cmCancel').addEventListener('click', function () { pending = null; closeModal('confirmModal'); });
+    modal.addEventListener('click', function (e) { if (e.target === modal) pending = null; });
+})();
+</script>
 <script>
 function toggleAdminSidebar(open) {
     var sb = document.getElementById('sidebar'), bd = document.getElementById('sidebarBackdrop');

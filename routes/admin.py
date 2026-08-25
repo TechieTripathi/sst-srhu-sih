@@ -56,6 +56,7 @@ def dashboard():
     event_settings = settings.find_one({})
     stats['judging_locked'] = event_settings.get('judging_locked', False) if event_settings else False
     stats['results_published'] = event_settings.get('results_published', False) if event_settings else False
+    stats['registration_open'] = event_settings.get('registration_open', True) if event_settings else True
     
     # Get recent teams
     recent_teams = list(teams.find().sort('created_at', -1).limit(5))

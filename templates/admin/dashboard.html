@@ -40,12 +40,26 @@
         {% else %}<div class="card-body text-sm text-slate-600">No teams yet — they appear here as leaders register.</div>{% endif %}
     </div>
     <div class="card">
-        <div class="card-header"><h2 class="card-title">Quick actions</h2></div>
+        <div class="card-header"><h2 class="card-title">Quick actions</h2><span class="text-xs text-slate-500">one click each</span></div>
         <div class="card-body grid gap-2">
+            <div class="text-[11px] font-semibold uppercase tracking-wider text-slate-500">Event switches</div>
+            <form method="POST" action="{{ url_for('admin.toggle_judging') }}" data-confirm="{{ 'Jury members will be able to submit scores again.' if stats.judging_locked else 'No new scores can be submitted until you unlock. Judges keep read-only access to their dashboard.' }}" data-confirm-title="{{ 'Unlock judging?' if stats.judging_locked else 'Lock judging?' }}" data-confirm-button="{{ 'Unlock judging' if stats.judging_locked else 'Lock judging' }}" data-confirm-tone="{{ 'navy' if stats.judging_locked else 'danger' }}" data-confirm-icon="{{ '🔓' if stats.judging_locked else '🔒' }}">
+                <button class="{{ 'btn-navy' if stats.judging_locked else 'btn-danger' }} w-full justify-start">{{ '🔓 Unlock judging' if stats.judging_locked else '🔒 Lock judging' }}</button></form>
+            <form method="POST" action="{{ url_for('admin.toggle_results') }}" data-confirm="{{ 'The leaderboard hides final scores again. Nothing is deleted.' if stats.results_published else 'Final rankings become visible on the leaderboard to everyone who can open it.' }}" data-confirm-title="{{ 'Unpublish results?' if stats.results_published else 'Publish results?' }}" data-confirm-button="{{ 'Unpublish results' if stats.results_published else 'Publish results' }}" data-confirm-tone="{{ 'navy' if stats.results_published else 'primary' }}" data-confirm-icon="{{ '🙈' if stats.results_published else '📢' }}">
+                <button class="{{ 'btn-secondary' if stats.results_published else 'btn-primary' }} w-full justify-start">{{ '🙈 Unpublish results' if stats.results_published else '📢 Publish results' }}</button></form>
+            <form method="POST" action="{{ url_for('admin.toggle_registration') }}" data-confirm="{{ 'The public Register button disappears and the form stops accepting new teams. Existing teams are unaffected.' if stats.registration_open else 'Students can register new teams on the public site again.' }}" data-confirm-title="{{ 'Close registration?' if stats.registration_open else 'Open registration?' }}" data-confirm-button="{{ 'Close registration' if stats.registration_open else 'Open registration' }}" data-confirm-tone="{{ 'danger' if stats.registration_open else 'navy' }}" data-confirm-icon="{{ '🚫' if stats.registration_open else '✅' }}">
+                <button class="btn-secondary w-full justify-start">{{ '🚫 Close registration' if stats.registration_open else '✅ Open registration' }}</button></form>
+
+            <div class="text-[11px] font-semibold uppercase tracking-wider text-slate-500 mt-2">Judges</div>
             <a href="{{ url_for('admin.create_judge_form') }}" class="btn-navy justify-start">＋ Add a judge</a>
-            <a href="{{ url_for('admin.judges_list') }}" class="btn-secondary justify-start">✉️ Send judge credentials</a>
-            <a href="{{ url_for('admin.settings') }}" class="btn-secondary justify-start">⚙️ Lock judging / publish results</a>
+            <a href="{{ url_for('admin.judges_list', type='internal') }}" class="btn-secondary justify-start">✉️ Email internal judges their sign-in details</a>
+            <a href="{{ url_for('admin.judges_list', type='external') }}" class="btn-secondary justify-start">🔑 External judges: copy passwords</a>
+            <button type="button" class="btn-secondary justify-start" onclick="copyText('{{ jury_login_url }}', this)">📋 Copy jury sign-in link</button>
+
+            <div class="text-[11px] font-semibold uppercase tracking-wider text-slate-500 mt-2">Results</div>
+            <a href="{{ url_for('admin.results_overview') }}" class="btn-secondary justify-start">🏆 Live rankings</a>
             <a href="{{ url_for('admin.export_results') }}" class="btn-secondary justify-start">⬇️ Export results CSV</a>
+            <a href="{{ url_for('admin.export_teams') }}" class="btn-secondary justify-start">⬇️ Export teams CSV</a>
         </div>
     </div>
 </div>
