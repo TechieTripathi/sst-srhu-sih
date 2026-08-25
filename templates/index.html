@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h1>Welcome to Flask with Jinja Templates</h1>
+<p>This is a simple Flask application demonstrating Jinja2 templating features.</p>
+
+<section style="margin-top: 2rem;">
+    <h2>Features Demonstrated:</h2>
+    <ul style="line-height: 2; margin-left: 2rem; margin-top: 1rem;">
+        <li><strong>Template Inheritance:</strong> All pages extend from base.html</li>
+        <li><strong>URL Generation:</strong> Using url_for() for navigation</li>
+        <li><strong>Variables:</strong> Passing data from Flask to templates</li>
+        <li><strong>Control Structures:</strong> Loops and conditionals in templates</li>
+        <li><strong>Forms:</strong> Handling user input (see Contact page)</li>
+    </ul>
+</section>
+
+<section style="margin-top: 2rem; padding: 1.5rem; background: #f8f9fa; border-radius: 5px;">
+    <h2>Quick Tips:</h2>
+    <p><strong>Current Time:</strong> This page was rendered dynamically!</p>
+    <p><strong>Template Engine:</strong> Jinja2</p>
+    <p><strong>Python Version:</strong> Compatible with Python 3.x</p>
+</section>
+
+<div style="margin-top: 2rem; padding: 1rem; background: #e7f3ff; border-left: 4px solid #2196F3;">
+    <h3>Getting Started</h3>
+    <p>Navigate through the menu to explore different pages:</p>
+    <ul style="margin-left: 2rem; margin-top: 0.5rem;">
+        <li><a href="{{ url_for('about') }}" style="color: #2196F3;">About</a> - Learn about our team</li>
+        <li><a href="{{ url_for('gallery') }}" style="color: #2196F3;">Gallery</a> - View images in a grid layout</li>
+        <li><a href="{{ url_for('contact') }}" style="color: #2196F3;">Contact</a> - Send us a message</li>
+    </ul>
+</div>
+{% endblock %}
