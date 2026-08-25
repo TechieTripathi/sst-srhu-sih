@@ -16,7 +16,7 @@ and new Tailwind classes coexist until Phase 6 removes the legacy files.
 | Primary colour | **Navy #183878** — taken directly from the logo. |
 | Accent colour | *Not verifiable*: srhu.edu.in sits behind a Cloudflare bot-check and refused every fetch. Recommendation below uses **saffron/gold** (already used as `--gold` on the landing page and culturally apt for an Indian university); confirm with SRHU communications or swap the single token. |
 | Logo asset | Only an 80×75 px public copy exists → `static/images/srhu-logo-placeholder.png`. **Ask SRHU for the official SVG/PNG (≥ 512 px, transparent)** and save as `static/images/srhu-logo.svg` before Phase 2. The templates will reference that path from day one. |
-| Fonts | Institutional site fonts unknown (blocked). Use **Inter** (UI) + **Sora** or **Plus Jakarta Sans** (display) via Google Fonts, both free. |
+| Fonts | Institutional site fonts unknown (blocked). Use **Inter** (UI) + **Plus Jakarta Sans** or **Plus Jakarta Sans** (display) via Google Fonts, both free. |
 
 ### Design tokens (Tailwind theme)
 ```

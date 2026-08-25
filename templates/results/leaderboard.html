@@ -17,7 +17,7 @@
 </div>
 
 {% if coverage %}
-<div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+<div class="stat-group grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-4 mb-8">
     {{ stat(coverage.teams_evaluated, 'teams with at least one score', 'success') }}
     {{ stat(coverage.teams_pending, 'teams not yet scored', 'warning') }}
     {{ stat(coverage.total_evaluations, 'evaluations submitted') }}
@@ -28,23 +28,23 @@
 {% if rankings %}
 <div class="card overflow-hidden">
     <div class="overflow-x-auto">
-    <table class="table-base">
+    <table class="table-base table-cards">
         <thead><tr>
-            <th class="w-16">Rank</th><th>Team</th><th class="hidden md:table-cell">Leader</th>
+            <th class="w-16">Rank</th><th>Team</th><th>Leader</th>
             <th class="text-right">Internal</th><th class="text-right">External</th><th class="text-right">Final</th><th>Status</th>
-            {% if session.get('role') == 'admin' %}<th></th>{% endif %}
+            {% if session.get('role') == 'admin' %}<th>Actions</th>{% endif %}
         </tr></thead>
         <tbody>
         {% for team in rankings %}
         <tr class="{% if team.rank|int <= 3 and team.is_complete %}bg-saffron-100/40{% endif %}">
             <td class="font-display font-bold text-navy-900 text-lg tabular-nums">{% if team.rank|int == 1 %}🥇{% elif team.rank|int == 2 %}🥈{% elif team.rank|int == 3 %}🥉{% else %}{{ team.rank }}{% endif %}</td>
-            <td>
+            <td data-primary>
                 <div class="font-semibold text-navy-900">{{ team.team_name }}</div>
-                <div class="text-xs text-slate-500 flex flex-wrap gap-x-2"><span class="font-mono">{{ team.team_code }}</span>{% if team.theme_name %}<span>· {{ team.theme_name }}</span>{% endif %}<span class="md:hidden">· {{ team.leader_name }}</span></div>
+                <div class="text-xs text-slate-500 flex flex-wrap gap-x-2"><span class="font-mono">{{ team.team_code }}</span>{% if team.theme_name %}<span>· {{ team.theme_name }}</span>{% endif %}</div>
             </td>
-            <td class="hidden md:table-cell text-slate-700">{{ team.leader_name }}</td>
-            <td class="text-right tabular-nums">{% if team.internal_count > 0 %}{{ team.internal_average }}<div class="text-xs text-slate-500">{{ team.internal_count }} score{{ 's' if team.internal_count != 1 else '' }}</div>{% else %}<span class="text-slate-400">—</span>{% endif %}</td>
-            <td class="text-right tabular-nums">{% if team.external_count > 0 %}{{ team.external_average }}<div class="text-xs text-slate-500">{{ team.external_count }} score{{ 's' if team.external_count != 1 else '' }}</div>{% else %}<span class="text-slate-400">—</span>{% endif %}</td>
+            <td class=" text-slate-700" data-more>{{ team.leader_name }}</td>
+            <td class="text-right tabular-nums" data-more>{% if team.internal_count > 0 %}{{ team.internal_average }}<div class="text-xs text-slate-500">{{ team.internal_count }} score{{ 's' if team.internal_count != 1 else '' }}</div>{% else %}<span class="text-slate-400">—</span>{% endif %}</td>
+            <td class="text-right tabular-nums" data-more>{% if team.external_count > 0 %}{{ team.external_average }}<div class="text-xs text-slate-500">{{ team.external_count }} score{{ 's' if team.external_count != 1 else '' }}</div>{% else %}<span class="text-slate-400">—</span>{% endif %}</td>
             <td class="text-right"><span class="font-display font-bold text-lg text-navy-900 tabular-nums">{{ team.final_score if team.is_complete else '—' }}</span></td>
             <td>{% if team.is_complete %}<span class="badge-success">✓ Complete</span>{% else %}<span class="badge-warning">⏳ Awaiting jury</span>{% endif %}</td>
             {% if session.get('role') == 'admin' %}<td class="text-right"><a class="btn-ghost btn-sm" href="{{ url_for('results.team_result', team_id=team.team_id) }}">Details →</a></td>{% endif %}

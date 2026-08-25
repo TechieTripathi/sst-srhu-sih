@@ -13,7 +13,7 @@
     {% if result.leaderboard_position %}<span class="badge-navy text-sm px-3 py-1.5">Rank #{{ result.leaderboard_position }}</span>{% endif %}
 </div>
 
-<div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+<div class="stat-group grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-4 mb-8">
     {% set s = result.score_result %}
     {{ stat(s.internal_average, 'internal average · ' ~ s.internal_count ~ ' jury', 'info') }}
     {{ stat(s.external_average, 'external average · ' ~ s.external_count ~ ' jury', 'info') }}

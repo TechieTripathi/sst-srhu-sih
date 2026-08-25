@@ -10,13 +10,13 @@
     </form>
 </div>
 {% if logs %}
-<div class="card overflow-hidden"><div class="overflow-x-auto"><table class="table-base">
-    <thead><tr><th>When (UTC)</th><th>Action</th><th>Who</th><th class="hidden md:table-cell">Entity</th><th>Details</th></tr></thead>
+<div class="card overflow-hidden"><div class="overflow-x-auto"><table class="table-base table-cards">
+    <thead><tr><th>When (UTC)</th><th>Action</th><th>Who</th><th>Entity</th><th>Details</th></tr></thead>
     <tbody>{% for log in logs %}
     <tr><td class="whitespace-nowrap font-mono text-xs text-slate-700">{{ log.created_at.strftime('%Y-%m-%d %H:%M:%S') if log.created_at else '—' }}</td>
         <td><span class="{% if 'fail' in log.action|lower or 'locked' in log.action %}badge-danger{% elif 'created' in log.action or 'success' in log.action|lower %}badge-success{% elif 'reopen' in log.action or 'updated' in log.action %}badge-warning{% else %}badge-neutral{% endif %}">{{ log.action|replace('_', ' ') }}</span></td>
         <td class="text-sm"><div class="text-navy-900">{{ log.actor_name }}</div><div class="text-xs text-slate-500">{{ log.actor_email }} · {{ log.actor_role }}</div></td>
-        <td class="hidden md:table-cell text-xs text-slate-600"><code>{{ log.entity_type }}</code>{% if log.entity_id %} <span class="font-mono">{{ log.entity_id[:10] }}</span>{% endif %}</td>
+        <td class=" text-xs text-slate-600" data-more><code>{{ log.entity_type }}</code>{% if log.entity_id %} <span class="font-mono">{{ log.entity_id[:10] }}</span>{% endif %}</td>
         <td>{% if log.metadata %}<details><summary class="text-sm font-medium text-navy-700 cursor-pointer">View</summary><pre class="mt-2 text-xs bg-navy-50 rounded p-2 max-w-md overflow-x-auto">{{ log.metadata|tojson(indent=2) }}</pre></details>{% else %}<span class="text-slate-400">—</span>{% endif %}</td></tr>
     {% endfor %}</tbody></table></div>
     {% if total_pages > 1 %}<div class="flex items-center justify-between px-5 py-3 border-t border-navy-100 text-sm">

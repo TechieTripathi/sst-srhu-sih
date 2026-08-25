@@ -34,9 +34,9 @@
   --color-snow: #f6f8fb;
   --color-ink:  #1a1f36;
 
-  --font-display: "Sora", ui-sans-serif, system-ui, sans-serif;
-  --font-sans:    "Inter", ui-sans-serif, system-ui, sans-serif;
-  --font-mono:    "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+  --font-display: "Plus Jakarta Sans", ui-sans-serif, system-ui, sans-serif;
+  --font-sans:    "IBM Plex Sans", ui-sans-serif, system-ui, sans-serif;
+  --font-mono:    "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
 
   --radius-card: 0.75rem;
   --shadow-card: 0 1px 2px rgb(11 31 75 / 0.06), 0 4px 16px -8px rgb(11 31 75 / 0.12);
@@ -101,6 +101,51 @@
   .table-base tbody td { @apply px-4 py-3 border-b border-navy-100 align-middle; }
   .table-base tbody tr:last-child td { @apply border-b-0; }
   .table-base tbody tr:hover td { @apply bg-navy-50/50; }
+
+  /* Responsive tables: <md renders each row as a card. Labels come from <thead> (copied to
+     data-label by main.js); the last column becomes a "More" disclosure. ≥md: plain table. */
+  @media (min-width: 48rem) {
+    .table-cards .only-cards { display: none; }
+    .table-cards td.row-more > .row-more-toggle { display: none; }
+    .table-cards td.row-more > .row-more-panel { display: contents; }   /* buttons render inline, as if never wrapped */
+  }
+  @media (max-width: 47.99rem) {
+    .table-cards thead { display: none; }
+    .table-cards, .table-cards tbody, .table-cards tr, .table-cards td { display: block; width: 100%; }
+    .table-cards tbody tr { @apply rounded-xl border border-navy-100 bg-white mb-3 p-4 shadow-[var(--shadow-card)]; display: flex; flex-direction: column; }
+    .table-cards tbody td[data-primary] { order: -1; }
+    .table-cards tbody tr:last-child { margin-bottom: 0; }
+    .table-cards tbody td { @apply px-0 py-1.5 border-0 flex items-start justify-between gap-3 text-right; }
+    .table-cards tbody td > .cell-value { @apply min-w-0 text-right; }
+    .table-cards tbody td > .cell-value > * { text-align: right; }
+    .table-cards tbody td::before { content: attr(data-label); @apply text-xs font-semibold uppercase tracking-wide text-slate-500 shrink-0 pt-0.5 text-left; }
+    .table-cards tbody td[data-primary] { @apply block text-left pb-2 mb-1 border-b border-navy-100; }
+    .table-cards tbody td[data-more] { display: none; }
+    .table-cards .only-cards { display: grid; grid-template-columns: auto 1fr; column-gap: 1rem; row-gap: .375rem; margin-bottom: .75rem; font-size: .875rem; }
+    .table-cards .only-cards-dt { @apply text-xs font-semibold uppercase tracking-wide text-slate-500 pt-0.5; }
+    .table-cards .only-cards-dd { @apply text-right min-w-0; }
+    .table-cards tbody td[data-primary]::before, .table-cards tbody td.row-more::before, .table-cards tbody td:not([data-label])::before { display: none; }
+    .table-cards tbody td.row-more { @apply block pt-2 text-left; }
+    .table-cards tbody td.row-more > .row-more-toggle { @apply inline-flex w-full items-center justify-center rounded-lg bg-white px-3 py-2 text-xs font-semibold text-navy-800 ring-1 ring-inset ring-navy-200 min-h-9 select-none cursor-pointer; }
+    .table-cards tbody td.row-more > .row-more-panel { display: none; }
+    .table-cards tbody td.row-more.is-open > .row-more-toggle { @apply mb-3; }
+    .table-cards tbody td.row-more.is-open > .row-more-panel { @apply grid gap-2; }
+    .table-cards tbody td.row-more > .row-more-panel form, .table-cards tbody td.row-more > .row-more-panel > * { @apply w-full; }
+    .table-cards tbody td.row-more > .row-more-panel [class^="btn-"], .table-cards tbody td.row-more > .row-more-panel [class*=" btn-"] { @apply w-full justify-center; }
+    .table-cards tbody tr:hover td { background: transparent; }
+    .table-cards .text-right { text-align: right; }
+  }
+
+  .sidebar-scroll { scrollbar-width: thin; scrollbar-color: rgb(255 255 255 / .25) transparent; }
+  .sidebar-scroll::-webkit-scrollbar { width: 6px; }
+  .sidebar-scroll::-webkit-scrollbar-thumb { background: rgb(255 255 255 / .25); border-radius: 3px; }
+
+  /* Stat groups: cards from sm up, a compact list on phones */
+  @media (max-width: 39.99rem) {
+    .stat-group .stat { @apply flex items-center justify-between gap-4 px-4 py-2.5 rounded-lg; }
+    .stat-group .stat-value { @apply text-xl order-2; }
+    .stat-group .stat-label { @apply mt-0 order-1 text-slate-700 leading-snug; }
+  }
 
   /* Navigation */
   .tab         { @apply inline-flex items-center gap-1.5 rounded-lg px-3.5 py-2 text-sm font-semibold text-slate-600 hover:bg-navy-50 hover:text-navy-800 min-h-10; }

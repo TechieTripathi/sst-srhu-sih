@@ -3,16 +3,16 @@
 
 {% block body %}
 {% set role_label = 'Super Admin · developer' if current_role == 'super_admin' else 'Admin · operations' %}
-<div class="min-h-full lg:flex">
+<div class="min-h-screen">
     <!-- Sidebar -->
-    <aside id="sidebar" class="fixed inset-y-0 left-0 z-40 w-72 -translate-x-full lg:translate-x-0 lg:static lg:w-64 shrink-0 bg-navy-900 text-white flex flex-col transition-transform duration-200" aria-label="Admin navigation">
+    <aside id="sidebar" class="fixed inset-y-0 left-0 z-40 w-72 lg:w-64 h-screen max-h-screen -translate-x-full lg:translate-x-0 bg-navy-900 text-white flex flex-col overflow-hidden transition-transform duration-200" aria-label="Admin navigation">
         <div class="h-16 px-5 flex items-center gap-3 border-b border-white/10">
             <img src="{{ url_for('static', filename='images/srhu-logo.png') }}" alt="SRHU" class="h-9 w-auto rounded bg-white p-0.5">
             <div class="min-w-0"><div class="font-display font-bold leading-tight truncate">{{ event_name }}</div><div class="text-[11px] text-navy-200 leading-tight">{{ role_label }}</div></div>
             <button type="button" class="ml-auto lg:hidden p-2 rounded hover:bg-white/10" aria-label="Close menu" onclick="toggleAdminSidebar(false)">✕</button>
         </div>
         {% block sidebar_nav %}
-        <nav class="flex-1 overflow-y-auto px-3 py-4 space-y-5 text-sm">
+        <nav class="flex-1 overflow-y-auto px-3 py-4 space-y-5 text-sm sidebar-scroll">
             {% set ep = request.endpoint or '' %}
             <div>
                 <div class="px-3 mb-1 text-[11px] font-semibold uppercase tracking-wider text-navy-300">Overview</div>
@@ -52,7 +52,7 @@
     <div id="sidebarBackdrop" class="fixed inset-0 z-30 bg-navy-900/50 hidden lg:hidden" onclick="toggleAdminSidebar(false)"></div>
 
     <!-- Main -->
-    <div class="flex-1 min-w-0 flex flex-col">
+    <div class="min-w-0 flex flex-col min-h-screen lg:pl-64">
         <header class="h-16 bg-white border-b border-navy-100 flex items-center gap-3 px-4 sm:px-6 sticky top-0 z-20">
             <button type="button" class="lg:hidden btn-ghost btn-sm -ml-2" aria-label="Open menu" aria-controls="sidebar" onclick="toggleAdminSidebar(true)">☰ Menu</button>
             <h2 class="font-display font-semibold text-navy-900 truncate">{% block admin_page_heading %}{{ self.admin_title() }}{% endblock %}</h2>
@@ -81,7 +81,7 @@
                 </div>
             </div>
             <div class="mt-6 flex justify-end gap-2">
-                <button type="button" class="btn-ghost" id="cmCancel">Cancel</button>
+                <button type="button" class="btn-secondary" id="cmCancel">Cancel</button>
                 <button type="button" class="btn-navy" id="cmOk">Confirm</button>
             </div>
         </div>

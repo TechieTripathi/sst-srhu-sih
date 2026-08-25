@@ -4,7 +4,7 @@ from dotenv import load_dotenv
 # Load environment variables BEFORE importing config
 load_dotenv()
 
-from flask import Flask, render_template, session
+from flask import Flask, render_template, session, url_for
 from config import get_config
 from models.database import Database
 
@@ -89,6 +89,18 @@ def register_error_handlers(app):
 def register_context_processors(app):
     """Register context processors"""
     
+    @app.context_processor
+    def inject_static_url():
+        import os as _os
+        def static_url(filename):
+            path = _os.path.join(app.static_folder, filename)
+            try:
+                v = int(_os.path.getmtime(path))
+            except OSError:
+                v = 0
+            return url_for('static', filename=filename, v=v)
+        return {'static_url': static_url}
+
     @app.context_processor
     def inject_globals():
         from routes.teams import is_registration_open

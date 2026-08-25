@@ -28,3 +28,47 @@ function copyText(text, btn) {
     };
     if (navigator.clipboard && window.isSecureContext) navigator.clipboard.writeText(text).then(function () { done(true); }, legacy); else legacy();
 }
+
+
+// Responsive tables (.table-base.table-cards): copy header text to data-label on each cell and
+// wrap the last (actions) column in a <details> so it collapses on phones. CSS does the rest.
+document.addEventListener('DOMContentLoaded', function () {
+    document.querySelectorAll('table.table-cards').forEach(function (t) {
+        var heads = Array.prototype.map.call(t.querySelectorAll('thead th'), function (th) { return th.textContent.trim(); });
+        if (!heads.length) return;
+        var last = heads.length - 1, lastIsActions = heads[last] === '' || /actions|details/i.test(heads[last]);
+        t.querySelectorAll('tbody tr').forEach(function (tr) {
+            var cells = tr.children, hasPrimary = tr.querySelector('td[data-primary]');
+            for (var i = 0; i < cells.length; i++) {
+                var td = cells[i];
+                if ((!hasPrimary && i === 0) || td.hasAttribute('data-primary')) { td.setAttribute('data-primary', ''); continue; }
+                if (i === last && lastIsActions) {
+                    td.classList.add('row-more');
+                    if (!td.querySelector(':scope > .row-more-panel')) {
+                        var btn = document.createElement('button'), box = document.createElement('div');
+                        btn.type = 'button'; btn.className = 'row-more-toggle'; btn.textContent = 'More ▾'; btn.setAttribute('aria-expanded', 'false');
+                        box.className = 'row-more-panel';
+                        // secondary cells (data-more) appear inside the panel on phones, as labelled lines
+                        var extra = document.createElement('dl'); extra.className = 'only-cards';
+                        Array.prototype.forEach.call(cells, function (c, j) {
+                            if (!c.hasAttribute('data-more') || !heads[j]) return;
+                            var dt = document.createElement('dt'); dt.className = 'only-cards-dt'; dt.textContent = heads[j];
+                            var dd = document.createElement('dd'); dd.className = 'only-cards-dd'; dd.innerHTML = c.innerHTML;
+                            extra.appendChild(dt); extra.appendChild(dd);
+                        });
+                        if (extra.children.length) box.appendChild(extra);
+                        while (td.firstChild) box.appendChild(td.firstChild);
+                        td.appendChild(btn); td.appendChild(box);
+                        btn.addEventListener('click', function () { var open = td.classList.toggle('is-open'); btn.textContent = open ? 'Less ▴' : 'More ▾'; btn.setAttribute('aria-expanded', open ? 'true' : 'false'); });
+                    }
+                    continue;
+                }
+                if (heads[i]) td.setAttribute('data-label', heads[i]);
+                if (!td.querySelector(':scope > .cell-value')) {           // stack multi-line content on the right of the label
+                    var v = document.createElement('div'); v.className = 'cell-value';
+                    while (td.firstChild) v.appendChild(td.firstChild); td.appendChild(v);
+                }
+            }
+        });
+    });
+});

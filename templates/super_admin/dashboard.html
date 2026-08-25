@@ -7,7 +7,7 @@
     <div class="flex gap-2"><a href="{{ url_for('super_admin.manage_admins') }}" class="btn-navy">👤 Admin accounts</a><a href="{{ url_for('super_admin.system_settings') }}" class="btn-secondary">⚙️ System settings</a></div>
 </div>
 
-<div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+<div class="stat-group grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-4">
     {{ stat(stats.total_teams, stats.registered_teams ~ ' registered teams') }}
     {{ stat(stats.total_judges, stats.internal_judges ~ ' internal · ' ~ stats.external_judges ~ ' external judges', 'info') }}
     {{ stat(stats.total_admins, 'admin accounts (' ~ stats.admin_users_count ~ ' ops admins)', 'danger') }}

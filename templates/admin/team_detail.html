@@ -24,14 +24,14 @@
 
 <h2 class="font-display text-xl font-bold text-navy-900 mt-8 mb-3">Evaluations <span class="text-slate-400 font-normal">({{ evaluations|length }})</span></h2>
 {% if evaluations %}
-<div class="card overflow-hidden"><div class="overflow-x-auto"><table class="table-base">
-    <thead><tr><th>Judge</th><th>Type</th><th class="text-right">Score</th><th>Status</th><th>Submitted</th><th></th></tr></thead>
+<div class="card overflow-hidden"><div class="overflow-x-auto"><table class="table-base table-cards">
+    <thead><tr><th>Judge</th><th>Type</th><th class="text-right">Score</th><th>Status</th><th>Submitted</th><th>Actions</th></tr></thead>
     <tbody>{% for ev in evaluations %}
     <tr><td class="font-mono text-xs text-slate-600">{{ ev.judge_id[:8] }}…</td>
         <td>{% if 'internal' in (ev.judge_type or '')|lower %}<span class="badge-success">Internal</span>{% else %}<span class="badge-info">External</span>{% endif %}</td>
         <td class="text-right font-display font-bold tabular-nums">{{ ev.weighted_total if ev.weighted_total is defined else (ev.weighted_score * 10)|round(2) }}<span class="text-xs text-slate-500 font-normal">/100</span></td>
         <td>{% if ev.status == 'submitted' %}<span class="badge-success">✓ Submitted</span>{% elif ev.status == 'reopened' %}<span class="badge-warning">↺ Reopened</span>{% else %}<span class="badge-neutral">{{ ev.status }}</span>{% endif %}</td>
-        <td class="text-slate-600">{{ ev.submitted_at.strftime('%d %b, %H:%M') if ev.submitted_at else '—' }}</td>
+        <td class="text-slate-600" data-more>{{ ev.submitted_at.strftime('%d %b, %H:%M') if ev.submitted_at else '—' }}</td>
         <td class="text-right">{% if ev.status == 'submitted' %}<form method="POST" action="{{ url_for('admin.reopen_evaluation', evaluation_id=ev._id|string) }}" onsubmit="return confirm('Reopen this evaluation? The judge will have to score this team again.')"><button class="btn-ghost btn-sm">↺ Reopen</button></form>{% endif %}</td></tr>
     {% endfor %}</tbody></table></div></div>
 {% else %}

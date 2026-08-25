@@ -10,7 +10,7 @@
     </div>
 </div>
 
-<div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+<div class="stat-group grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-4">
     {{ stat(stats.total_teams, 'teams registered') }}
     {{ stat(stats.internal_judges ~ ' + ' ~ stats.external_judges, 'internal + external judges', 'info') }}
     {{ stat(stats.evaluations_completed, 'evaluations submitted', 'success') }}
@@ -29,12 +29,12 @@
     <div class="lg:col-span-2 card min-w-0">
         <div class="card-header"><h2 class="card-title">Recently registered teams</h2><a href="{{ url_for('admin.teams_list') }}" class="btn-ghost btn-sm">All teams →</a></div>
         {% if recent_teams %}
-        <div class="overflow-x-auto"><table class="table-base">
-            <thead><tr><th>Team</th><th class="hidden sm:table-cell">Leader</th><th class="hidden md:table-cell">Contact</th><th>Registered</th></tr></thead>
+        <div class="overflow-x-auto"><table class="table-base table-cards">
+            <thead><tr><th>Team</th><th>Leader</th><th>Contact</th><th>Registered</th></tr></thead>
             <tbody>{% for team in recent_teams %}
             <tr><td><a href="{{ url_for('admin.team_detail', team_id=team._id) }}" class="font-semibold text-navy-900 hover:underline">{{ team.team_name }}</a><div class="text-xs text-slate-500 font-mono">{{ team.team_code }}</div></td>
-                <td class="hidden sm:table-cell">{{ team.leader_name }}</td>
-                <td class="hidden md:table-cell text-slate-600 text-xs">{{ team.leader_email }}<br>{{ team.leader_mobile }}</td>
+                <td>{{ team.leader_name }}</td>
+                <td class=" text-slate-600 text-xs">{{ team.leader_email }}<br>{{ team.leader_mobile }}</td>
                 <td class="text-slate-600">{{ team.created_at.strftime('%d %b, %H:%M') if team.created_at else '—' }}</td></tr>
             {% endfor %}</tbody></table></div>
         {% else %}<div class="card-body text-sm text-slate-600">No teams yet — they appear here as leaders register.</div>{% endif %}

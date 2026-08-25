@@ -4,7 +4,7 @@
 {% block admin_content %}
 <div class="mb-6 flex flex-wrap items-end justify-between gap-4">
     <div><h1 class="font-display text-2xl sm:text-3xl font-bold text-navy-900">Judges</h1><p class="mt-1 text-slate-600">Create jury accounts and send them their sign-in details.</p></div>
-    <a href="{{ url_for('admin.create_judge_form') }}" class="btn-primary">＋ Add judge</a>
+    <button type="button" class="btn-primary" onclick="openModal('addJudgeModal')">＋ Add judge</button>
 </div>
 
 {% if credential_notices %}
@@ -13,8 +13,8 @@
         <div><div class="card-title">🔑 Sign-in details not emailed ({{ credential_notices|length }})</div><div class="text-sm text-slate-600 mt-1">{{ credential_notices[0].reason }} Share these securely.</div></div>
         <div class="flex gap-2 shrink-0"><button type="button" class="btn-navy btn-sm" onclick="copyText(allCredsText(), this)">📋 Copy all</button><button type="button" class="btn-ghost btn-sm" onclick="document.getElementById('credentialNotice').remove()">Dismiss</button></div>
     </div>
-    <div class="overflow-x-auto"><table class="table-base" id="credTable">
-        <thead><tr><th>Judge</th><th>Sign-in email</th><th>Password</th><th></th></tr></thead>
+    <div class="overflow-x-auto"><table class="table-base table-cards" id="credTable">
+        <thead><tr><th>Judge</th><th>Sign-in email</th><th>Password</th><th>Actions</th></tr></thead>
         <tbody>{% for n in credential_notices %}
         <tr><td>{{ n.name }}</td><td><code class="cred-email code-chip">{{ n.email }}</code></td><td><code class="cred-password code-chip font-semibold">{{ n.password }}</code></td>
             <td class="text-right"><button type="button" class="btn-ghost btn-sm" onclick="copyText(credText('{{ n.email|e }}', '{{ n.password|e }}'), this)">Copy</button></td></tr>
@@ -23,7 +23,7 @@
 </div>
 {% endif %}
 
-<div class="grid grid-cols-3 gap-4 mb-6">
+<div class="stat-group grid grid-cols-1 sm:grid-cols-3 gap-2 sm:gap-4 mb-6">
     {{ stat(counts.all, 'judges in total') }}
     {{ stat(counts.internal, 'internal jury · 40 %', 'success') }}
     {{ stat(counts.external, 'external jury · 60 %', 'info') }}
@@ -61,14 +61,14 @@
 
 {% if not credential_notices %}<span id="juryLoginUrl" class="hidden">{{ jury_login_url }}</span>{% endif %}
 {% if judges %}
-<div class="card overflow-hidden"><div class="overflow-x-auto"><table class="table-base">
+<div class="card overflow-hidden"><div class="overflow-x-auto"><table class="table-base table-cards">
     <thead><tr><th>Judge</th><th>Jury type</th><th>Credentials</th><th>Account</th><th class="text-right">Actions</th></tr></thead>
     <tbody>{% for judge in judges %}
     <tr>
         <td><div class="font-semibold text-navy-900">{{ judge.name or 'N/A' }}{% if judge.is_overall_jury_coordinator %} <span class="badge-warning ml-1">Coordinator</span>{% endif %}</div><div class="text-xs text-slate-500">{{ judge.email }}</div></td>
         <td>{% if judge.kind == 'internal' %}<span class="badge-success">Internal</span>{% else %}<span class="badge-info">External</span>{% endif %}</td>
-        <td class="text-sm" data-cred-cell>{% if judge.credentials_sent %}<span class="badge-success">✓ Emailed</span><div class="text-xs text-slate-500 mt-1">to {{ judge.credentials_sent_to or judge.email }}{% if judge.credentials_sent_at %} · {{ judge.credentials_sent_at.strftime('%d %b %H:%M') }}{% endif %}</div>{% else %}<span class="badge-neutral">Not emailed yet</span>{% endif %}</td>
-        <td>{% if judge.status|lower == 'inactive' %}<span class="badge-danger">Inactive</span>{% else %}<span class="badge-success">Active</span>{% endif %}</td>
+        <td class="text-sm" data-cred-cell data-more>{% if judge.credentials_sent %}<span class="badge-success">✓ Emailed</span><div class="text-xs text-slate-500 mt-1">to {{ judge.credentials_sent_to or judge.email }}{% if judge.credentials_sent_at %} · {{ judge.credentials_sent_at.strftime('%d %b %H:%M') }}{% endif %}</div>{% else %}<span class="badge-neutral">Not emailed yet</span>{% endif %}</td>
+        <td data-more>{% if judge.status|lower == 'inactive' %}<span class="badge-danger">Inactive</span>{% else %}<span class="badge-success">Active</span>{% endif %}</td>
         <td class="text-right"><div class="inline-flex flex-wrap justify-end gap-2">
             {% if judge.kind == 'external' %}
                 {# External: password is kept, so the primary actions are show + copy. Nothing is emailed to the judge. #}
@@ -96,6 +96,16 @@
 {% endif %}
 
 
+<!-- Add judge (modal). Same form and route as /admin/judges/create; that page stays as the no-JS fallback. -->
+<div id="addJudgeModal" class="modal-backdrop fixed inset-0 z-50 hidden items-center justify-center bg-navy-900/50 p-4 overflow-y-auto" style="display:none">
+    <div class="card w-full max-w-5xl my-4" role="dialog" aria-modal="true" aria-labelledby="ajTitle">
+        <div class="card-header"><h2 class="card-title" id="ajTitle">Add a judge</h2><button type="button" class="btn-ghost btn-sm" aria-label="Close" onclick="closeModal('addJudgeModal')">✕</button></div>
+        <div class="card-body max-h-[75vh] overflow-y-auto">
+            {% include 'partials/judge_form.html' %}
+        </div>
+    </div>
+</div>
+
 <!-- Email sign-in details: confirm → sending → sent / not sent -->
 <div id="emailModal" class="modal-backdrop fixed inset-0 z-50 hidden items-center justify-center bg-navy-900/50 p-4" style="display:none">
     <div class="card w-full max-w-md" role="dialog" aria-modal="true" aria-labelledby="emTitle" aria-describedby="emBody">
@@ -104,7 +114,7 @@
             <!-- confirm -->
             <div data-state="confirm">
                 <p class="text-sm text-slate-700">A <strong>new password</strong> will be generated for <strong id="emJudge"></strong> and emailed to <strong id="emTo"></strong>. The current password stops working.</p>
-                <div class="mt-5 flex justify-end gap-2"><button type="button" class="btn-ghost" onclick="closeModal('emailModal')">Cancel</button><button type="button" class="btn-primary" id="emSend">✉️ Send email</button></div>
+                <div class="mt-5 flex justify-end gap-2"><button type="button" class="btn-secondary" onclick="closeModal('emailModal')">Cancel</button><button type="button" class="btn-primary" id="emSend">✉️ Send email</button></div>
             </div>
             <!-- sending -->
             <div data-state="sending" class="hidden">
