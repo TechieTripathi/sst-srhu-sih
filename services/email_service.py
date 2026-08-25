@@ -9,6 +9,7 @@ import logging
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from email.header import Header
+from email.utils import formatdate, make_msgid, formataddr
 from flask import current_app
 
 logger = logging.getLogger(__name__)
@@ -174,8 +175,15 @@ Swami Rama Himalayan University
     try:
         msg = MIMEMultipart('alternative')
         msg['Subject'] = Header("TechForge 3.0 — Jury Login Credentials", 'utf-8')
-        msg['From'] = f"TechForge 3.0 <{cfg['from_addr']}>"
+        # Deliverability: a proper From, plus Date / Message-ID / Reply-To. Mail without
+        # Date or Message-ID is a classic spam signal; a Reply-To lets judges answer.
+        msg['From'] = formataddr(("TechForge 3.0 · SST, SRHU", cfg['from_addr']))
         msg['To'] = deliver_to
+        msg['Reply-To'] = cfg['from_addr']
+        msg['Date'] = formatdate(localtime=True)
+        msg['Message-ID'] = make_msgid(domain=cfg['from_addr'].split('@')[-1] or 'techforge.local')
+        msg['X-Entity-Ref-ID'] = make_msgid()[1:-1]   # unique per message: stops Gmail threading/"similar mail" grouping
+        msg['Auto-Submitted'] = 'auto-generated'
 
         part1 = MIMEText(plain_text, 'plain', 'utf-8')
         part2 = MIMEText(html_content, 'html', 'utf-8')

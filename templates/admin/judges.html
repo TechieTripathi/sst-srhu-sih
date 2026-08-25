@@ -36,12 +36,13 @@
         {% endfor %}
     </div>
     <form method="POST" action="{{ url_for('admin.send_credentials_all') }}" id="bulkForm" class="ml-auto flex flex-wrap items-center gap-3"
-          data-batch-url="{{ url_for('admin.send_credentials_batch') }}" data-tab="{{ tab }}" data-count="{{ counts[tab] }}" data-not-sent="{{ counts.not_sent }}">
+          data-batch-url="{{ url_for('admin.send_credentials_batch') }}" data-tab="{{ tab }}" data-count="{{ counts[tab] }}" data-not-sent="{{ counts.not_sent }}" data-not-sent-all="{{ counts.not_sent_all }}" data-internal="{{ counts.internal }}">
         <input type="hidden" name="type" value="{{ tab }}">
+        {% if tab == 'all' %}<label class="text-sm text-slate-600 flex items-center gap-2" title="External judges are skipped unless ticked"><input type="checkbox" name="include_external" class="rounded border-navy-300" {% if not bulk_enabled %}disabled{% endif %}> include external judges</label>{% endif %}
         <label class="text-sm text-slate-600 flex items-center gap-2"><input type="checkbox" name="include_sent" class="rounded border-navy-300" {% if not bulk_enabled %}disabled{% endif %}> include already-emailed</label>
         <label class="text-sm text-slate-600 flex items-center gap-1.5" title="Emails per batch (max 10)">batch <input type="number" name="batch_size" value="5" min="1" max="10" class="input min-h-9 w-16 py-1 text-sm text-center" {% if not bulk_enabled %}disabled{% endif %}></label>
-        <label class="text-sm text-slate-600 flex items-center gap-1.5" title="Pause between batches, in seconds">every <input type="number" name="interval" value="20" min="0" max="300" class="input min-h-9 w-20 py-1 text-sm text-center" {% if not bulk_enabled %}disabled{% endif %}> s</label>
-        <button type="submit" class="btn-navy btn-sm" {% if not bulk_enabled or counts[tab] == 0 %}disabled{% endif %} title="{{ 'Disabled by the Super Admin in System Settings' if not bulk_enabled else 'Emails new sign-in details to every judge in this tab, in batches' }}">✉️ Email {{ 'all' if tab == 'all' else tab }} judges</button>
+        <label class="text-sm text-slate-600 flex items-center gap-1.5" title="Pause between batches, in seconds (0 = none)">pause <input type="number" name="interval" value="3" min="0" max="300" class="input min-h-9 w-16 py-1 text-sm text-center" {% if not bulk_enabled %}disabled{% endif %}> s</label>
+        <button type="submit" class="btn-navy btn-sm" {% if not bulk_enabled or counts[tab] == 0 %}disabled{% endif %} title="{{ 'Disabled by the Super Admin in System Settings' if not bulk_enabled else 'Emails new sign-in details to every judge in this tab, in batches' }}">✉️ Email {{ 'internal' if tab == 'all' else tab }} judges</button>
         {% if not bulk_enabled %}<span class="badge-neutral">Disabled by Super Admin</span>{% endif %}
     </form>
 </div>
@@ -189,13 +190,17 @@
         var tick = function () { status.textContent = done + ' of ' + res.total + ' processed · next batch of ' + Math.min(res.queued, form.batch_size.value) + ' in ' + left + 's'; if (left-- <= 0) { clearInterval(timer); post({action: 'next'}).then(function (r) { run(r, interval); }); } };
         tick(); timer = setInterval(tick, 1000);
     }
+    if (form.include_external) form.include_external.addEventListener('change', function () { form.querySelector('button[type=submit]').textContent = '✉️ Email ' + (this.checked ? 'all' : 'internal') + ' judges'; });
     form.addEventListener('submit', function (e) {
         e.preventDefault();
-        var inc = form.include_sent.checked, n = inc ? form.dataset.count : form.dataset.notSent;
-        if (!confirm('Generate NEW passwords and email sign-in details to ' + n + ' judge(s), ' + form.batch_size.value + ' at a time, every ' + form.interval.value + ' seconds?')) return;
+        var inc = form.include_sent.checked, ext = form.include_external && form.include_external.checked;
+        var scope = form.dataset.tab === 'all' ? (ext ? 'all' : 'internal') : form.dataset.tab;
+        var n = form.dataset.tab === 'all' ? (inc ? (ext ? form.dataset.count : form.dataset.internal) : (ext ? form.dataset.notSentAll : form.dataset.notSent)) : (inc ? form.dataset.count : form.dataset.notSent);
+        var pause = parseInt(form.interval.value, 10) || 0;
+        if (!confirm('Generate NEW passwords and email sign-in details to ' + n + ' ' + scope + ' judge(s), ' + form.batch_size.value + ' at a time' + (pause ? ', pausing ' + pause + ' s between batches' : ', no pause') + '?')) return;
         stop = false; log.innerHTML = ''; bar.style.width = '0%'; box.classList.remove('hidden'); form.querySelector('button[type=submit]').disabled = true;
         cancelBtn.textContent = 'Stop after this batch'; cancelBtn.onclick = function () { stop = true; cancelBtn.textContent = 'Stopping…'; };
-        post({action: 'start', type: form.dataset.tab, include_sent: inc, batch_size: parseInt(form.batch_size.value, 10) || 5})
+        post({action: 'start', type: form.dataset.tab, include_sent: inc, include_external: !!ext, batch_size: parseInt(form.batch_size.value, 10) || 5})
             .then(function (r) { run(r, Math.max(0, parseInt(form.interval.value, 10) || 0)); })
             .catch(function () { line('Network error — nothing more was sent.', false); finish('Bulk send stopped'); });
     });

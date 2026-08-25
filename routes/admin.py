@@ -121,7 +121,8 @@ def judges_list():
         'all': len(all_judges),
         'internal': sum(1 for j in all_judges if j['kind'] == 'internal'),
         'external': sum(1 for j in all_judges if j['kind'] == 'external'),
-        'not_sent': sum(1 for j in judges if not j.get('credentials_sent')),
+        'not_sent': sum(1 for j in judges if not j.get('credentials_sent') and (tab != 'all' or j['kind'] != 'external')),
+        'not_sent_all': sum(1 for j in judges if not j.get('credentials_sent')),
     }
 
     settings = get_event_settings_collection().find_one({}) or {}
@@ -272,14 +273,17 @@ BULK_BATCH_SIZE_MAX = 10
 BULK_BATCH_SIZE_DEFAULT = 5
 
 
-def _bulk_targets(tab, include_sent):
-    """Active judges in the tab; skips already-emailed ones unless include_sent."""
+def _bulk_targets(tab, include_sent, include_external=False):
+    """Active judges in the tab; skips already-emailed ones unless include_sent.
+    External judges are skipped unless include_external (or the External tab is selected)."""
     judges_col = get_judges_collection()
     users_col = get_users_collection()
     targets = []
     for judge in judges_col.find():
         kind = 'external' if 'external' in str(judge.get('judge_type', '')).lower() else 'internal'
         if tab in ('internal', 'external') and kind != tab:
+            continue
+        if tab == 'all' and kind == 'external' and not include_external:
             continue
         if str(judge.get('status', 'active')).lower() != 'active':
             continue
@@ -321,18 +325,19 @@ def send_credentials_batch():
     if action == 'start':
         tab = data.get('type', 'all')
         include_sent = bool(data.get('include_sent'))
+        include_external = bool(data.get('include_external'))
         try:
             batch_size = max(1, min(int(data.get('batch_size', BULK_BATCH_SIZE_DEFAULT)), BULK_BATCH_SIZE_MAX))
         except (TypeError, ValueError):
             batch_size = BULK_BATCH_SIZE_DEFAULT
-        targets = _bulk_targets(tab, include_sent)
+        targets = _bulk_targets(tab, include_sent, include_external)
         if not targets:
             return jsonify({'error': 'No judges to email — everyone in this list already has credentials. '
                                      'Tick "include already-emailed" to resend.', 'queued': 0, 'done': True}), 200
         session['bulk_queue'] = {'ids': [str(j['_id']) for j in targets], 'tab': tab, 'batch_size': batch_size,
-                                 'sent': 0, 'failed': 0, 'total': len(targets), 'include_sent': include_sent}
+                                 'sent': 0, 'failed': 0, 'total': len(targets), 'include_sent': include_sent, 'include_external': include_external}
         log_audit(session.get('user_id'), 'judge_credentials_bulk_started', 'judge', tab,
-                  {'targets': len(targets), 'batch_size': batch_size, 'include_sent': include_sent})
+                  {'targets': len(targets), 'batch_size': batch_size, 'include_sent': include_sent, 'include_external': include_external})
 
     q = session.get('bulk_queue')
     if not q:
@@ -376,7 +381,8 @@ def send_credentials_all():
 
     tab = request.form.get('type', 'all')
     include_sent = request.form.get('include_sent') == 'on'
-    targets = _bulk_targets(tab, include_sent)
+    include_external = request.form.get('include_external') == 'on'
+    targets = _bulk_targets(tab, include_sent, include_external)
 
     if not targets:
         flash('No judges to email — everyone in this list has already received credentials. '
