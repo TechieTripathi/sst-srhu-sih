@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}{{ event_name }}{% endblock %} · {{ university_name }}</title>
+    <meta name="description" content="{{ event_name }} — {{ event_tagline }}. {{ school_name }}, {{ university_name }}.">
+    <meta name="theme-color" content="#183878">
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='images/favicon.png') }}">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Sora:wght@600;700;800&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/app.css') }}">
+    {% block extra_css %}{% endblock %}
+</head>
+<body class="min-h-full flex flex-col bg-snow text-ink">
+    {# Flash messages: fixed top-right on desktop, full-width on mobile. Success auto-hides; warnings/errors stay until dismissed. #}
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+        <div id="flash-region" class="fixed z-50 inset-x-3 top-3 sm:inset-x-auto sm:right-4 sm:top-4 sm:w-[26rem] flex flex-col gap-2" aria-live="polite">
+            {% for category, message in messages %}
+            {% set kind = 'error' if category in ['error', 'danger'] else ('success' if category == 'success' else ('warning' if category == 'warning' else 'info')) %}
+            <div class="alert-{{ kind }} shadow-lg bg-opacity-100" role="{{ 'alert' if kind != 'success' else 'status' }}" data-flash="{{ kind }}">
+                <span aria-hidden="true" class="shrink-0">{{ {'success': '✅', 'warning': '⚠️', 'error': '⛔', 'info': 'ℹ️'}[kind] }}</span>
+                <div class="flex-1 leading-snug">{{ message }}</div>
+                <button type="button" class="shrink-0 -my-1 -mr-1 p-1 rounded hover:bg-black/5" aria-label="Dismiss" onclick="this.closest('[data-flash]').remove()">✕</button>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+    {% endwith %}
+
+    {% block body %}
+        {% include 'partials/site_header.html' %}
+        <main id="main" class="flex-1 mx-auto w-full max-w-6xl px-4 sm:px-6 py-8">
+            {% block content %}{% endblock %}
+        </main>
+        {% include 'partials/site_footer.html' %}
+    {% endblock %}
+
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+    {% block extra_js %}{% endblock %}
+    <script>
+        // Only success messages auto-hide; anything a person must act on stays.
+        document.querySelectorAll('[data-flash="success"]').forEach(function (el) {
+            setTimeout(function () { el.style.transition = 'opacity .3s'; el.style.opacity = '0'; setTimeout(function () { el.remove(); }, 300); }, 6000);
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,26 @@
+{# Public / shared top bar: SRHU logo, event name, one role-aware link. Used by public, team and jury pages. #}
+<header class="bg-white border-b border-navy-100">
+    <div class="mx-auto max-w-6xl px-4 sm:px-6 h-16 flex items-center justify-between gap-4">
+        <a href="{{ url_for('index') }}" class="flex items-center gap-3 min-w-0">
+            <img src="{{ url_for('static', filename='images/srhu-logo.png') }}" alt="Swami Rama Himalayan University" class="h-10 w-auto">
+            <span class="hidden sm:block h-8 w-px bg-navy-100" aria-hidden="true"></span>
+            <span class="min-w-0">
+                <span class="block font-display font-bold text-navy-900 leading-tight truncate">{{ event_name }}</span>
+                <span class="block text-xs text-slate-500 leading-tight truncate">{{ school_name }} · {{ university_name }}</span>
+            </span>
+        </a>
+        <nav class="flex items-center gap-2 shrink-0" aria-label="Account">
+            {% if current_user %}
+                {% if current_role in ['admin', 'super_admin'] %}
+                    <a href="{{ url_for('super_admin.dashboard') if current_role == 'super_admin' else url_for('admin.dashboard') }}" class="btn-secondary btn-sm">Go to {{ 'Super Admin' if current_role == 'super_admin' else 'Admin' }}</a>
+                {% elif current_role|lower in ['judge', 'internal_judge', 'external_judge'] %}
+                    <a href="{{ url_for('judge.dashboard') }}" class="btn-secondary btn-sm">My teams</a>
+                {% endif %}
+                <a href="{{ url_for('auth.logout') }}" class="btn-ghost btn-sm">Sign out</a>
+            {% else %}
+                <a href="{{ url_for('judge.login') }}" class="btn-secondary btn-sm">Jury sign in</a>
+            {% endif %}
+        </nav>
+    </div>
+    <div class="ridge" role="presentation"></div>
+</header>

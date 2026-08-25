@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+{% block title %}{% block admin_title %}Admin{% endblock %} · Admin{% endblock %}
+
+{% block body %}
+{% set role_label = 'Super Admin · developer' if current_role == 'super_admin' else 'Admin · operations' %}
+<div class="min-h-full lg:flex">
+    <!-- Sidebar -->
+    <aside id="sidebar" class="fixed inset-y-0 left-0 z-40 w-72 -translate-x-full lg:translate-x-0 lg:static lg:w-64 shrink-0 bg-navy-900 text-white flex flex-col transition-transform duration-200" aria-label="Admin navigation">
+        <div class="h-16 px-5 flex items-center gap-3 border-b border-white/10">
+            <img src="{{ url_for('static', filename='images/srhu-logo.png') }}" alt="SRHU" class="h-9 w-auto rounded bg-white p-0.5">
+            <div class="min-w-0"><div class="font-display font-bold leading-tight truncate">{{ event_name }}</div><div class="text-[11px] text-navy-200 leading-tight">{{ role_label }}</div></div>
+            <button type="button" class="ml-auto lg:hidden p-2 rounded hover:bg-white/10" aria-label="Close menu" onclick="toggleAdminSidebar(false)">✕</button>
+        </div>
+        {% block sidebar_nav %}
+        <nav class="flex-1 overflow-y-auto px-3 py-4 space-y-5 text-sm">
+            {% set ep = request.endpoint or '' %}
+            <div>
+                <div class="px-3 mb-1 text-[11px] font-semibold uppercase tracking-wider text-navy-300">Overview</div>
+                <a href="{{ url_for('admin.dashboard') }}" class="sidebar-link {% if ep == 'admin.dashboard' %}sidebar-link-active{% endif %}">📊 Dashboard</a>
+            </div>
+            <div>
+                <div class="px-3 mb-1 text-[11px] font-semibold uppercase tracking-wider text-navy-300">People</div>
+                <a href="{{ url_for('admin.teams_list') }}" class="sidebar-link {% if 'teams' in ep or ep == 'admin.team_detail' %}sidebar-link-active{% endif %}">👥 Teams</a>
+                <a href="{{ url_for('admin.judges_list') }}" class="sidebar-link {% if 'judge' in ep or 'credentials' in ep %}sidebar-link-active{% endif %}">⚖️ Judges</a>
+            </div>
+            <div>
+                <div class="px-3 mb-1 text-[11px] font-semibold uppercase tracking-wider text-navy-300">Scoring</div>
+                <a href="{{ url_for('admin.evaluations_list') }}" class="sidebar-link {% if ep == 'admin.evaluations_list' %}sidebar-link-active{% endif %}">📝 Evaluations</a>
+                <a href="{{ url_for('admin.results_overview') }}" class="sidebar-link {% if ep == 'admin.results_overview' %}sidebar-link-active{% endif %}">🏆 Rankings</a>
+                <a href="{{ url_for('results.leaderboard') }}" class="sidebar-link">📈 Leaderboard</a>
+            </div>
+            <div>
+                <div class="px-3 mb-1 text-[11px] font-semibold uppercase tracking-wider text-navy-300">Event</div>
+                <a href="{{ url_for('admin.settings') }}" class="sidebar-link {% if ep == 'admin.settings' %}sidebar-link-active{% endif %}">⚙️ Settings</a>
+                <a href="{{ url_for('admin.audit_logs') }}" class="sidebar-link {% if ep == 'admin.audit_logs' %}sidebar-link-active{% endif %}">📋 Audit log</a>
+                <a href="{{ url_for('admin.export_teams') }}" class="sidebar-link">⬇️ Export teams (CSV)</a>
+                <a href="{{ url_for('admin.export_results') }}" class="sidebar-link">⬇️ Export results (CSV)</a>
+            </div>
+            {% if current_role == 'super_admin' %}
+            <div>
+                <div class="px-3 mb-1 text-[11px] font-semibold uppercase tracking-wider text-crimson-100/80">Developer</div>
+                <a href="{{ url_for('super_admin.dashboard') }}" class="sidebar-link">🛡️ Super Admin panel</a>
+            </div>
+            {% endif %}
+        </nav>
+        {% endblock %}
+        <div class="p-3 border-t border-white/10">
+            <div class="px-3 py-2 text-xs text-navy-200 truncate">Signed in as <span class="text-white font-medium">{{ user_name }}</span></div>
+            <a href="{{ url_for('auth.logout') }}" class="sidebar-link">🚪 Sign out</a>
+        </div>
+    </aside>
+    <div id="sidebarBackdrop" class="fixed inset-0 z-30 bg-navy-900/50 hidden lg:hidden" onclick="toggleAdminSidebar(false)"></div>
+
+    <!-- Main -->
+    <div class="flex-1 min-w-0 flex flex-col">
+        <header class="h-16 bg-white border-b border-navy-100 flex items-center gap-3 px-4 sm:px-6 sticky top-0 z-20">
+            <button type="button" class="lg:hidden btn-ghost btn-sm -ml-2" aria-label="Open menu" aria-controls="sidebar" onclick="toggleAdminSidebar(true)">☰ Menu</button>
+            <h2 class="font-display font-semibold text-navy-900 truncate">{% block admin_page_heading %}{{ self.admin_title() }}{% endblock %}</h2>
+            <div class="ml-auto flex items-center gap-3">
+                <span class="hidden sm:inline-flex {{ 'badge-danger' if current_role == 'super_admin' else 'badge-navy' }}">{{ role_label }}</span>
+                <a href="{{ url_for('index') }}" class="btn-ghost btn-sm hidden sm:inline-flex" title="Public homepage">↗ Public site</a>
+            </div>
+        </header>
+        <div class="{{ 'h-1 bg-crimson-600' if current_role == 'super_admin' else 'ridge !h-3' }}" role="presentation"></div>
+        <main id="main" class="flex-1 px-4 sm:px-6 py-6 max-w-7xl w-full mx-auto">
+            {% block admin_content %}{% endblock %}
+        </main>
+    </div>
+</div>
+<script>
+function toggleAdminSidebar(open) {
+    var sb = document.getElementById('sidebar'), bd = document.getElementById('sidebarBackdrop');
+    sb.classList.toggle('-translate-x-full', !open); bd.classList.toggle('hidden', !open);
+}
+</script>
+{% endblock %}

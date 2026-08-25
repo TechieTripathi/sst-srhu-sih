@@ -1,0 +1,36 @@
+{% extends "admin/base_admin.html" %}
+{% from 'partials/ui.html' import empty_state %}
+{% block admin_title %}Evaluations{% endblock %}
+{% block admin_content %}
+<div class="mb-6 flex flex-wrap items-end justify-between gap-4">
+    <div><h1 class="font-display text-2xl sm:text-3xl font-bold text-navy-900">Evaluations <span class="text-slate-400 font-normal">({{ total }})</span></h1><p class="mt-1 text-slate-600">Every score submitted by the jury. Reopen one if a judge made a mistake.</p></div>
+    <form method="GET" class="flex items-center gap-2">
+        <label for="status" class="text-sm text-slate-600">Show</label>
+        <select id="status" name="status" class="select min-h-10 text-sm w-44" onchange="this.form.submit()">
+            <option value="" {% if not status_filter %}selected{% endif %}>All</option>
+            <option value="submitted" {% if status_filter == 'submitted' %}selected{% endif %}>Submitted</option>
+            <option value="reopened" {% if status_filter == 'reopened' %}selected{% endif %}>Reopened</option>
+        </select>
+    </form>
+</div>
+{% if evaluations %}
+<div class="card overflow-hidden"><div class="overflow-x-auto"><table class="table-base">
+    <thead><tr><th>Team</th><th>Judge</th><th class="text-right">Score</th><th>Status</th><th class="hidden sm:table-cell">Submitted</th><th></th></tr></thead>
+    <tbody>{% for ev in evaluations %}
+    <tr><td class="font-semibold text-navy-900">{{ ev.team_name }}</td>
+        <td>{{ ev.judge_name }} {% if ev.judge_type == 'internal' %}<span class="badge-success ml-1">Int</span>{% elif ev.judge_type == 'external' %}<span class="badge-info ml-1">Ext</span>{% endif %}</td>
+        <td class="text-right font-display font-bold tabular-nums">{% if ev.weighted_total is defined %}{{ "%.1f"|format(ev.weighted_total) }}<span class="text-xs text-slate-500 font-normal">/100</span>{% else %}—{% endif %}</td>
+        <td>{% if ev.status == 'submitted' %}<span class="badge-success">✓ Submitted</span>{% elif ev.status == 'reopened' %}<span class="badge-warning">↺ Reopened</span>{% else %}<span class="badge-neutral">{{ ev.status }}</span>{% endif %}</td>
+        <td class="hidden sm:table-cell text-slate-600">{{ ev.submitted_at.strftime('%d %b, %H:%M') if ev.submitted_at else '—' }}</td>
+        <td class="text-right">{% if ev.status == 'submitted' %}<form method="POST" action="{{ url_for('admin.reopen_evaluation', evaluation_id=ev._id|string) }}" onsubmit="return confirm('Reopen this evaluation? The judge will have to score the team again.')"><button class="btn-ghost btn-sm">↺ Reopen</button></form>{% elif ev.status == 'reopened' %}<span class="text-xs text-slate-500">awaiting judge</span>{% endif %}</td></tr>
+    {% endfor %}</tbody></table></div>
+    {% if total_pages > 1 %}<div class="flex items-center justify-between px-5 py-3 border-t border-navy-100 text-sm">
+        {% if page > 1 %}<a class="btn-secondary btn-sm" href="?page={{ page - 1 }}&status={{ status_filter }}">← Previous</a>{% else %}<span></span>{% endif %}
+        <span class="text-slate-600">Page {{ page }} of {{ total_pages }}</span>
+        {% if page < total_pages %}<a class="btn-secondary btn-sm" href="?page={{ page + 1 }}&status={{ status_filter }}">Next →</a>{% else %}<span></span>{% endif %}
+    </div>{% endif %}
+</div>
+{% else %}
+{{ empty_state('📝', 'No evaluations' ~ (' with this status' if status_filter else ' yet'), 'Scores appear here as jury members submit them.') }}
+{% endif %}
+{% endblock %}

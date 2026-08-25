@@ -1,0 +1,14 @@
+<footer class="mt-16 border-t border-navy-100 bg-white">
+    <div class="mx-auto max-w-6xl px-4 sm:px-6 py-8 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 text-sm text-slate-600">
+        <div class="flex items-center gap-3">
+            <img src="{{ url_for('static', filename='images/srhu-logo.png') }}" alt="" class="h-8 w-auto" aria-hidden="true">
+            <div><div class="font-semibold text-navy-900">{{ university_name }}</div><div>{{ school_name }}, Dehradun</div></div>
+        </div>
+        <nav class="flex flex-wrap gap-x-5 gap-y-2" aria-label="Footer">
+            <a class="hover:text-navy-800 hover:underline" href="{{ url_for('results.leaderboard') }}">Leaderboard</a>
+            <a class="hover:text-navy-800 hover:underline" href="{{ url_for('judge.login') }}">Jury sign in</a>
+            <a class="hover:text-navy-800 hover:underline" href="{{ url_for('admin.login') }}">Admin sign in</a>
+            <a class="hover:text-navy-800 hover:underline" href="{{ url_for('super_admin.login') }}">Super Admin sign in</a>
+        </nav>
+    </div>
+</footer>

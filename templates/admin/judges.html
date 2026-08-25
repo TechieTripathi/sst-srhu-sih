@@ -1,0 +1,207 @@
+{% extends "admin/base_admin.html" %}
+{% from 'partials/ui.html' import stat, empty_state %}
+{% block admin_title %}Judges{% endblock %}
+{% block admin_content %}
+<div class="mb-6 flex flex-wrap items-end justify-between gap-4">
+    <div><h1 class="font-display text-2xl sm:text-3xl font-bold text-navy-900">Judges</h1><p class="mt-1 text-slate-600">Create jury accounts and send them their sign-in details.</p></div>
+    <a href="{{ url_for('admin.create_judge_form') }}" class="btn-primary">＋ Add judge</a>
+</div>
+
+{% if credential_notices %}
+<div class="card border-l-4 border-l-saffron-500 mb-6" id="credentialNotice">
+    <div class="card-header">
+        <div><div class="card-title">🔑 Sign-in details not emailed ({{ credential_notices|length }})</div><div class="text-sm text-slate-600 mt-1">{{ credential_notices[0].reason }} Share these securely.</div></div>
+        <div class="flex gap-2 shrink-0"><button type="button" class="btn-navy btn-sm" onclick="copyText(allCredsText(), this)">📋 Copy all</button><button type="button" class="btn-ghost btn-sm" onclick="document.getElementById('credentialNotice').remove()">Dismiss</button></div>
+    </div>
+    <div class="overflow-x-auto"><table class="table-base" id="credTable">
+        <thead><tr><th>Judge</th><th>Sign-in email</th><th>Password</th><th></th></tr></thead>
+        <tbody>{% for n in credential_notices %}
+        <tr><td>{{ n.name }}</td><td><code class="cred-email code-chip">{{ n.email }}</code></td><td><code class="cred-password code-chip font-semibold">{{ n.password }}</code></td>
+            <td class="text-right"><button type="button" class="btn-ghost btn-sm" onclick="copyText(credText('{{ n.email|e }}', '{{ n.password|e }}'), this)">Copy</button></td></tr>
+        {% endfor %}</tbody></table></div>
+    <div class="px-5 py-3 text-xs text-slate-500">Jury sign-in page: <code id="juryLoginUrl" class="font-mono">{{ jury_login_url }}</code></div>
+</div>
+{% endif %}
+
+<div class="grid grid-cols-3 gap-4 mb-6">
+    {{ stat(counts.all, 'judges in total') }}
+    {{ stat(counts.internal, 'internal jury · 40 %', 'success') }}
+    {{ stat(counts.external, 'external jury · 60 %', 'info') }}
+</div>
+
+<div class="flex flex-wrap items-center gap-3 mb-4">
+    <div class="flex gap-1" role="tablist">
+        {% for key, label in [('all', 'All'), ('internal', 'Internal'), ('external', 'External')] %}
+        <a href="{{ url_for('admin.judges_list', type=key) }}" role="tab" aria-selected="{{ 'true' if tab == key else 'false' }}" class="tab {% if tab == key %}tab-active{% endif %}">{{ label }} <span class="opacity-70">({{ counts[key] }})</span></a>
+        {% endfor %}
+    </div>
+    <form method="POST" action="{{ url_for('admin.send_credentials_all') }}" id="bulkForm" class="ml-auto flex flex-wrap items-center gap-3"
+          data-batch-url="{{ url_for('admin.send_credentials_batch') }}" data-tab="{{ tab }}" data-count="{{ counts[tab] }}" data-not-sent="{{ counts.not_sent }}">
+        <input type="hidden" name="type" value="{{ tab }}">
+        <label class="text-sm text-slate-600 flex items-center gap-2"><input type="checkbox" name="include_sent" class="rounded border-navy-300" {% if not bulk_enabled %}disabled{% endif %}> include already-emailed</label>
+        <label class="text-sm text-slate-600 flex items-center gap-1.5" title="Emails per batch (max 10)">batch <input type="number" name="batch_size" value="5" min="1" max="10" class="input min-h-9 w-16 py-1 text-sm text-center" {% if not bulk_enabled %}disabled{% endif %}></label>
+        <label class="text-sm text-slate-600 flex items-center gap-1.5" title="Pause between batches, in seconds">every <input type="number" name="interval" value="20" min="0" max="300" class="input min-h-9 w-20 py-1 text-sm text-center" {% if not bulk_enabled %}disabled{% endif %}> s</label>
+        <button type="submit" class="btn-navy btn-sm" {% if not bulk_enabled or counts[tab] == 0 %}disabled{% endif %} title="{{ 'Disabled by the Super Admin in System Settings' if not bulk_enabled else 'Emails new sign-in details to every judge in this tab, in batches' }}">✉️ Email {{ 'all' if tab == 'all' else tab }} judges</button>
+        {% if not bulk_enabled %}<span class="badge-neutral">Disabled by Super Admin</span>{% endif %}
+    </form>
+</div>
+
+<!-- batch progress (shown while a bulk send runs) -->
+<div id="bulkProgress" class="card border-l-4 border-l-navy-700 mb-4 hidden" role="status" aria-live="polite">
+    <div class="card-body">
+        <div class="flex flex-wrap items-center justify-between gap-3">
+            <div><div class="font-display font-semibold text-navy-900" id="bulkTitle">Sending sign-in details…</div><div class="text-sm text-slate-600 mt-0.5" id="bulkStatus"></div></div>
+            <button type="button" class="btn-secondary btn-sm" id="bulkCancel">Stop after this batch</button>
+        </div>
+        <div class="mt-3 h-2 rounded-full bg-navy-100 overflow-hidden"><div id="bulkBar" class="h-full bg-navy-700 transition-all" style="width:0%"></div></div>
+        <ul id="bulkLog" class="mt-3 text-sm text-slate-700 space-y-0.5 max-h-40 overflow-y-auto"></ul>
+    </div>
+</div>
+
+{% if not credential_notices %}<span id="juryLoginUrl" class="hidden">{{ jury_login_url }}</span>{% endif %}
+{% if judges %}
+<div class="card overflow-hidden"><div class="overflow-x-auto"><table class="table-base">
+    <thead><tr><th>Judge</th><th>Type</th><th>Sign-in details</th><th>Status</th><th class="text-right">Sign-in details</th></tr></thead>
+    <tbody>{% for judge in judges %}
+    <tr>
+        <td><div class="font-semibold text-navy-900">{{ judge.name or 'N/A' }}{% if judge.is_overall_jury_coordinator %} <span class="badge-warning ml-1">Coordinator</span>{% endif %}</div><div class="text-xs text-slate-500">{{ judge.email }}</div></td>
+        <td>{% if judge.kind == 'internal' %}<span class="badge-success">Internal</span>{% else %}<span class="badge-info">External</span>{% endif %}</td>
+        <td class="text-sm" data-cred-cell>{% if judge.credentials_sent %}<span class="badge-success">✓ Emailed</span><div class="text-xs text-slate-500 mt-1">to {{ judge.credentials_sent_to or judge.email }}{% if judge.credentials_sent_at %} · {{ judge.credentials_sent_at.strftime('%d %b %H:%M') }}{% endif %}</div>{% else %}<span class="badge-neutral">Not emailed</span>{% endif %}</td>
+        <td>{% if judge.status|lower == 'inactive' %}<span class="badge-danger">Inactive</span>{% else %}<span class="badge-success">Active</span>{% endif %}</td>
+        <td class="text-right"><div class="inline-flex flex-wrap justify-end gap-2">
+            {% if judge.kind == 'external' %}
+                {# External: password is kept, so the primary actions are show + copy. Nothing is emailed to the judge. #}
+                {% if judge.temp_password %}
+                <span class="inline-flex items-center gap-1 rounded-lg border border-navy-200 bg-white pl-2 pr-1 py-0.5">
+                    <code class="font-mono text-sm text-navy-900 select-all" data-pw="{{ judge.temp_password|e }}" aria-label="Current password">••••••••••••</code>
+                    <button type="button" class="btn-ghost btn-sm !min-h-8 px-2" onclick="togglePw(this)" aria-label="Show current password">👁 Show</button>
+                    <button type="button" class="btn-navy btn-sm !min-h-8" onclick="copyText(credText('{{ judge.email|e }}', '{{ judge.temp_password|e }}'), this)">📋 Copy sign-in details</button>
+                </span>
+                {% endif %}
+                <form method="POST" action="{{ url_for('admin.regenerate_password', judge_id=judge._id) }}" onsubmit="return confirm('Generate a new password for {{ judge.name|e }}? The current one stops working.')"><button class="btn-secondary btn-sm" title="New password, kept in this table">{{ '↻ New password' if judge.temp_password else '🔑 Generate password' }}</button></form>
+                <form method="POST" action="{{ url_for('admin.send_credentials', judge_id=judge._id) }}" class="inline-flex gap-1" data-email-form data-judge="{{ judge.name|e }}" data-judge-email="{{ judge.email|e }}" onsubmit="return confirm('Generate a new password for {{ judge.name|e }} and email it to ' + this.recipient.value + '?')">
+                    <input type="email" name="recipient" class="input min-h-9 text-sm w-44 py-1" placeholder="email to someone" aria-label="Email sign-in details to" required><button class="btn-secondary btn-sm">Send</button></form>
+            {% else %}
+                <form method="POST" action="{{ url_for('admin.send_credentials', judge_id=judge._id) }}" data-email-form data-judge="{{ judge.name|e }}" data-judge-email="{{ judge.email|e }}" onsubmit="return confirm('Generate a new password for {{ judge.name|e }} and email it to {{ judge.email|e }}?')"><button class="btn-secondary btn-sm">✉️ To judge</button></form>
+                <form method="POST" action="{{ url_for('admin.send_credentials', judge_id=judge._id) }}" class="inline-flex gap-1" data-email-form data-judge="{{ judge.name|e }}" data-judge-email="{{ judge.email|e }}" onsubmit="return confirm('Generate a new password for {{ judge.name|e }} and email it to ' + this.recipient.value + '?')">
+                    <input type="email" name="recipient" class="input min-h-9 text-sm w-44 py-1" placeholder="other email" aria-label="Email sign-in details to" required><button class="btn-secondary btn-sm">Send</button></form>
+                <form method="POST" action="{{ url_for('admin.regenerate_password', judge_id=judge._id) }}" onsubmit="return confirm('Generate a new password for {{ judge.name|e }} and show it once? The current one stops working.')"><button class="btn-ghost btn-sm" title="New password, shown once">🔑 Show once</button></form>
+            {% endif %}
+        </div></td>
+    </tr>{% endfor %}</tbody></table></div></div>
+<p class="help mt-3">Every action here creates a <strong>new</strong> password; the old one stops working.<br><strong>External judges:</strong> the current password is kept, so use <em>Show</em> / <em>Copy sign-in details</em> any time — e.g. to hand over on event day. <strong>Internal judges:</strong> passwords are never stored — email them, or use <em>Show once</em> and copy immediately.</p>
+{% else %}
+{{ empty_state('⚖️', 'No ' ~ (tab if tab != 'all' else '') ~ ' judges yet', 'Add judges and email them their sign-in details from here.', url_for('admin.create_judge_form'), 'Add a judge') }}
+{% endif %}
+
+
+<!-- Email sign-in details: confirm → sending → sent / not sent -->
+<div id="emailModal" class="modal-backdrop fixed inset-0 z-50 hidden items-center justify-center bg-navy-900/50 p-4" style="display:none">
+    <div class="card w-full max-w-md" role="dialog" aria-modal="true" aria-labelledby="emTitle" aria-describedby="emBody">
+        <div class="card-header"><h2 class="card-title" id="emTitle">Email sign-in details</h2><button type="button" class="btn-ghost btn-sm" aria-label="Close" onclick="closeModal('emailModal')">✕</button></div>
+        <div class="card-body" id="emBody">
+            <!-- confirm -->
+            <div data-state="confirm">
+                <p class="text-sm text-slate-700">A <strong>new password</strong> will be generated for <strong id="emJudge"></strong> and emailed to <strong id="emTo"></strong>. The current password stops working.</p>
+                <div class="mt-5 flex justify-end gap-2"><button type="button" class="btn-ghost" onclick="closeModal('emailModal')">Cancel</button><button type="button" class="btn-primary" id="emSend">✉️ Send email</button></div>
+            </div>
+            <!-- sending -->
+            <div data-state="sending" class="hidden">
+                <div class="flex items-center gap-3 text-navy-900"><span class="inline-block h-5 w-5 rounded-full border-2 border-navy-200 border-t-navy-700 animate-spin" aria-hidden="true"></span><span class="font-semibold">Sending…</span></div>
+                <p class="mt-2 text-sm text-slate-600">Generating a password and handing it to the mail server. Keep this window open.</p>
+            </div>
+            <!-- sent -->
+            <div data-state="sent" class="hidden">
+                <div class="flex items-center gap-3"><span class="inline-flex h-8 w-8 items-center justify-center rounded-full bg-green-100 text-green-700" aria-hidden="true">✓</span><div><div class="font-semibold text-navy-900">Sent</div><div class="text-sm text-slate-600" id="emSentTo"></div></div></div>
+                <p class="mt-3 text-sm text-slate-600">The judge can sign in with the new password as soon as the email arrives (check spam if not within a minute).</p>
+                <div class="mt-5 flex justify-end"><button type="button" class="btn-navy" onclick="closeModal('emailModal')">Done</button></div>
+            </div>
+            <!-- failed -->
+            <div data-state="failed" class="hidden">
+                <div class="flex items-center gap-3"><span class="inline-flex h-8 w-8 items-center justify-center rounded-full bg-crimson-100 text-crimson-700" aria-hidden="true">✗</span><div><div class="font-semibold text-navy-900">Not sent</div><div class="text-sm text-slate-600" id="emReason"></div></div></div>
+                <div id="emPwWrap" class="mt-4 rounded-lg bg-navy-50 border border-navy-100 p-3 hidden">
+                    <div class="text-xs text-slate-500">A new password was still generated — share it securely (shown only now):</div>
+                    <div class="mt-1 flex items-center justify-between gap-3"><code class="font-mono font-semibold text-navy-900" id="emPw"></code><button type="button" class="btn-navy btn-sm" id="emCopy">📋 Copy sign-in details</button></div>
+                </div>
+                <div class="mt-5 flex justify-end gap-2"><button type="button" class="btn-ghost" onclick="closeModal('emailModal')">Close</button><button type="button" class="btn-secondary" id="emRetry">Try again</button></div>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+(function () {
+    var modal = document.getElementById('emailModal'); if (!modal) return;
+    var states = modal.querySelectorAll('[data-state]'), current = null;
+    function show(state) { states.forEach(function (el) { el.classList.toggle('hidden', el.dataset.state !== state); }); }
+    function send() {
+        show('sending');
+        var body = new FormData(); if (current.recipient) body.append('recipient', current.recipient);
+        fetch(current.action, {method: 'POST', body: body, credentials: 'same-origin', headers: {'X-Requested-With': 'fetch', 'Accept': 'application/json'}})
+            .then(function (r) { return r.json().then(function (d) { d._http = r.status; return d; }); })
+            .then(function (d) {
+                if (d.success) {
+                    document.getElementById('emSentTo').textContent = 'to ' + d.recipient + ' · ' + d.sent_at; show('sent');
+                    var cell = current.row.querySelector('[data-cred-cell]');
+                    if (cell) cell.innerHTML = '<span class="badge-success">✓ Emailed</span><div class="text-xs text-slate-500 mt-1">to ' + d.recipient + ' · ' + d.sent_at + '</div>';
+                    if (current.input) current.input.value = '';
+                } else {
+                    document.getElementById('emReason').textContent = d.reason || d.error || 'The mail server did not accept the message.';
+                    var wrap = document.getElementById('emPwWrap'); wrap.classList.toggle('hidden', !d.password);
+                    if (d.password) { document.getElementById('emPw').textContent = d.password; document.getElementById('emCopy').onclick = function () { copyText(credText(d.email, d.password), this); }; }
+                    show('failed');
+                }
+            })
+            .catch(function () { document.getElementById('emReason').textContent = 'Network error — the request did not reach the server, nothing was changed.'; document.getElementById('emPwWrap').classList.add('hidden'); show('failed'); });
+    }
+    document.querySelectorAll('form[data-email-form]').forEach(function (f) {
+        f.removeAttribute('onsubmit');
+        f.addEventListener('submit', function (e) {
+            e.preventDefault();
+            var input = f.querySelector('input[name=recipient]');
+            if (input && !input.checkValidity()) { input.reportValidity(); return; }
+            current = {action: f.action, recipient: input ? input.value.trim() : '', row: f.closest('tr'), input: input};
+            document.getElementById('emJudge').textContent = f.dataset.judge;
+            document.getElementById('emTo').textContent = current.recipient || f.dataset.judgeEmail;
+            show('confirm'); openModal('emailModal');
+        });
+    });
+    document.getElementById('emSend').onclick = send;
+    document.getElementById('emRetry').onclick = function () { show('confirm'); };
+})();
+// Batched bulk send: one request per batch; the browser waits `interval` seconds between batches.
+(function () {
+    var form = document.getElementById('bulkForm'); if (!form) return;
+    var url = form.dataset.batchUrl, box = document.getElementById('bulkProgress'), bar = document.getElementById('bulkBar');
+    var status = document.getElementById('bulkStatus'), log = document.getElementById('bulkLog'), cancelBtn = document.getElementById('bulkCancel');
+    var stop = false, timer = null;
+    function post(body) { return fetch(url, {method: 'POST', headers: {'Content-Type': 'application/json'}, credentials: 'same-origin', body: JSON.stringify(body)}).then(function (r) { return r.json(); }); }
+    function line(text, ok) { var li = document.createElement('li'); li.textContent = (ok === false ? '✗ ' : ok === true ? '✓ ' : '') + text; if (ok === false) li.className = 'text-crimson-700'; log.prepend(li); }
+    function finish(msg) { document.getElementById('bulkTitle').textContent = msg; cancelBtn.textContent = 'Refresh list'; cancelBtn.onclick = function () { location.reload(); }; }
+    function run(res, interval) {
+        if (res.error) { line(res.error, false); finish('Bulk send stopped'); return; }
+        var done = res.sent + res.failed;
+        bar.style.width = (100 * done / res.total) + '%';
+        status.textContent = done + ' of ' + res.total + ' processed · ' + res.sent + ' emailed' + (res.failed ? ' · ' + res.failed + ' failed (passwords shown after refresh)' : '');
+        (res.batch || []).forEach(function (b) { line(b.name + ' <' + b.email + '>' + (b.ok ? '' : ' — ' + (b.error || 'failed')), b.ok); });
+        if (res.done) { finish(res.failed ? 'Finished with ' + res.failed + ' failure(s)' : 'All sign-in details emailed'); return; }
+        if (stop) { post({action: 'cancel'}).then(function () { finish('Stopped — ' + res.queued + ' judge(s) not emailed'); }); return; }
+        var left = interval;
+        var tick = function () { status.textContent = done + ' of ' + res.total + ' processed · next batch of ' + Math.min(res.queued, form.batch_size.value) + ' in ' + left + 's'; if (left-- <= 0) { clearInterval(timer); post({action: 'next'}).then(function (r) { run(r, interval); }); } };
+        tick(); timer = setInterval(tick, 1000);
+    }
+    form.addEventListener('submit', function (e) {
+        e.preventDefault();
+        var inc = form.include_sent.checked, n = inc ? form.dataset.count : form.dataset.notSent;
+        if (!confirm('Generate NEW passwords and email sign-in details to ' + n + ' judge(s), ' + form.batch_size.value + ' at a time, every ' + form.interval.value + ' seconds?')) return;
+        stop = false; log.innerHTML = ''; bar.style.width = '0%'; box.classList.remove('hidden'); form.querySelector('button[type=submit]').disabled = true;
+        cancelBtn.textContent = 'Stop after this batch'; cancelBtn.onclick = function () { stop = true; cancelBtn.textContent = 'Stopping…'; };
+        post({action: 'start', type: form.dataset.tab, include_sent: inc, batch_size: parseInt(form.batch_size.value, 10) || 5})
+            .then(function (r) { run(r, Math.max(0, parseInt(form.interval.value, 10) || 0)); })
+            .catch(function () { line('Network error — nothing more was sent.', false); finish('Bulk send stopped'); });
+    });
+})();
+function togglePw(btn) { var c = btn.parentElement.querySelector('[data-pw]'); var shown = c.textContent !== '••••••••••••'; c.textContent = shown ? '••••••••••••' : c.dataset.pw; btn.textContent = shown ? 'Show' : 'Hide'; }
+function credText(email, password) { return 'TechForge 3.0 jury sign-in\nEmail: ' + email + '\nPassword: ' + password + '\nSign in: ' + document.getElementById('juryLoginUrl').textContent; }
+function allCredsText() { var out = []; document.querySelectorAll('#credTable tbody tr').forEach(function (r) { out.push(credText(r.querySelector('.cred-email').textContent, r.querySelector('.cred-password').textContent)); }); return out.join('\n\n'); }
+</script>
+{% endblock %}

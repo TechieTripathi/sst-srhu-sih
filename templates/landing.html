@@ -1,0 +1,126 @@
+{% extends "base.html" %}
+{% block title %}{{ event_name }} — 36-hour hackathon{% endblock %}
+
+{% block body %}
+{% include 'partials/site_header.html' %}
+<main id="main" class="flex-1">
+
+    <!-- Hero: the thesis -->
+    <section class="bg-navy-900 text-white">
+        <div class="mx-auto max-w-6xl px-4 sm:px-6 py-14 sm:py-20 grid lg:grid-cols-[1.2fr_1fr] gap-10 items-center">
+            <div>
+                <p class="text-saffron-500 font-semibold text-sm tracking-wide uppercase">26 – 27 August 2026 · Jolly Grant campus, Dehradun</p>
+                <h1 class="font-display text-4xl sm:text-5xl lg:text-6xl font-extrabold leading-[1.05] mt-3">
+                    36 hours.<br>One working prototype.<br><span class="text-saffron-500">A shot at SIH 2026.</span>
+                </h1>
+                <p class="mt-5 text-navy-100 text-lg max-w-xl">
+                    {{ event_name }} is the School of Science &amp; Technology's internal hackathon and the selection round for Smart India Hackathon 2026. Teams of six build something real; a faculty and industry jury scores it.
+                </p>
+                <div class="mt-8 flex flex-wrap gap-3">
+                    {% if registration_open %}
+                    <a href="{{ url_for('teams.register') }}" class="btn-primary btn-lg">Register your team</a>
+                    {% else %}
+                    <span class="btn-lg inline-flex items-center gap-2 rounded-lg bg-white/10 text-navy-100 px-6 min-h-12 font-semibold cursor-default">🔒 Registration closed</span>
+                    {% endif %}
+                    <a href="{{ url_for('judge.login') }}" class="btn-lg inline-flex items-center rounded-lg ring-1 ring-inset ring-white/30 text-white px-6 min-h-12 font-semibold hover:bg-white/10">Jury sign in</a>
+                </div>
+                <p class="mt-4 text-sm text-navy-200">Takes under two minutes. Only the team leader registers.</p>
+            </div>
+            <dl class="grid grid-cols-2 gap-3 sm:gap-4">
+                {% for v, k in [('36 h', 'continuous build sprint'), ('6', 'students per team'), ('6', 'scoring criteria, 0–10 each'), ('40 / 60', 'internal / external jury weight')] %}
+                <div class="rounded-xl bg-white/5 ring-1 ring-white/10 p-5">
+                    <dt class="font-display text-3xl sm:text-4xl font-bold text-white">{{ v }}</dt>
+                    <dd class="mt-1 text-sm text-navy-200">{{ k }}</dd>
+                </div>
+                {% endfor %}
+            </dl>
+        </div>
+        <div class="ridge" style="background-image:url('{{ url_for('static', filename='images/ridge.svg') }}'); filter: invert(1) brightness(2);" role="presentation"></div>
+    </section>
+
+    <!-- How it works: a real sequence, so numbering carries meaning -->
+    <section id="how" class="mx-auto max-w-6xl px-4 sm:px-6 py-14">
+        <h2 class="font-display text-2xl sm:text-3xl font-bold text-navy-900">How it works</h2>
+        <ol class="mt-8 grid md:grid-cols-3 gap-5">
+            {% for n, title, text in [
+                ('1', 'Register', 'Your team leader fills one short form. You get a team code on screen — keep it, the jury uses it to find you.'),
+                ('2', 'Build for 36 hours', 'Pick a problem statement, build a working prototype on campus. Slides alone are not scored.'),
+                ('3', 'Get judged', 'Internal jury (40 %) and external jury (60 %) score six criteria from 0–10. Results appear on the leaderboard when the organisers publish them.')
+            ] %}
+            <li class="card p-6 flex gap-4">
+                <span class="font-display text-3xl font-bold text-saffron-600 leading-none" aria-hidden="true">{{ n }}</span>
+                <div><h3 class="font-display font-semibold text-navy-900 text-lg">{{ title }}</h3><p class="mt-1.5 text-slate-600 text-sm leading-relaxed">{{ text }}</p></div>
+            </li>
+            {% endfor %}
+        </ol>
+    </section>
+
+    <!-- Rules -->
+    <section id="rules" class="bg-white border-y border-navy-100">
+        <div class="mx-auto max-w-6xl px-4 sm:px-6 py-14 grid lg:grid-cols-[1fr_1.4fr] gap-10">
+            <div>
+                <h2 class="font-display text-2xl sm:text-3xl font-bold text-navy-900">Team rules</h2>
+                <p class="mt-3 text-slate-600">These follow the Smart India Hackathon 2026 guidelines. Teams that don't meet them can't be nominated.</p>
+                <h3 class="font-display font-semibold text-navy-900 mt-8">If two teams tie</h3>
+                <p class="mt-2 text-sm text-slate-600">The higher score wins in this order: <strong>Prototype &amp; Implementation</strong>, then <strong>Technical Design &amp; Feasibility</strong>, then <strong>Innovation &amp; Differentiation</strong>.</p>
+            </div>
+            <ul class="grid sm:grid-cols-2 gap-4">
+                {% for icon, title, text in [
+                    ('👥', 'Exactly 6 students', 'All currently enrolled at SST, SRHU (UG or PG).'),
+                    ('♀', 'At least one female member', 'Required by SIH national guidelines.'),
+                    ('🧭', 'One team leader', 'The single contact for registration, announcements and submissions.'),
+                    ('🛠️', 'A working prototype', 'Demonstrate real, running code. Idea-only entries are not scored.'),
+                    ('🙋', 'One team per student', 'Being in two teams invalidates both entries.'),
+                    ('📎', 'Declare what you reused', 'Existing code, libraries, APIs and AI tools must be disclosed to the jury.')
+                ] %}
+                <li class="flex gap-3 rounded-xl border border-navy-100 p-4">
+                    <span class="text-xl shrink-0" aria-hidden="true">{{ icon }}</span>
+                    <div><div class="font-semibold text-navy-900">{{ title }}</div><div class="text-sm text-slate-600 mt-0.5">{{ text }}</div></div>
+                </li>
+                {% endfor %}
+            </ul>
+        </div>
+    </section>
+
+    <!-- Scoring -->
+    <section id="scoring" class="mx-auto max-w-6xl px-4 sm:px-6 py-14">
+        <h2 class="font-display text-2xl sm:text-3xl font-bold text-navy-900">What the jury scores</h2>
+        <p class="mt-3 text-slate-600 max-w-2xl">Six criteria, each 0–10. The weights add to 100 %. Your final score is 40 % internal-jury average + 60 % external-jury average.</p>
+        <ul class="mt-8 grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {% for name, w, text in [
+                ('Problem understanding', 15, 'Clear need, real stakeholders, measurable goals'),
+                ('Innovation', 15, 'Original, genuinely better than what exists'),
+                ('Technical design', 20, 'Architecture, security, practical and feasible'),
+                ('Prototype', 25, 'Works end-to-end, tested, demonstrated live'),
+                ('Impact & scalability', 15, 'Value to society, can grow, sustainable'),
+                ('Presentation', 10, 'Clear pitch, good answers to the jury')
+            ] %}
+            <li class="card p-5">
+                <div class="flex items-baseline justify-between gap-3">
+                    <h3 class="font-display font-semibold text-navy-900">{{ name }}</h3>
+                    <span class="font-display text-xl font-bold text-navy-700 tabular-nums">{{ w }}%</span>
+                </div>
+                <div class="mt-3 h-1.5 rounded-full bg-navy-100 overflow-hidden"><div class="h-full bg-navy-700 rounded-full" style="width: {{ w * 4 }}%"></div></div>
+                <p class="mt-3 text-sm text-slate-600">{{ text }}</p>
+            </li>
+            {% endfor %}
+        </ul>
+    </section>
+
+    <!-- Closing CTA -->
+    <section class="mx-auto max-w-6xl px-4 sm:px-6 pb-6">
+        <div class="card p-8 sm:p-10 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6 border-l-4 border-l-saffron-500">
+            <div>
+                <h2 class="font-display text-2xl font-bold text-navy-900">Ready to build?</h2>
+                <p class="mt-1.5 text-slate-600">Register now and get your team code in two minutes.</p>
+            </div>
+            {% if registration_open %}
+            <a href="{{ url_for('teams.register') }}" class="btn-primary btn-lg shrink-0">Register your team</a>
+            {% else %}
+            <span class="badge-neutral text-sm px-4 py-2">🔒 Registration closed</span>
+            {% endif %}
+        </div>
+    </section>
+</main>
+{% include 'partials/site_footer.html' %}
+{% endblock %}

@@ -1,0 +1,28 @@
+{% extends "admin/base_admin.html" %}
+{% block admin_title %}Settings{% endblock %}
+{% block admin_content %}
+<h1 class="font-display text-2xl sm:text-3xl font-bold text-navy-900">Event settings</h1>
+<p class="mt-1 mb-6 text-slate-600">Three switches control the whole event. Each one says what happens when you flip it.</p>
+
+<div class="grid gap-4 md:grid-cols-3">
+    {% set rows = [
+        ('Team registration', 'Students can register new teams on the public site.', settings.registration_open, 'Open', 'Closed', url_for('admin.toggle_registration'), 'Close registration', 'Open registration', 'Close team registration? The public Register button disappears and the form stops accepting teams.', 'Open team registration?'),
+        ('Judging', 'Jury members can submit scores.', not settings.judging_locked, 'Open', 'Locked', url_for('admin.toggle_judging'), 'Lock judging', 'Unlock judging', 'Lock judging? No new scores can be submitted until you unlock.', 'Unlock judging? Jury members can submit scores again.'),
+        ('Results', 'Final rankings are visible on the leaderboard.', settings.results_published, 'Published', 'Not published', url_for('admin.toggle_results'), 'Unpublish results', 'Publish results', 'Unpublish results? The leaderboard hides final scores again.', 'Publish results? Final rankings become visible on the leaderboard.')
+    ] %}
+    {% for title, desc, on, on_label, off_label, action, off_btn, on_btn, off_confirm, on_confirm in rows %}
+    <div class="card"><div class="card-body h-full flex flex-col justify-between gap-4">
+        <div><div class="flex items-center gap-2"><h2 class="font-display font-semibold text-navy-900">{{ title }}</h2>{% if on %}<span class="badge-success">🟢 {{ on_label }}</span>{% else %}<span class="{{ 'badge-danger' if title == 'Judging' else 'badge-neutral' }}">🔒 {{ off_label }}</span>{% endif %}</div><p class="text-sm text-slate-600 mt-1">{{ desc }}</p></div>
+        <form method="POST" action="{{ action }}" onsubmit="return confirm('{{ (off_confirm if on else on_confirm)|e }}')">
+            <button type="submit" class="{{ 'btn-secondary' if on else 'btn-navy' }}">{{ off_btn if on else on_btn }}</button>
+        </form>
+    </div></div>
+    {% endfor %}
+</div>
+
+<div class="card mt-8"><div class="card-header"><h2 class="card-title">How scores are calculated</h2></div>
+    <div class="card-body text-sm text-slate-700 grid sm:grid-cols-2 gap-6">
+        <div><p class="font-semibold text-navy-900">Final score / 100</p><p class="mt-1">40 % internal-jury average + 60 % external-jury average. A team gets a final score only once both jury types have scored it.</p></div>
+        <div><p class="font-semibold text-navy-900">Six criteria (0–10 each)</p><ul class="mt-1 space-y-0.5"><li>Problem understanding 15 %</li><li>Innovation 15 %</li><li>Technical design 20 %</li><li>Prototype 25 %</li><li>Impact &amp; scalability 15 %</li><li>Presentation 10 %</li></ul></div>
+    </div></div>
+{% endblock %}

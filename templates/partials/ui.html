@@ -1,0 +1,40 @@
+{# Reusable UI macros — import with: {% from 'partials/ui.html' import badge, stat, empty_state, alert, page_header %} #}
+
+{% macro badge(text, kind='neutral', icon='') -%}
+<span class="badge-{{ kind }}">{% if icon %}<span aria-hidden="true">{{ icon }}</span>{% endif %}{{ text }}</span>
+{%- endmacro %}
+
+{% macro stat(value, label, tone='navy') -%}
+<div class="stat {% if tone == 'success' %}border-l-green-500{% elif tone == 'warning' %}border-l-saffron-500{% elif tone == 'danger' %}border-l-crimson-600{% elif tone == 'info' %}border-l-sky-500{% endif %}">
+    <div class="stat-value">{{ value }}</div>
+    <div class="stat-label">{{ label }}</div>
+</div>
+{%- endmacro %}
+
+{% macro empty_state(icon, title, text, cta_href='', cta_text='') -%}
+<div class="card py-12 px-6 text-center">
+    <div class="text-4xl mb-3" aria-hidden="true">{{ icon }}</div>
+    <h3 class="font-display text-lg font-semibold text-navy-900">{{ title }}</h3>
+    <p class="mt-1.5 text-sm text-slate-600 max-w-md mx-auto">{{ text }}</p>
+    {% if cta_href %}<a href="{{ cta_href }}" class="btn-navy mt-5">{{ cta_text }}</a>{% endif %}
+</div>
+{%- endmacro %}
+
+{% macro alert(message, kind='info') -%}
+{% set icons = {'success': '✅', 'warning': '⚠️', 'error': '⛔', 'danger': '⛔', 'info': 'ℹ️'} %}
+<div class="alert-{{ 'error' if kind == 'danger' else kind }}" role="{{ 'alert' if kind in ['error', 'danger', 'warning'] else 'status' }}">
+    <span aria-hidden="true" class="shrink-0">{{ icons.get(kind, 'ℹ️') }}</span>
+    <div class="flex-1 leading-snug">{{ message }}</div>
+</div>
+{%- endmacro %}
+
+{% macro page_header(title, subtitle='', back_href='', back_text='') -%}
+<div class="mb-6 flex flex-wrap items-end justify-between gap-4">
+    <div>
+        {% if back_href %}<a href="{{ back_href }}" class="text-sm font-medium text-navy-700 hover:underline">← {{ back_text or 'Back' }}</a>{% endif %}
+        <h1 class="font-display text-2xl md:text-3xl font-bold text-navy-900">{{ title }}</h1>
+        {% if subtitle %}<p class="mt-1 text-slate-600">{{ subtitle }}</p>{% endif %}
+    </div>
+    <div class="flex items-center gap-2">{{ caller() if caller }}</div>
+</div>
+{%- endmacro %}

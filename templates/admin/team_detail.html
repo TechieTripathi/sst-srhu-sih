@@ -1,0 +1,40 @@
+{% extends "admin/base_admin.html" %}
+{% from 'partials/ui.html' import empty_state %}
+{% block admin_title %}{{ team.team_name }}{% endblock %}
+{% block admin_content %}
+<a href="{{ url_for('admin.teams_list') }}" class="text-sm font-medium text-navy-700 hover:underline">← Teams</a>
+<div class="mt-2 mb-6 flex flex-wrap items-end justify-between gap-4">
+    <div><h1 class="font-display text-2xl sm:text-3xl font-bold text-navy-900">{{ team.team_name }}</h1><p class="mt-1 text-slate-600 font-mono">{{ team.team_code }}</p></div>
+    <span class="badge-success">{{ team.status|capitalize }}</span>
+</div>
+<div class="grid md:grid-cols-2 gap-6 min-w-0">
+    <div class="card"><div class="card-header"><h2 class="card-title">Team</h2></div>
+        <dl class="card-body grid grid-cols-[auto_1fr] gap-x-6 gap-y-3 text-sm">
+            <dt class="text-slate-500">Registered</dt><dd class="text-navy-900">{{ team.created_at.strftime('%d %B %Y at %H:%M') if team.created_at else '—' }}</dd>
+            <dt class="text-slate-500">Theme</dt><dd class="text-navy-900">{{ team.theme_name or '—' }}</dd>
+            <dt class="text-slate-500">Problem statement</dt><dd class="text-navy-900">{{ team.problem_statement or '—' }}</dd>
+        </dl></div>
+    <div class="card"><div class="card-header"><h2 class="card-title">Team leader</h2></div>
+        <dl class="card-body grid grid-cols-[auto_1fr] gap-x-6 gap-y-3 text-sm">
+            <dt class="text-slate-500">Name</dt><dd class="text-navy-900 font-semibold">{{ team.leader_name }}</dd>
+            <dt class="text-slate-500">Email</dt><dd><a href="mailto:{{ team.leader_email }}" class="text-navy-700 hover:underline">{{ team.leader_email }}</a></dd>
+            <dt class="text-slate-500">Mobile</dt><dd><a href="tel:{{ team.leader_mobile }}" class="text-navy-700 hover:underline tabular-nums">{{ team.leader_mobile }}</a></dd>
+        </dl></div>
+</div>
+
+<h2 class="font-display text-xl font-bold text-navy-900 mt-8 mb-3">Evaluations <span class="text-slate-400 font-normal">({{ evaluations|length }})</span></h2>
+{% if evaluations %}
+<div class="card overflow-hidden"><div class="overflow-x-auto"><table class="table-base">
+    <thead><tr><th>Judge</th><th>Type</th><th class="text-right">Score</th><th>Status</th><th>Submitted</th><th></th></tr></thead>
+    <tbody>{% for ev in evaluations %}
+    <tr><td class="font-mono text-xs text-slate-600">{{ ev.judge_id[:8] }}…</td>
+        <td>{% if 'internal' in (ev.judge_type or '')|lower %}<span class="badge-success">Internal</span>{% else %}<span class="badge-info">External</span>{% endif %}</td>
+        <td class="text-right font-display font-bold tabular-nums">{{ ev.weighted_total if ev.weighted_total is defined else (ev.weighted_score * 10)|round(2) }}<span class="text-xs text-slate-500 font-normal">/100</span></td>
+        <td>{% if ev.status == 'submitted' %}<span class="badge-success">✓ Submitted</span>{% elif ev.status == 'reopened' %}<span class="badge-warning">↺ Reopened</span>{% else %}<span class="badge-neutral">{{ ev.status }}</span>{% endif %}</td>
+        <td class="text-slate-600">{{ ev.submitted_at.strftime('%d %b, %H:%M') if ev.submitted_at else '—' }}</td>
+        <td class="text-right">{% if ev.status == 'submitted' %}<form method="POST" action="{{ url_for('admin.reopen_evaluation', evaluation_id=ev._id|string) }}" onsubmit="return confirm('Reopen this evaluation? The judge will have to score this team again.')"><button class="btn-ghost btn-sm">↺ Reopen</button></form>{% endif %}</td></tr>
+    {% endfor %}</tbody></table></div></div>
+{% else %}
+{{ empty_state('📝', 'Not scored yet', 'No jury member has submitted an evaluation for this team.') }}
+{% endif %}
+{% endblock %}

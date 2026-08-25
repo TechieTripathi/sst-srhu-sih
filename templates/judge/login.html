@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% block title %}Jury sign in{% endblock %}
+
+{% block body %}
+{% include 'partials/site_header.html' %}
+<main id="main" class="flex-1 grid lg:grid-cols-2">
+    <!-- brand panel -->
+    <section class="bg-navy-900 text-white px-6 sm:px-10 lg:px-16 py-10 lg:py-16 flex flex-col justify-center">
+        <p class="text-saffron-500 font-semibold text-sm tracking-wide uppercase">{{ event_name }} · 26 – 27 August 2026</p>
+        <h2 class="font-display text-3xl sm:text-4xl lg:text-5xl font-extrabold leading-[1.05] mt-3">Score what they built.<br>Not the slides.</h2>
+        <p class="mt-4 text-navy-100 max-w-lg">Use the email and password the organisers sent you. Every registered team is open to you; your draft is saved on your device until you submit.</p>
+        <dl class="mt-8 grid grid-cols-3 gap-3 max-w-lg">
+            {% for v, k in [('6', 'criteria, 0–10 each'), ('40 / 60', 'internal / external weight'), ('100', 'max final score')] %}
+            <div class="rounded-xl bg-white/5 ring-1 ring-white/10 p-4"><dt class="font-display text-2xl font-bold">{{ v }}</dt><dd class="mt-1 text-xs text-navy-200">{{ k }}</dd></div>
+            {% endfor %}
+        </dl>
+    </section>
+    <!-- form panel -->
+    <section class="px-4 sm:px-10 lg:px-16 py-10 lg:py-16 flex flex-col justify-center">
+        <div class="w-full max-w-xl">
+            <div class="badge-navy mb-4">⚖️ Jury</div>
+            <h1 class="font-display text-2xl sm:text-3xl font-bold text-navy-900">Sign in to score teams</h1>
+            <p class="mt-2 text-slate-600 text-sm">Use the email and password the organisers sent you. Every registered team is open to you; your draft is saved on your device until you submit.</p>
+            <form method="POST" action="{{ url_for('judge.login') }}" class="mt-8 grid gap-5 sm:grid-cols-2">
+                <div>
+                    <label for="email" class="label">Email</label>
+                    <input type="email" id="email" name="email" class="input" autocomplete="username" inputmode="email" required {% if not request.args.get('email') %}autofocus{% endif %} value="{{ request.form.email or request.args.get('email', '') }}">
+                </div>
+                <div>
+                    <div class="flex items-center justify-between"><label for="password" class="label">Password</label></div>
+                    <div class="relative">
+                        <input type="password" id="password" name="password" class="input pr-20" autocomplete="current-password" required {% if request.args.get('email') %}autofocus{% endif %}>
+                        <button type="button" class="absolute inset-y-0 right-0 px-3 text-sm font-semibold text-navy-700 hover:underline" onclick="var p=document.getElementById('password'); p.type = p.type==='password'?'text':'password'; this.textContent = p.type==='password'?'Show':'Hide';" aria-controls="password">Show</button>
+                    </div>
+                    <p class="help">Forgotten it? Ask the organising team to resend your credentials.</p>
+                </div>
+                <div class="sm:col-span-2"><button type="submit" class="btn-primary btn-lg w-full sm:w-auto sm:min-w-56">Sign in</button></div>
+            </form>
+            <p class="mt-8 text-sm text-slate-500">Organising team? <a href="{{ url_for('admin.login') }}" class="font-semibold text-navy-700 hover:underline">Admin sign in</a> · <a href="{{ url_for('super_admin.login') }}" class="font-semibold text-navy-700 hover:underline">Super Admin sign in</a></p>
+        </div>
+    </section>
+</main>
+{% include 'partials/site_footer.html' %}
+{% endblock %}

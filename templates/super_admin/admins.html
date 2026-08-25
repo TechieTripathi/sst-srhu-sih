@@ -1,0 +1,64 @@
+{% extends "super_admin/base_super_admin.html" %}
+{% from 'partials/ui.html' import empty_state %}
+{% block super_admin_title %}Admin accounts{% endblock %}
+{% block super_admin_content %}
+<div class="mb-6 flex flex-wrap items-end justify-between gap-4">
+    <div><h1 class="font-display text-2xl sm:text-3xl font-bold text-navy-900">Admin accounts <span class="text-slate-400 font-normal">({{ admins|length }})</span></h1><p class="mt-1 text-slate-600">Who can sign in to the Admin (operations) and Super Admin panels.</p></div>
+    <button type="button" class="btn-primary" onclick="openModal('createAdminModal')">＋ Create admin</button>
+</div>
+
+{% if admins %}
+<div class="card overflow-hidden"><div class="overflow-x-auto"><table class="table-base">
+    <thead><tr><th>Name</th><th>Role</th><th>Status</th><th class="hidden md:table-cell">Last sign-in</th><th class="text-right">Actions</th></tr></thead>
+    <tbody>{% for adm in admins %}
+    <tr><td><div class="font-semibold text-navy-900">{{ adm.name }}{% if adm._id|string == session.get('user_id') %} <span class="badge-navy ml-1">you</span>{% endif %}</div><div class="text-xs text-slate-500">{{ adm.email }}{% if adm.phone %} · {{ adm.phone }}{% endif %}</div></td>
+        <td>{% if adm.role == 'super_admin' %}<span class="badge-danger">Super Admin</span>{% else %}<span class="badge-navy">Admin</span>{% endif %}</td>
+        <td>{% if adm.status == 'active' %}<span class="badge-success">Active</span>{% else %}<span class="badge-neutral">Inactive</span>{% endif %}</td>
+        <td class="hidden md:table-cell text-slate-600">{{ adm.last_login.strftime('%d %b %Y, %H:%M') if adm.last_login else 'Never' }}</td>
+        <td class="text-right"><div class="inline-flex gap-2">
+            <button type="button" class="btn-secondary btn-sm" onclick="openReset('{{ adm._id }}', '{{ adm.name|e }}', '{{ adm.email|e }}')">🔑 Reset password</button>
+            {% if adm._id|string != session.get('user_id') %}
+            <form method="POST" action="{{ url_for('super_admin.toggle_admin_status', admin_id=adm._id) }}" onsubmit="return confirm('{{ ('Deactivate ' ~ adm.name ~ '? They will no longer be able to sign in.') if adm.status == 'active' else ('Reactivate ' ~ adm.name ~ '?') }}')">
+                <button class="{{ 'btn-danger' if adm.status == 'active' else 'btn-navy' }} btn-sm">{{ 'Deactivate' if adm.status == 'active' else 'Activate' }}</button></form>
+            {% endif %}
+        </div></td></tr>
+    {% endfor %}</tbody></table></div></div>
+{% else %}{{ empty_state('👤', 'No admin accounts', 'Create the first operations admin.') }}{% endif %}
+
+<!-- Create admin -->
+<div id="createAdminModal" class="modal-backdrop fixed inset-0 z-50 hidden items-center justify-center bg-navy-900/50 p-4" style="display:none">
+    <div class="card w-full max-w-lg" role="dialog" aria-modal="true" aria-labelledby="createTitle">
+        <div class="card-header"><h2 class="card-title" id="createTitle">Create admin account</h2><button type="button" class="btn-ghost btn-sm" aria-label="Close" onclick="closeModal('createAdminModal')">✕</button></div>
+        <form method="POST" action="{{ url_for('super_admin.manage_admins') }}" class="card-body space-y-4">
+            <div><label class="label" for="c_name">Full name</label><input id="c_name" type="text" name="name" class="input" required></div>
+            <div><label class="label" for="c_email">Email</label><input id="c_email" type="email" name="email" class="input" required></div>
+            <div><label class="label" for="c_phone">Mobile <span class="text-slate-400 font-normal">(optional)</span></label><input id="c_phone" type="tel" name="phone" class="input" inputmode="numeric"></div>
+            <div><label class="label" for="c_pw">Initial password</label><input id="c_pw" type="text" name="password" class="input font-mono" minlength="6" required><p class="help">Share it securely; ask them to change it after first sign-in.</p></div>
+            <fieldset><legend class="label">Role</legend>
+                <label class="flex gap-3 rounded-lg border border-navy-200 p-3 cursor-pointer has-[:checked]:border-navy-700 has-[:checked]:bg-navy-50"><input type="radio" name="role" value="admin" checked class="mt-0.5"><span><span class="block font-semibold text-navy-900">Admin — operations team</span><span class="block text-sm text-slate-600">Teams, judges, scoring, settings, exports</span></span></label>
+                <label class="mt-2 flex gap-3 rounded-lg border border-navy-200 p-3 cursor-pointer has-[:checked]:border-crimson-600 has-[:checked]:bg-crimson-100/40"><input type="radio" name="role" value="super_admin" class="mt-0.5"><span><span class="block font-semibold text-navy-900">Super Admin — developer</span><span class="block text-sm text-slate-600">Everything above plus admin accounts and system switches</span></span></label>
+            </fieldset>
+            <div class="flex justify-end gap-2 pt-2"><button type="button" class="btn-ghost" onclick="closeModal('createAdminModal')">Cancel</button><button type="submit" class="btn-primary">Create account</button></div>
+        </form>
+    </div>
+</div>
+
+<!-- Reset password -->
+<div id="resetPasswordModal" class="modal-backdrop fixed inset-0 z-50 hidden items-center justify-center bg-navy-900/50 p-4" style="display:none">
+    <div class="card w-full max-w-md" role="dialog" aria-modal="true" aria-labelledby="resetTitle">
+        <div class="card-header"><h2 class="card-title" id="resetTitle">Reset password</h2><button type="button" class="btn-ghost btn-sm" aria-label="Close" onclick="closeModal('resetPasswordModal')">✕</button></div>
+        <form id="resetPasswordForm" method="POST" action="" class="card-body space-y-4">
+            <p class="text-sm text-slate-600">New password for <strong id="resetName"></strong> (<span id="resetEmail"></span>).</p>
+            <div><label class="label" for="new_password">New password</label><input id="new_password" type="text" name="new_password" class="input font-mono" minlength="6" required></div>
+            <div class="flex justify-end gap-2 pt-2"><button type="button" class="btn-ghost" onclick="closeModal('resetPasswordModal')">Cancel</button><button type="submit" class="btn-danger">Set new password</button></div>
+        </form>
+    </div>
+</div>
+<script>
+function openReset(id, name, email) {
+    document.getElementById('resetName').textContent = name; document.getElementById('resetEmail').textContent = email;
+    document.getElementById('resetPasswordForm').action = "{{ url_for('super_admin.manage_admins') }}/" + id + "/reset-password";
+    openModal('resetPasswordModal');
+}
+</script>
+{% endblock %}

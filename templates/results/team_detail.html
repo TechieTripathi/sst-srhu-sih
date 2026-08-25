@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+{% from 'partials/ui.html' import stat, empty_state %}
+{% block title %}{{ result.team.team_name }} — results{% endblock %}
+{% set names = {'problem_understanding': 'Problem understanding', 'innovation': 'Innovation', 'technical_design': 'Technical design', 'prototype': 'Prototype', 'impact': 'Impact & scalability', 'presentation': 'Presentation'} %}
+
+{% block content %}
+<a href="{{ url_for('results.leaderboard') }}" class="text-sm font-medium text-navy-700 hover:underline">← Leaderboard</a>
+<div class="mt-2 mb-6 flex flex-wrap items-end justify-between gap-4">
+    <div>
+        <h1 class="font-display text-2xl sm:text-3xl font-bold text-navy-900">{{ result.team.team_name }}</h1>
+        <p class="mt-1 text-slate-600"><span class="font-mono">{{ result.team.team_code }}</span> · Leader: {{ result.team.leader_name }}{% if result.team.theme_name %} · {{ result.team.theme_name }}{% endif %}</p>
+    </div>
+    {% if result.leaderboard_position %}<span class="badge-navy text-sm px-3 py-1.5">Rank #{{ result.leaderboard_position }}</span>{% endif %}
+</div>
+
+<div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+    {% set s = result.score_result %}
+    {{ stat(s.internal_average, 'internal average · ' ~ s.internal_count ~ ' jury', 'info') }}
+    {{ stat(s.external_average, 'external average · ' ~ s.external_count ~ ' jury', 'info') }}
+    {{ stat((s.internal_average * 0.40)|round(2) ~ ' + ' ~ (s.external_average * 0.60)|round(2), '40 % internal + 60 % external') }}
+    {{ stat(s.final_score, 'final score / 100', 'success') }}
+</div>
+
+<h2 class="font-display text-xl font-bold text-navy-900 mb-4">Evaluations ({{ result.evaluations|length }})</h2>
+{% if result.evaluations %}
+<div class="space-y-4">
+{% for evaluation in result.evaluations %}
+    <div class="card">
+        <div class="card-header">
+            <div class="flex items-center gap-3">
+                <span class="font-semibold text-navy-900">{{ evaluation.judge_name }}</span>
+                {% if evaluation.judge_type == 'internal' %}<span class="badge-success">Internal jury</span>{% else %}<span class="badge-info">External jury</span>{% endif %}
+            </div>
+            <div class="text-right"><div class="font-display text-xl font-bold text-navy-900 tabular-nums">{{ evaluation.weighted_total }}<span class="text-sm text-slate-500 font-normal">/100</span></div><div class="text-xs text-slate-500">{{ evaluation.submitted_at.strftime('%d %b %Y, %I:%M %p') if evaluation.submitted_at else 'N/A' }}</div></div>
+        </div>
+        <div class="card-body grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
+            {% for criterion_id, score in evaluation.raw_scores.items() %}
+            <div class="rounded-lg border border-navy-100 p-3">
+                <div class="flex items-baseline justify-between gap-2"><span class="text-sm font-semibold text-navy-900">{{ names.get(criterion_id, criterion_id) }}</span><span class="font-display font-bold tabular-nums">{{ score }}<span class="text-xs text-slate-500 font-normal">/10</span></span></div>
+                <div class="mt-2 h-1.5 rounded-full bg-navy-100 overflow-hidden"><div class="h-full bg-navy-700 rounded-full" style="width: {{ (score|float) * 10 }}%"></div></div>
+                {% if evaluation.comments.get(criterion_id) %}<p class="mt-2 text-sm text-slate-600">“{{ evaluation.comments[criterion_id] }}”</p>{% endif %}
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+{% endfor %}
+</div>
+{% else %}
+{{ empty_state('📝', 'No evaluations yet', 'This team has not been scored by any jury member.') }}
+{% endif %}
+{% endblock %}

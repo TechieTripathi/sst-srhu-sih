@@ -1,0 +1,31 @@
+{% extends "super_admin/base_super_admin.html" %}
+{% block super_admin_title %}System settings{% endblock %}
+{% block super_admin_content %}
+<h1 class="font-display text-2xl sm:text-3xl font-bold text-navy-900">System settings</h1>
+<p class="mt-1 mb-6 text-slate-600">Event Control Switches — flip, then save. Admins can also change the first three from their Settings page; the last one is developer-only.</p>
+
+<form method="POST" action="{{ url_for('super_admin.system_settings') }}">
+    <div class="grid gap-4 md:grid-cols-2">
+        {% set rows = [
+            ('judging_locked', '🔒 Lock Judging Submissions', 'When locked, jury members cannot submit scores. Lock it when the presentation round ends.', settings.judging_locked, 'Locked', 'Open', 'danger'),
+            ('results_published', '📢 Publish final results', 'Final rankings become visible on the leaderboard.', settings.results_published, 'Published', 'Draft', 'success'),
+            ('registration_open', '👥 Team registration portal', 'Students can register new teams on the public site.', settings.get('registration_open', True), 'Open', 'Closed', 'navy'),
+            ('bulk_credentials_enabled', '✉️ Bulk "Send credentials to all judges"', 'Lets Admins email new passwords to every judge in one click. Disable once the event starts to prevent accidental resets.', settings.get('bulk_credentials_enabled', True), 'Enabled', 'Disabled', 'navy')
+        ] %}
+        {% for name, title, desc, on, on_label, off_label, tone in rows %}
+        <label class="card p-5 flex items-center justify-between gap-4 cursor-pointer has-[:checked]:border-navy-300">
+            <span><span class="flex items-center gap-2 font-display font-semibold text-navy-900">{{ title }} <span class="badge-{{ tone if on else 'neutral' }}" data-on="{{ on_label }}" data-off="{{ off_label }}">{{ on_label if on else off_label }}</span></span><span class="block text-sm text-slate-600 mt-1">{{ desc }}</span></span>
+            <span class="relative inline-flex shrink-0 items-center">
+                <input type="checkbox" name="{{ name }}" class="peer sr-only" {% if on %}checked{% endif %} onchange="var b=this.closest('label').querySelector('[data-on]'); b.textContent=this.checked?b.dataset.on:b.dataset.off;">
+                <span class="h-7 w-12 rounded-full bg-slate-300 peer-checked:bg-navy-700 transition-colors peer-focus-visible:ring-2 peer-focus-visible:ring-saffron-500"></span>
+                <span class="absolute left-1 h-5 w-5 rounded-full bg-white shadow transition-transform peer-checked:translate-x-5"></span>
+            </span>
+        </label>
+        {% endfor %}
+    </div>
+    <div class="mt-6 flex items-center justify-between gap-4">
+        <p class="text-sm text-slate-500">Changes are logged in the audit trail with your account.</p>
+        <button type="submit" class="btn-primary">💾 Save settings</button>
+    </div>
+</form>
+{% endblock %}

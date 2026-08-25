@@ -1,0 +1,115 @@
+@import "tailwindcss";
+@plugin "@tailwindcss/forms";
+@source "../../../templates";
+@source "../../js";
+
+/* ---- TechForge 3.0 design tokens (SRHU brand) ----
+   navy  : sampled from the SRHU logo (#183878)
+   saffron: single accent — one primary action per screen
+   crimson: destructive / locked only                          */
+@theme {
+  --color-navy-50:  #eef2fa;
+  --color-navy-100: #e6ecf7;
+  --color-navy-200: #c5d1ea;
+  --color-navy-300: #97abd6;
+  --color-navy-400: #5d78b6;
+  --color-navy-500: #2a5db3;
+  --color-navy-600: #1f4a95;
+  --color-navy-700: #183878;
+  --color-navy-800: #12305f;
+  --color-navy-900: #0b1f4b;
+  --color-navy:     #183878;
+
+  --color-saffron-100: #fdf1cc;
+  --color-saffron-500: #f2a900;
+  --color-saffron-600: #d99400;
+  --color-saffron-700: #b37a00;
+  --color-saffron:     #f2a900;
+
+  --color-crimson-100: #fbe3e7;
+  --color-crimson-600: #c41e3a;
+  --color-crimson-700: #9a1829;
+  --color-crimson:     #c41e3a;
+
+  --color-snow: #f6f8fb;
+  --color-ink:  #1a1f36;
+
+  --font-display: "Sora", ui-sans-serif, system-ui, sans-serif;
+  --font-sans:    "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-mono:    "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+
+  --radius-card: 0.75rem;
+  --shadow-card: 0 1px 2px rgb(11 31 75 / 0.06), 0 4px 16px -8px rgb(11 31 75 / 0.12);
+}
+
+@layer base {
+  .card, .stat { min-width: 0; }
+  dd, td, .card-body { overflow-wrap: anywhere; }
+  html { font-family: var(--font-sans); color: var(--color-ink); background: var(--color-snow); -webkit-font-smoothing: antialiased; }
+  h1, h2, h3, .font-display { font-family: var(--font-display); letter-spacing: -0.01em; }
+  :focus-visible { outline: 3px solid var(--color-saffron-500); outline-offset: 2px; border-radius: 4px; }
+  @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }
+}
+
+/* Shared bases as utilities so component classes can @apply them (Tailwind v4 rule) */
+@utility btn   { @apply inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2.5 text-sm font-semibold leading-none transition-colors min-h-11 select-none disabled:opacity-50 disabled:cursor-not-allowed; }
+@utility card  { @apply bg-white rounded-[var(--radius-card)] border border-navy-100 shadow-[var(--shadow-card)]; }
+@utility badge { @apply inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-semibold leading-none whitespace-nowrap; }
+@utility alert { @apply flex items-start gap-3 rounded-lg border px-4 py-3 text-sm; }
+
+@layer components {
+  /* Buttons — exactly one .btn-primary per screen */
+  .btn-primary   { @apply btn bg-saffron-500 text-navy-900 hover:bg-saffron-600 active:bg-saffron-700; }
+  .btn-navy      { @apply btn bg-navy-700 text-white hover:bg-navy-800; }
+  .btn-secondary { @apply btn bg-white text-navy-800 ring-1 ring-inset ring-navy-200 hover:bg-navy-50; }
+  .btn-ghost     { @apply btn text-navy-700 hover:bg-navy-50; }
+  .btn-danger    { @apply btn bg-crimson-600 text-white hover:bg-crimson-700; }
+  .btn-sm        { @apply px-3 py-2 text-xs min-h-9; }
+  .btn-lg        { @apply px-6 py-3.5 text-base min-h-12; }
+
+  /* Surfaces */
+  .card-header { @apply flex items-center justify-between gap-4 px-5 py-4 border-b border-navy-100; }
+  .card-title  { @apply font-display text-base font-semibold text-navy-900; }
+  .card-body   { @apply p-5; }
+  .stat        { @apply card p-5 border-l-4 border-l-navy-700; }
+  .stat-value  { @apply font-display text-3xl font-bold text-navy-900 leading-none; }
+  .stat-label  { @apply mt-2 text-sm text-slate-600; }
+
+  /* Status: always colour + icon/word together */
+  .badge-navy     { @apply badge bg-navy-100 text-navy-800; }
+  .badge-success  { @apply badge bg-green-100 text-green-800; }
+  .badge-warning  { @apply badge bg-saffron-100 text-saffron-700; }
+  .badge-danger   { @apply badge bg-crimson-100 text-crimson-700; }
+  .badge-neutral  { @apply badge bg-slate-100 text-slate-700; }
+  .badge-info     { @apply badge bg-sky-100 text-sky-800; }
+
+  /* Forms */
+  .label      { @apply block text-sm font-semibold text-navy-900 mb-1.5; }
+  .input, .select, .textarea { @apply block w-full rounded-lg border-navy-200 bg-white text-ink text-base shadow-none focus:border-navy-500 focus:ring-2 focus:ring-navy-200 min-h-11; }
+  .help       { @apply mt-1.5 text-sm text-slate-500; }
+  .field-error{ @apply mt-1.5 text-sm text-crimson-700; }
+
+  /* Alerts (flash) */
+  .alert-success { @apply alert bg-green-50 border-green-200 text-green-900; }
+  .alert-warning { @apply alert bg-saffron-100 border-saffron-500/40 text-saffron-700; }
+  .alert-error   { @apply alert bg-crimson-100 border-crimson-600/30 text-crimson-700; }
+  .alert-info    { @apply alert bg-navy-50 border-navy-200 text-navy-800; }
+
+  /* Tables */
+  .table-base       { @apply w-full text-sm; }
+  .table-base thead th { @apply text-left text-xs font-semibold uppercase tracking-wide text-slate-500 px-4 py-3 bg-navy-50/60 border-b border-navy-100; }
+  .table-base tbody td { @apply px-4 py-3 border-b border-navy-100 align-middle; }
+  .table-base tbody tr:last-child td { @apply border-b-0; }
+  .table-base tbody tr:hover td { @apply bg-navy-50/50; }
+
+  /* Navigation */
+  .tab         { @apply inline-flex items-center gap-1.5 rounded-lg px-3.5 py-2 text-sm font-semibold text-slate-600 hover:bg-navy-50 hover:text-navy-800 min-h-10; }
+  .tab-active  { @apply bg-navy-700 text-white hover:bg-navy-700 hover:text-white; }
+  .sidebar-link{ @apply flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-navy-100 hover:bg-white/10 hover:text-white min-h-11; }
+  .sidebar-link-active { @apply bg-white/15 text-white; }
+
+  /* Signature: the ridge line */
+  .ridge { @apply block w-full h-6 md:h-8 bg-no-repeat bg-cover; background-image: url("/static/images/ridge.svg"); }
+
+  .code-chip { @apply font-mono text-sm bg-navy-50 text-navy-900 rounded-md px-2 py-1 border border-navy-100; }
+}

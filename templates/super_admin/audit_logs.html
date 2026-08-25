@@ -1,0 +1,29 @@
+{% extends "super_admin/base_super_admin.html" %}
+{% from 'partials/ui.html' import empty_state %}
+{% block super_admin_title %}Audit trail{% endblock %}
+{% block super_admin_content %}
+<div class="mb-6 flex flex-wrap items-end justify-between gap-4">
+    <div><h1 class="font-display text-2xl sm:text-3xl font-bold text-navy-900">Full audit trail <span class="text-slate-400 font-normal">({{ total }})</span></h1><p class="mt-1 text-slate-600">Every sign-in, registration, score, reopen and settings change. Immutable.</p></div>
+    <form method="GET" action="{{ url_for('super_admin.audit_logs') }}" class="flex items-center gap-2">
+        <input type="search" name="action" class="input min-h-10 text-sm w-64" placeholder="Filter by action, e.g. login_failed" value="{{ action_filter }}" aria-label="Action filter">
+        <button class="btn-navy btn-sm">Filter</button>{% if action_filter %}<a href="{{ url_for('super_admin.audit_logs') }}" class="btn-ghost btn-sm">Clear</a>{% endif %}
+    </form>
+</div>
+{% if logs %}
+<div class="card overflow-hidden"><div class="overflow-x-auto"><table class="table-base">
+    <thead><tr><th>When (UTC)</th><th>Action</th><th>Who</th><th class="hidden md:table-cell">Entity</th><th>Details</th></tr></thead>
+    <tbody>{% for log in logs %}
+    <tr><td class="whitespace-nowrap font-mono text-xs text-slate-700">{{ log.created_at.strftime('%Y-%m-%d %H:%M:%S') if log.created_at else '—' }}</td>
+        <td><span class="{% if 'fail' in log.action|lower or 'locked' in log.action %}badge-danger{% elif 'created' in log.action or 'success' in log.action|lower %}badge-success{% elif 'reopen' in log.action or 'updated' in log.action %}badge-warning{% else %}badge-neutral{% endif %}">{{ log.action|replace('_', ' ') }}</span></td>
+        <td class="text-sm"><div class="text-navy-900">{{ log.actor_name }}</div><div class="text-xs text-slate-500">{{ log.actor_email }} · {{ log.actor_role }}</div></td>
+        <td class="hidden md:table-cell text-xs text-slate-600"><code>{{ log.entity_type }}</code>{% if log.entity_id %} <span class="font-mono">{{ log.entity_id[:10] }}</span>{% endif %}</td>
+        <td>{% if log.metadata %}<details><summary class="text-sm font-medium text-navy-700 cursor-pointer">View</summary><pre class="mt-2 text-xs bg-navy-50 rounded p-2 max-w-md overflow-x-auto">{{ log.metadata|tojson(indent=2) }}</pre></details>{% else %}<span class="text-slate-400">—</span>{% endif %}</td></tr>
+    {% endfor %}</tbody></table></div>
+    {% if total_pages > 1 %}<div class="flex items-center justify-between px-5 py-3 border-t border-navy-100 text-sm">
+        {% if page > 1 %}<a class="btn-secondary btn-sm" href="{{ url_for('super_admin.audit_logs', page=page-1, action=action_filter) }}">← Previous</a>{% else %}<span></span>{% endif %}
+        <span class="text-slate-600">Page {{ page }} of {{ total_pages }}</span>
+        {% if page < total_pages %}<a class="btn-secondary btn-sm" href="{{ url_for('super_admin.audit_logs', page=page+1, action=action_filter) }}">Next →</a>{% else %}<span></span>{% endif %}
+    </div>{% endif %}
+</div>
+{% else %}{{ empty_state('📋', 'Nothing logged' ~ (' for that filter' if action_filter else ' yet'), 'Activity is recorded here automatically.') }}{% endif %}
+{% endblock %}

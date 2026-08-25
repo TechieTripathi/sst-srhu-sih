@@ -1,0 +1,83 @@
+{% extends "base.html" %}
+{% block title %}Register your team{% endblock %}
+
+{% block content %}
+<div class="w-full">
+    <!-- step indicator: a real 2-step sequence -->
+    <ol class="flex items-center gap-3 text-sm mb-6 max-w-3xl" aria-label="Progress">
+        <li class="flex items-center gap-2 font-semibold text-navy-900"><span class="inline-flex h-6 w-6 items-center justify-center rounded-full bg-navy-700 text-white text-xs">1</span> Team details</li>
+        <li class="h-px flex-1 bg-navy-200" aria-hidden="true"></li>
+        <li class="flex items-center gap-2 text-slate-500"><span class="inline-flex h-6 w-6 items-center justify-center rounded-full bg-navy-100 text-navy-700 text-xs">2</span> Your team code</li>
+    </ol>
+
+    <div class="card">
+        <div class="card-body sm:p-8 lg:p-10">
+            <div class="lg:grid lg:grid-cols-[1fr_2fr] lg:gap-12">
+            <div class="mb-8 lg:mb-0">
+            <h1 class="font-display text-2xl sm:text-3xl font-bold text-navy-900">Register your team</h1>
+            <p class="mt-2 text-slate-600">Only the team leader fills this in. You'll get your team code on the next screen — that's all you need for event day.</p>
+            <div class="hidden lg:block mt-8 rounded-lg bg-navy-50 border border-navy-100 p-4 text-sm text-navy-900">
+                <strong>Before you submit:</strong> your team must have exactly 6 SST students including at least one female member, and each student can be in only one team.
+            </div>
+            </div>
+
+            <form method="POST" action="{{ url_for('teams.register') }}" id="registrationForm" class="grid gap-6 md:grid-cols-2" novalidate>
+                <div>
+                    <label for="leader_name" class="label">Team leader's full name</label>
+                    <input type="text" id="leader_name" name="leader_name" class="input" autocomplete="name" required maxlength="100" autofocus value="{{ request.form.leader_name or '' }}">
+                    <p class="help">The student who will be the jury's and organisers' contact.</p>
+                </div>
+                <div>
+                    <label for="team_name" class="label">Team name</label>
+                    <input type="text" id="team_name" name="team_name" class="input" required maxlength="100" value="{{ request.form.team_name or '' }}" aria-describedby="team_name_help">
+                    <p class="help" id="team_name_help">Pick something unique. Don't use "SRHU", "SST" or "Swami Rama" in it.</p>
+                    <p class="field-error hidden" id="team_name_error"></p>
+                </div>
+                <div>
+                    <label for="email" class="label">Team leader's email</label>
+                    <input type="email" id="email" name="email" class="input" autocomplete="email" required inputmode="email" value="{{ request.form.email or '' }}">
+                    <p class="help">Use one you check daily — event updates go here.</p>
+                </div>
+                <div>
+                    <label for="mobile" class="label">Team leader's mobile number</label>
+                    <input type="tel" id="mobile" name="mobile" class="input" autocomplete="tel" required inputmode="numeric" pattern="[0-9]{10}" maxlength="10" placeholder="10 digits" value="{{ request.form.mobile or '' }}">
+                    <p class="field-error hidden" id="mobile_error"></p>
+                </div>
+
+                <div class="rounded-lg bg-navy-50 border border-navy-100 p-4 text-sm text-navy-900 md:col-span-2 lg:hidden">
+                    <strong>Before you submit:</strong> your team must have exactly 6 SST students including at least one female member, and each student can be in only one team.
+                </div>
+
+                <div class="flex flex-col-reverse sm:flex-row gap-3 pt-2 md:col-span-2">
+                    <a href="{{ url_for('index') }}" class="btn-ghost">Cancel</a>
+                    <button type="submit" class="btn-primary btn-lg sm:ml-auto sm:min-w-56">Register team</button>
+                </div>
+            </form>
+            </div>
+        </div>
+    </div>
+    <p class="mt-6 text-center text-sm text-slate-500">Questions? Ask the TechForge organising team at the School of Science &amp; Technology.</p>
+</div>
+
+<script>
+(function () {
+    var form = document.getElementById('registrationForm');
+    var mobile = document.getElementById('mobile'), team = document.getElementById('team_name');
+    function setError(input, id, msg) {
+        var el = document.getElementById(id); el.textContent = msg || ''; el.classList.toggle('hidden', !msg);
+        input.classList.toggle('border-crimson-600', !!msg); input.setAttribute('aria-invalid', msg ? 'true' : 'false');
+    }
+    mobile.addEventListener('input', function () { this.value = this.value.replace(/\D/g, '').slice(0, 10); setError(mobile, 'mobile_error', ''); });
+    team.addEventListener('input', function () { setError(team, 'team_name_error', ''); });
+    form.addEventListener('submit', function (e) {
+        var ok = true;
+        if (!/^[0-9]{10}$/.test(mobile.value)) { setError(mobile, 'mobile_error', 'Enter a 10-digit mobile number.'); ok = false; }
+        var tn = ' ' + team.value.toLowerCase().replace(/[^a-z0-9 ]/g, ' ') + ' ';
+        var bad = [' srhu ', ' sst ', 'swami rama', ' university '].filter(function (w) { return tn.indexOf(w) !== -1; });
+        if (bad.length) { setError(team, 'team_name_error', 'Team names can\'t include the institution name ("' + bad[0].trim().toUpperCase() + '"). Pick something that is yours.'); ok = false; }
+        if (!form.checkValidity()) { ok = false; form.reportValidity(); }
+        if (!ok) { e.preventDefault(); (bad.length ? team : mobile).focus(); }
+    });
+})();
+</script>
+{% endblock %}

@@ -1,0 +1,52 @@
+{% extends "admin/base_admin.html" %}
+{% from 'partials/ui.html' import stat %}
+{% block admin_title %}Dashboard{% endblock %}
+{% block admin_content %}
+<div class="mb-6 flex flex-wrap items-end justify-between gap-4">
+    <div><h1 class="font-display text-2xl sm:text-3xl font-bold text-navy-900">Today at a glance</h1><p class="mt-1 text-slate-600">{{ event_name }} · {{ school_name }}</p></div>
+    <div class="flex flex-wrap gap-2">
+        <span class="{{ 'badge-danger' if stats.judging_locked else 'badge-success' }} text-sm px-3 py-1.5">{{ '🔒 Judging locked' if stats.judging_locked else '🟢 Judging open' }}</span>
+        <span class="{{ 'badge-success' if stats.results_published else 'badge-neutral' }} text-sm px-3 py-1.5">{{ '📢 Results published' if stats.results_published else '🔒 Results unpublished' }}</span>
+    </div>
+</div>
+
+<div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+    {{ stat(stats.total_teams, 'teams registered') }}
+    {{ stat(stats.internal_judges ~ ' + ' ~ stats.external_judges, 'internal + external judges', 'info') }}
+    {{ stat(stats.evaluations_completed, 'evaluations submitted', 'success') }}
+    {{ stat(stats.teams_pending, 'teams still unscored', 'warning' if stats.teams_pending else 'success') }}
+</div>
+
+<div class="card mt-6">
+    <div class="card-header"><h2 class="card-title">Scoring progress</h2><span class="text-sm text-slate-600">{{ stats.teams_evaluated }} of {{ stats.total_teams }} teams have at least one evaluation</span></div>
+    <div class="card-body">
+        <div class="h-3 rounded-full bg-navy-100 overflow-hidden"><div class="h-full bg-navy-700 rounded-full transition-all" style="width: {{ stats.completion_percentage }}%"></div></div>
+        <div class="mt-2 text-sm text-slate-600 flex justify-between"><span>{{ stats.completion_percentage }}% covered</span><a href="{{ url_for('admin.results_overview') }}" class="font-semibold text-navy-700 hover:underline">See rankings →</a></div>
+    </div>
+</div>
+
+<div class="grid lg:grid-cols-3 gap-6 mt-6 min-w-0">
+    <div class="lg:col-span-2 card min-w-0">
+        <div class="card-header"><h2 class="card-title">Recently registered teams</h2><a href="{{ url_for('admin.teams_list') }}" class="btn-ghost btn-sm">All teams →</a></div>
+        {% if recent_teams %}
+        <div class="overflow-x-auto"><table class="table-base">
+            <thead><tr><th>Team</th><th class="hidden sm:table-cell">Leader</th><th class="hidden md:table-cell">Contact</th><th>Registered</th></tr></thead>
+            <tbody>{% for team in recent_teams %}
+            <tr><td><a href="{{ url_for('admin.team_detail', team_id=team._id) }}" class="font-semibold text-navy-900 hover:underline">{{ team.team_name }}</a><div class="text-xs text-slate-500 font-mono">{{ team.team_code }}</div></td>
+                <td class="hidden sm:table-cell">{{ team.leader_name }}</td>
+                <td class="hidden md:table-cell text-slate-600 text-xs">{{ team.leader_email }}<br>{{ team.leader_mobile }}</td>
+                <td class="text-slate-600">{{ team.created_at.strftime('%d %b, %H:%M') if team.created_at else '—' }}</td></tr>
+            {% endfor %}</tbody></table></div>
+        {% else %}<div class="card-body text-sm text-slate-600">No teams yet — they appear here as leaders register.</div>{% endif %}
+    </div>
+    <div class="card">
+        <div class="card-header"><h2 class="card-title">Quick actions</h2></div>
+        <div class="card-body grid gap-2">
+            <a href="{{ url_for('admin.create_judge_form') }}" class="btn-navy justify-start">＋ Add a judge</a>
+            <a href="{{ url_for('admin.judges_list') }}" class="btn-secondary justify-start">✉️ Send judge credentials</a>
+            <a href="{{ url_for('admin.settings') }}" class="btn-secondary justify-start">⚙️ Lock judging / publish results</a>
+            <a href="{{ url_for('admin.export_results') }}" class="btn-secondary justify-start">⬇️ Export results CSV</a>
+        </div>
+    </div>
+</div>
+{% endblock %}

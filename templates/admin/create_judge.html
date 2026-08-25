@@ -1,0 +1,39 @@
+{% extends "admin/base_admin.html" %}
+{% block admin_title %}Add judge{% endblock %}
+{% block admin_content %}
+<a href="{{ url_for('admin.judges_list') }}" class="text-sm font-medium text-navy-700 hover:underline">← Judges</a>
+<h1 class="font-display text-2xl sm:text-3xl font-bold text-navy-900 mt-2 mb-6">Add a judge</h1>
+<div class="card"><div class="card-body sm:p-8">
+    <form method="POST" action="{{ url_for('admin.create_judge_form') }}" class="grid gap-6 lg:grid-cols-2 lg:gap-x-12">
+        <div class="space-y-6">
+        <div><label for="name" class="label">Full name</label><input type="text" id="name" name="name" class="input" required autofocus placeholder="Dr. Priya Sharma" value="{{ request.form.name or '' }}"></div>
+        <div><label for="email" class="label">Email</label><input type="email" id="email" name="email" class="input" required inputmode="email" value="{{ request.form.email or '' }}"><p class="help">This is what the judge signs in with.</p></div>
+        <div><label for="phone" class="label">Mobile <span class="text-slate-400 font-normal">(optional)</span></label><input type="tel" id="phone" name="phone" class="input" inputmode="numeric" pattern="[0-9]{10}" maxlength="10" value="{{ request.form.phone or '' }}"></div>
+        <fieldset><legend class="label">Jury type</legend>
+            <div class="grid sm:grid-cols-2 gap-3">
+                {% for v, t, d in [('internal', 'Internal jury', 'SRHU faculty · counts 40 %'), ('external', 'External jury', 'Industry / other institutions · counts 60 %')] %}
+                <label class="flex gap-3 rounded-lg border border-navy-200 p-4 cursor-pointer has-[:checked]:border-navy-700 has-[:checked]:bg-navy-50">
+                    <input type="radio" name="judge_type" value="{{ v }}" class="mt-0.5" required {% if request.form.judge_type == v %}checked{% endif %}>
+                    <span><span class="block font-semibold text-navy-900">{{ t }}</span><span class="block text-sm text-slate-600">{{ d }}</span></span>
+                </label>{% endfor %}
+            </div>
+        </fieldset>
+        </div>
+        <fieldset class="rounded-lg bg-navy-50 border border-navy-100 p-4 lg:self-start">
+            <legend class="label px-1">Send sign-in details</legend>
+            <p class="help mt-0 mb-3">A secure password is generated automatically. Where should it go?</p>
+            <div class="space-y-2">
+                <label class="flex gap-3 items-start cursor-pointer"><input type="radio" name="deliver" value="judge_email" checked onchange="toggleAlt()" class="mt-1"><span><span class="font-semibold text-navy-900">Email the judge</span><span class="block text-sm text-slate-600">Sent to the address above</span></span></label>
+                <label class="flex gap-3 items-start cursor-pointer"><input type="radio" name="deliver" value="other_email" onchange="toggleAlt()" class="mt-1"><span><span class="font-semibold text-navy-900">Email someone else</span><span class="block text-sm text-slate-600">e.g. a coordinator who hands it over in person</span></span></label>
+                <div id="altWrap" class="hidden ml-7"><input type="email" id="alt_email" name="alt_email" class="input" placeholder="coordinator@srhu.edu.in" aria-label="Email address to send the sign-in details to"></div>
+                <label class="flex gap-3 items-start cursor-pointer"><input type="radio" name="deliver" value="none" onchange="toggleAlt()" class="mt-1"><span><span class="font-semibold text-navy-900">Don't email — show me the password</span><span class="block text-sm text-slate-600">Shown once on the next screen</span></span></label>
+            </div>
+        </fieldset>
+        <div class="flex flex-col-reverse sm:flex-row gap-3 pt-2 lg:col-span-2"><a href="{{ url_for('admin.judges_list') }}" class="btn-ghost">Cancel</a><button type="submit" class="btn-primary sm:ml-auto sm:min-w-48">Add judge</button></div>
+    </form>
+</div></div>
+<script>
+document.getElementById('phone').addEventListener('input', function () { this.value = this.value.replace(/\D/g, '').slice(0, 10); });
+function toggleAlt() { var o = document.querySelector('input[name=deliver][value=other_email]').checked, w = document.getElementById('altWrap'), i = document.getElementById('alt_email'); w.classList.toggle('hidden', !o); i.required = o; if (o) i.focus(); }
+</script>
+{% endblock %}

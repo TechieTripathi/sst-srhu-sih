@@ -10,11 +10,28 @@ __pycache__/
 venv/
 env/
 *.egg-info/
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Local databases / logs
+*.db
+*.sqlite
+*.sqlite3
+instance/
+*.log
 
 # Vercel
 .vercel/
+
+# Claude Code (local tooling)
+.claude/
 
 # Editors / OS
 .vscode/
 .idea/
 .DS_Store
+
+# Node (Tailwind build only)
+node_modules/
+.env.production

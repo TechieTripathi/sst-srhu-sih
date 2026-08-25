@@ -1,0 +1,26 @@
+{# Super Admin (developer) shares the admin shell; only the navigation and stripe differ. #}
+{% extends "admin/base_admin.html" %}
+{% block admin_title %}{% block super_admin_title %}Super Admin{% endblock %}{% endblock %}
+{% block admin_page_heading %}{% block super_admin_page_heading %}{{ self.super_admin_title() }}{% endblock %}{% endblock %}
+{% block admin_content %}{% block super_admin_content %}{% endblock %}{% endblock %}
+
+{% block sidebar_nav %}
+<nav class="flex-1 overflow-y-auto px-3 py-4 space-y-5 text-sm">
+    {% set ep = request.endpoint or '' %}
+    <div>
+        <div class="px-3 mb-1 text-[11px] font-semibold uppercase tracking-wider text-crimson-100/80">Developer</div>
+        <a href="{{ url_for('super_admin.dashboard') }}" class="sidebar-link {% if ep == 'super_admin.dashboard' %}sidebar-link-active{% endif %}">🛡️ Overview</a>
+        <a href="{{ url_for('super_admin.manage_admins') }}" class="sidebar-link {% if ep == 'super_admin.manage_admins' %}sidebar-link-active{% endif %}">👤 Admin accounts</a>
+        <a href="{{ url_for('super_admin.system_settings') }}" class="sidebar-link {% if ep == 'super_admin.system_settings' %}sidebar-link-active{% endif %}">⚙️ System settings</a>
+        <a href="{{ url_for('super_admin.audit_logs') }}" class="sidebar-link {% if ep == 'super_admin.audit_logs' %}sidebar-link-active{% endif %}">📋 Full audit trail</a>
+    </div>
+    <div>
+        <div class="px-3 mb-1 text-[11px] font-semibold uppercase tracking-wider text-navy-300">Operations (same as Admin)</div>
+        <a href="{{ url_for('admin.dashboard') }}" class="sidebar-link">📊 Admin dashboard</a>
+        <a href="{{ url_for('admin.teams_list') }}" class="sidebar-link">👥 Teams</a>
+        <a href="{{ url_for('admin.judges_list') }}" class="sidebar-link">⚖️ Judges</a>
+        <a href="{{ url_for('admin.evaluations_list') }}" class="sidebar-link">📝 Evaluations</a>
+        <a href="{{ url_for('admin.results_overview') }}" class="sidebar-link">🏆 Rankings</a>
+    </div>
+</nav>
+{% endblock %}
