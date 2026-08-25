@@ -9,7 +9,7 @@
         <h2 class="font-display text-3xl sm:text-4xl lg:text-5xl font-extrabold leading-[1.05] mt-3">{% if portal == 'super_admin' %}Developer access.<br>Accounts, switches, audit.{% else %}Run the event.<br>From one screen.{% endif %}</h2>
         <p class="mt-4 text-navy-100 max-w-lg">{% if portal == 'super_admin' %}For the developer only: admin accounts, system switches and the full audit trail.{% else %}For the operations team: teams, judges, scoring and results.{% endif %}</p>
         <dl class="mt-8 grid grid-cols-3 gap-3 max-w-lg">
-            {% for v, k in [('6', 'criteria, 0–10 each'), ('40 / 60', 'internal / external weight'), ('100', 'max final score')] %}
+            {% for v, k in [('6', 'criteria, 0–10 each'), ('36 h', 'build sprint'), ('100', 'max final score')] %}
             <div class="rounded-xl bg-white/5 ring-1 ring-white/10 p-4"><dt class="font-display text-2xl font-bold">{{ v }}</dt><dd class="mt-1 text-xs text-navy-200">{{ k }}</dd></div>
             {% endfor %}
         </dl>
@@ -21,9 +21,9 @@
             <h1 class="font-display text-2xl sm:text-3xl font-bold text-navy-900">{{ portal_label }} sign in</h1>
             <p class="mt-2 text-slate-600 text-sm">{% if portal == 'super_admin' %}For the developer only: admin accounts, system switches and the full audit trail.{% else %}For the operations team: teams, judges, scoring and results.{% endif %}</p>
             <form method="POST" action="{{ url_for('super_admin.login' if portal == 'super_admin' else 'admin.login') }}" class="mt-8 grid gap-5 sm:grid-cols-2">
-            <div><label for="email" class="label">Email</label><input type="email" id="email" name="email" class="input" autocomplete="username" required autofocus value="{{ request.form.email or '' }}"></div>
+            <div><label for="email" class="label">Email</label><input type="email" id="email" name="email" class="input" autocomplete="username" required autofocus value="{{ request.form.email or '' }}" placeholder="name@srhu.edu.in"></div>
             <div><label for="password" class="label">Password</label>
-                <div class="relative"><input type="password" id="password" name="password" class="input pr-20" autocomplete="current-password" required>
+                <div class="relative"><input type="password" id="password" name="password" class="input pr-20" autocomplete="current-password" required placeholder="Enter your password">
                 <button type="button" class="absolute inset-y-0 right-0 px-3 text-sm font-semibold text-navy-700 hover:underline" onclick="var p=document.getElementById('password'); p.type = p.type==='password'?'text':'password'; this.textContent = p.type==='password'?'Show':'Hide';">Show</button></div></div>
             <div class="sm:col-span-2"><button type="submit" class="btn-primary btn-lg w-full sm:w-auto sm:min-w-56">Sign in</button></div>
         </form>

@@ -6,7 +6,7 @@
 <div class="mb-6 flex flex-wrap items-end justify-between gap-4">
     <div>
         <h1 class="font-display text-2xl sm:text-3xl font-bold text-navy-900">Leaderboard</h1>
-        <p class="mt-1 text-slate-600">Final score = 40 % internal-jury average + 60 % external-jury average, out of 100.</p>
+        <p class="mt-1 text-slate-600">Final score out of 100, combining the internal and external jury averages.</p>
     </div>
     {% if session.get('role') == 'admin' %}
     <form method="POST" action="{{ url_for('results.recalculate') }}" onsubmit="return confirm('Recalculate all team scores from the submitted evaluations?')">

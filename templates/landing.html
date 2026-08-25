@@ -27,7 +27,7 @@
                 <p class="mt-4 text-sm text-navy-200">Takes under two minutes. Only the team leader registers.</p>
             </div>
             <dl class="grid grid-cols-2 gap-3 sm:gap-4">
-                {% for v, k in [('36 h', 'continuous build sprint'), ('6', 'students per team'), ('6', 'scoring criteria, 0–10 each'), ('40 / 60', 'internal / external jury weight')] %}
+                {% for v, k in [('36 h', 'continuous build sprint'), ('6', 'students per team'), ('6', 'scoring criteria, 0–10 each'), ('26–27 Aug', 'on campus, Jolly Grant')] %}
                 <div class="rounded-xl bg-white/5 ring-1 ring-white/10 p-5">
                     <dt class="font-display text-3xl sm:text-4xl font-bold text-white">{{ v }}</dt>
                     <dd class="mt-1 text-sm text-navy-200">{{ k }}</dd>
@@ -45,7 +45,7 @@
             {% for n, title, text in [
                 ('1', 'Register', 'Your team leader fills one short form. You get a team code on screen — keep it, the jury uses it to find you.'),
                 ('2', 'Build for 36 hours', 'Pick a problem statement, build a working prototype on campus. Slides alone are not scored.'),
-                ('3', 'Get judged', 'Internal jury (40 %) and external jury (60 %) score six criteria from 0–10. Results appear on the leaderboard when the organisers publish them.')
+                ('3', 'Get judged', 'Internal and external jury members score six criteria from 0–10. Results appear on the leaderboard when the organisers publish them.')
             ] %}
             <li class="card p-6 flex gap-4">
                 <span class="font-display text-3xl font-bold text-saffron-600 leading-none" aria-hidden="true">{{ n }}</span>

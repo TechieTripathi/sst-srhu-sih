@@ -30,10 +30,10 @@
     <div class="card w-full max-w-lg" role="dialog" aria-modal="true" aria-labelledby="createTitle">
         <div class="card-header"><h2 class="card-title" id="createTitle">Create admin account</h2><button type="button" class="btn-ghost btn-sm" aria-label="Close" onclick="closeModal('createAdminModal')">{{ icon('x') }}</button></div>
         <form method="POST" action="{{ url_for('super_admin.manage_admins') }}" class="card-body space-y-4">
-            <div><label class="label" for="c_name">Full name</label><input id="c_name" type="text" name="name" class="input" required></div>
-            <div><label class="label" for="c_email">Email</label><input id="c_email" type="email" name="email" class="input" required></div>
-            <div><label class="label" for="c_phone">Mobile <span class="text-slate-400 font-normal">(optional)</span></label><input id="c_phone" type="tel" name="phone" class="input" inputmode="numeric"></div>
-            <div><label class="label" for="c_pw">Initial password</label><input id="c_pw" type="text" name="password" class="input font-mono" minlength="6" required><p class="help">Share it securely; ask them to change it after first sign-in.</p></div>
+            <div><label class="label" for="c_name">Full name</label><input id="c_name" type="text" name="name" class="input" required placeholder="Full name, e.g. Anita Verma"></div>
+            <div><label class="label" for="c_email">Email</label><input id="c_email" type="email" name="email" class="input" required placeholder="name@srhu.edu.in"></div>
+            <div><label class="label" for="c_phone">Mobile <span class="text-slate-400 font-normal">(optional)</span></label><input id="c_phone" type="tel" name="phone" class="input" inputmode="numeric" placeholder="10-digit mobile number"></div>
+            <div><label class="label" for="c_pw">Initial password</label><input id="c_pw" type="text" name="password" class="input font-mono" minlength="6" required placeholder="At least 6 characters"><p class="help">Share it securely; ask them to change it after first sign-in.</p></div>
             <fieldset><legend class="label">Role</legend>
                 <label class="flex gap-3 rounded-lg border border-navy-200 p-3 cursor-pointer has-[:checked]:border-navy-700 has-[:checked]:bg-navy-50"><input type="radio" name="role" value="admin" checked class="mt-0.5"><span><span class="block font-semibold text-navy-900">Admin — operations team</span><span class="block text-sm text-slate-600">Teams, judges, scoring, settings, exports</span></span></label>
                 <label class="mt-2 flex gap-3 rounded-lg border border-navy-200 p-3 cursor-pointer has-[:checked]:border-crimson-600 has-[:checked]:bg-crimson-100/40"><input type="radio" name="role" value="super_admin" class="mt-0.5"><span><span class="block font-semibold text-navy-900">Super Admin — developer</span><span class="block text-sm text-slate-600">Everything above plus admin accounts and system switches</span></span></label>
@@ -49,7 +49,7 @@
         <div class="card-header"><h2 class="card-title" id="resetTitle">Reset password</h2><button type="button" class="btn-ghost btn-sm" aria-label="Close" onclick="closeModal('resetPasswordModal')">{{ icon('x') }}</button></div>
         <form id="resetPasswordForm" method="POST" action="" class="card-body space-y-4">
             <p class="text-sm text-slate-600">New password for <strong id="resetName"></strong> (<span id="resetEmail"></span>).</p>
-            <div><label class="label" for="new_password">New password</label><input id="new_password" type="text" name="new_password" class="input font-mono" minlength="6" required></div>
+            <div><label class="label" for="new_password">New password</label><input id="new_password" type="text" name="new_password" class="input font-mono" minlength="6" required placeholder="At least 6 characters"></div>
             <div class="flex justify-end gap-2 pt-2"><button type="button" class="btn-secondary" onclick="closeModal('resetPasswordModal')">Cancel</button><button type="submit" class="btn-danger">Set new password</button></div>
         </form>
     </div>

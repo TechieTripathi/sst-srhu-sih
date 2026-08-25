@@ -24,23 +24,23 @@
             <form method="POST" action="{{ url_for('teams.register') }}" id="registrationForm" class="grid gap-6 md:grid-cols-2" novalidate>
                 <div>
                     <label for="leader_name" class="label">Team leader's full name</label>
-                    <input type="text" id="leader_name" name="leader_name" class="input" autocomplete="name" required maxlength="100" autofocus value="{{ request.form.leader_name or '' }}">
+                    <input type="text" id="leader_name" name="leader_name" class="input" autocomplete="name" required maxlength="100" autofocus value="{{ request.form.leader_name or '' }}" placeholder="Full name as on your college ID">
                     <p class="help">The student who will be the jury's and organisers' contact.</p>
                 </div>
                 <div>
                     <label for="team_name" class="label">Team name</label>
-                    <input type="text" id="team_name" name="team_name" class="input" required maxlength="100" value="{{ request.form.team_name or '' }}" aria-describedby="team_name_help">
+                    <input type="text" id="team_name" name="team_name" class="input" required maxlength="100" value="{{ request.form.team_name or '' }}" aria-describedby="team_name_help" placeholder="e.g. Peak Pathfinders">
                     <p class="help" id="team_name_help">Pick something unique. Don't use "SRHU", "SST" or "Swami Rama" in it.</p>
                     <p class="field-error hidden" id="team_name_error"></p>
                 </div>
                 <div>
                     <label for="email" class="label">Team leader's email</label>
-                    <input type="email" id="email" name="email" class="input" autocomplete="email" required inputmode="email" value="{{ request.form.email or '' }}">
+                    <input type="email" id="email" name="email" class="input" autocomplete="email" required inputmode="email" value="{{ request.form.email or '' }}" placeholder="name@example.com">
                     <p class="help">Use one you check daily — event updates go here.</p>
                 </div>
                 <div>
                     <label for="mobile" class="label">Team leader's mobile number</label>
-                    <input type="tel" id="mobile" name="mobile" class="input" autocomplete="tel" required inputmode="numeric" pattern="[0-9]{10}" maxlength="10" placeholder="10 digits" value="{{ request.form.mobile or '' }}">
+                    <input type="tel" id="mobile" name="mobile" class="input" autocomplete="tel" required inputmode="numeric" pattern="[0-9]{10}" maxlength="10" placeholder="10-digit mobile number" value="{{ request.form.mobile or '' }}">
                     <p class="field-error hidden" id="mobile_error"></p>
                 </div>
 

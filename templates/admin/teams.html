@@ -15,7 +15,7 @@
     <thead><tr><th>Team</th><th>Leader</th><th>Email</th><th>Mobile</th><th>Registered</th><th>Actions</th></tr></thead>
     <tbody>{% for team in teams %}
     <tr data-text="{{ (team.team_name ~ ' ' ~ team.team_code ~ ' ' ~ team.leader_name ~ ' ' ~ team.leader_email)|lower }}">
-        <td><div class="font-semibold text-navy-900">{{ team.team_name }}</div><div class="text-xs font-mono text-slate-500">{{ team.team_code }}</div></td>
+        <td><div class="font-semibold text-navy-900">{{ team.team_name }}{% if team.remark %} <span class="badge-warning ml-1" title="{{ team.remark|e }}">{{ icon('message-square', 'h-3 w-3') }} remark</span>{% endif %}</div><div class="text-xs font-mono text-slate-500">{{ team.team_code }}</div></td>
         <td>{{ team.leader_name }}</td>
         <td class=" text-slate-600" data-more>{{ team.leader_email }}</td>
         <td class=" text-slate-600 tabular-nums" data-more>{{ team.leader_mobile }}</td>

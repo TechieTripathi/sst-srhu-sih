@@ -91,6 +91,32 @@ def team_detail(team_id):
     return render_template('admin/team_detail.html', team=team, evaluations=team_evaluations)
 
 
+@admin_bp.route('/teams/<team_id>/remark', methods=['POST'])
+@require_auth(roles=['admin'])
+def team_remark(team_id):
+    """Save (or clear) an admin remark on a team — internal note, never shown to judges or students."""
+    teams = get_teams_collection()
+    try:
+        team = teams.find_one({'_id': ObjectId(team_id)})
+    except Exception:
+        team = None
+    if not team:
+        flash('Team not found', 'error')
+        return redirect(url_for('admin.teams_list'))
+    remark = request.form.get('remark', '').strip()[:1000]
+    now = datetime.utcnow()
+    if remark:
+        teams.update_one({'_id': team['_id']}, {'$set': {'remark': remark, 'remark_by': session.get('name') or session.get('user_id'),
+                                                          'remark_by_id': session.get('user_id'), 'remark_at': now}})
+        log_audit(session.get('user_id'), 'team_remark_saved', 'team', team_id, {'team_name': team.get('team_name'), 'length': len(remark)})
+        flash('Remark saved', 'success')
+    else:
+        teams.update_one({'_id': team['_id']}, {'$unset': {'remark': '', 'remark_by': '', 'remark_by_id': '', 'remark_at': ''}})
+        log_audit(session.get('user_id'), 'team_remark_cleared', 'team', team_id, {'team_name': team.get('team_name')})
+        flash('Remark cleared', 'success')
+    return redirect(url_for('admin.team_detail', team_id=team_id))
+
+
 @admin_bp.route('/judges')
 @require_auth(roles=['admin'])
 def judges_list():

@@ -2,11 +2,11 @@
 <form method="POST" action="{{ url_for('admin.create_judge_form') }}" class="grid gap-6 md:grid-cols-2 md:gap-x-10">
         <div class="space-y-6">
         <div><label for="name" class="label">Full name</label><input type="text" id="name" name="name" class="input" required autofocus placeholder="Dr. Priya Sharma" value="{{ request.form.name or '' }}"></div>
-        <div><label for="email" class="label">Email</label><input type="email" id="email" name="email" class="input" required inputmode="email" value="{{ request.form.email or '' }}"><p class="help">This is what the judge signs in with.</p></div>
-        <div><label for="phone" class="label">Mobile <span class="text-slate-400 font-normal">(optional)</span></label><input type="tel" id="phone" name="phone" class="input" inputmode="numeric" pattern="[0-9]{10}" maxlength="10" value="{{ request.form.phone or '' }}"></div>
+        <div><label for="email" class="label">Email</label><input type="email" id="email" name="email" class="input" required inputmode="email" value="{{ request.form.email or '' }}" placeholder="judge@srhu.edu.in"><p class="help">This is what the judge signs in with.</p></div>
+        <div><label for="phone" class="label">Mobile <span class="text-slate-400 font-normal">(optional)</span></label><input type="tel" id="phone" name="phone" class="input" inputmode="numeric" pattern="[0-9]{10}" maxlength="10" value="{{ request.form.phone or '' }}" placeholder="10-digit mobile number"></div>
         <fieldset><legend class="label">Jury type</legend>
             <div class="grid sm:grid-cols-2 gap-3">
-                {% for v, t, d in [('internal', 'Internal jury', 'SRHU faculty · counts 40 %'), ('external', 'External jury', 'Industry / other institutions · counts 60 %')] %}
+                {% for v, t, d in [('internal', 'Internal jury', 'SRHU faculty'), ('external', 'External jury', 'Industry and other institutions')] %}
                 <label class="flex gap-3 rounded-lg border border-navy-200 p-4 cursor-pointer has-[:checked]:border-navy-700 has-[:checked]:bg-navy-50">
                     <input type="radio" name="judge_type" value="{{ v }}" class="mt-0.5" required {% if request.form.judge_type == v %}checked{% endif %}>
                     <span><span class="block font-semibold text-navy-900">{{ t }}</span><span class="block text-sm text-slate-600">{{ d }}</span></span>

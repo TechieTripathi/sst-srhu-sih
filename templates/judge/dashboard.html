@@ -12,8 +12,8 @@
         <p class="text-sm text-slate-600">Welcome, {{ user.name }}</p>
         <h1 class="font-display text-2xl sm:text-3xl font-bold text-navy-900">Score the teams</h1>
         <p class="mt-1 text-slate-600 flex flex-wrap items-center gap-2">
-            {% if judge_type == 'INTERNAL_JUDGE' %}<span class="badge-success">Internal jury</span><span class="text-sm">your scores count for 40 % of each team's result</span>
-            {% else %}<span class="badge-info">External jury</span><span class="text-sm">your scores count for 60 % of each team's result</span>{% endif %}
+            {% if judge_type == 'INTERNAL_JUDGE' %}<span class="badge-success">Internal jury</span>
+            {% else %}<span class="badge-info">External jury</span>{% endif %}
         </p>
     </div>
     <!-- progress ring: the one glance that answers "how far am I?" -->
@@ -98,7 +98,7 @@
             </ul>
         </div>
         <div class="space-y-3">
-            <p>The form shows the weighted total out of 100 as you score. Final results combine internal (40 %) and external (60 %) jury averages.</p>
+            <p>The form shows the weighted total out of 100 as you score. Final results combine the internal and external jury averages.</p>
             <p><strong>Submissions are final.</strong> Your draft is saved on this device until you submit, so you can leave and come back.</p>
         </div>
     </div>
