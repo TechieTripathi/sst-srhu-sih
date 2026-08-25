@@ -31,7 +31,7 @@ cp .env.example .env                                 # fill in MONGO_URI, SECRET
 python init_db.py                                    # criteria + event settings
 python admin_seed.py                                 # operations admin from ADMIN_* env (--reset to change password)
 python seed_super_admin.py                           # super admin from SUPER_ADMIN_* env
-python seed_judges.py                                # 25 pre-authorised jury members, emails credentials
+python seed_judges.py                                # 25 pre-authorised jury members (DB only; add --email to send passwords)
 python app.py                                        # http://localhost:5002
 ```
 

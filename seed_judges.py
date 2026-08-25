@@ -1,11 +1,16 @@
 """
-TechForge 3.0 — Official Jury Account Seeding & Pre-Provisioning Script
-Pre-provisions the 25 official SRHU Internal Jury accounts,
-generates cryptographically secure unique passwords, hashes them,
-and delivers credentials to the official email addresses.
+TechForge 3.0 — Official Jury Account Seeding Script
+Pre-provisions the 25 official SRHU Internal Jury accounts in the database with
+secure, hashed passwords. It does NOT email anyone by default — send sign-in
+details later from Admin → Judges (per judge, or batched), where delivery is
+tracked and failures are shown.
 
-Idempotent: Running multiple times preserves existing accounts and passwords without changes.
+    python seed_judges.py            # database only (default)
+    python seed_judges.py --email    # also email each newly created judge
+
+Idempotent: existing accounts and passwords are never changed.
 """
+import sys
 
 from datetime import datetime, timezone
 from werkzeug.security import generate_password_hash
@@ -54,13 +59,13 @@ OFFICIAL_INTERNAL_JUDGES = [
 ]
 
 
-def seed_judges(send_emails: bool = True):
+def seed_judges(send_emails: bool = False):
     """
     Provision the 25 official Internal Jury members.
     Idempotent: preserves existing accounts and passwords without changing them.
     
     Args:
-        send_emails: Whether to trigger credential email sending (default: True)
+        send_emails: Email each new judge their password (default: False — use the admin panel instead)
     """
     print("\nJury Provisioning Started\n" + "=" * 55)
 
@@ -161,7 +166,7 @@ def seed_judges(send_emails: bool = True):
                 judges_col.update_one({'email': normalized_email}, {'$set': {'credentials_sent': False, 'credential_send_error': 'EMAIL_SEND_FAILED'}})
                 print(f"[WARN] {normalized_email} -- CREATED -- email delivery failed")
         else:
-            print(f"[OK] {normalized_email} -- CREATED -- (email sending skipped)")
+            print(f"[OK] {normalized_email} -- CREATED -- not emailed (send from Admin → Judges)")
 
     print("\n" + "-" * 55)
     print("Summary:")
@@ -176,4 +181,4 @@ def seed_judges(send_emails: bool = True):
 if __name__ == '__main__':
     app = create_app()
     with app.app_context():
-        seed_judges()
+        seed_judges(send_emails='--email' in sys.argv)
