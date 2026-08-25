@@ -4,7 +4,7 @@
 {% block super_admin_content %}
 <div class="mb-6 flex flex-wrap items-end justify-between gap-4">
     <div><h1 class="font-display text-2xl sm:text-3xl font-bold text-navy-900">Admin accounts <span class="text-slate-400 font-normal">({{ admins|length }})</span></h1><p class="mt-1 text-slate-600">Who can sign in to the Admin (operations) and Super Admin panels.</p></div>
-    <button type="button" class="btn-primary" onclick="openModal('createAdminModal')">＋ Create admin</button>
+    <button type="button" class="btn-primary" onclick="openModal('createAdminModal')">{{ icon('plus') }} Create admin</button>
 </div>
 
 {% if admins %}
@@ -16,19 +16,19 @@
         <td>{% if adm.status == 'active' %}<span class="badge-success">Active</span>{% else %}<span class="badge-neutral">Inactive</span>{% endif %}</td>
         <td class=" text-slate-600" data-more>{{ adm.last_login.strftime('%d %b %Y, %H:%M') if adm.last_login else 'Never' }}</td>
         <td class="text-right"><div class="inline-flex gap-2">
-            <button type="button" class="btn-secondary btn-sm" onclick="openReset('{{ adm._id }}', '{{ adm.name|e }}', '{{ adm.email|e }}')">🔑 Reset password</button>
+            <button type="button" class="btn-secondary btn-sm" onclick="openReset('{{ adm._id }}', '{{ adm.name|e }}', '{{ adm.email|e }}')">{{ icon('key') }} Reset password</button>
             {% if adm._id|string != session.get('user_id') %}
             <form method="POST" action="{{ url_for('super_admin.toggle_admin_status', admin_id=adm._id) }}" onsubmit="return confirm('{{ ('Deactivate ' ~ adm.name ~ '? They will no longer be able to sign in.') if adm.status == 'active' else ('Reactivate ' ~ adm.name ~ '?') }}')">
                 <button class="{{ 'btn-danger' if adm.status == 'active' else 'btn-navy' }} btn-sm">{{ 'Deactivate' if adm.status == 'active' else 'Activate' }}</button></form>
             {% endif %}
         </div></td></tr>
     {% endfor %}</tbody></table></div></div>
-{% else %}{{ empty_state('👤', 'No admin accounts', 'Create the first operations admin.') }}{% endif %}
+{% else %}{{ empty_state(icon('user'), 'No admin accounts', 'Create the first operations admin.') }}{% endif %}
 
 <!-- Create admin -->
 <div id="createAdminModal" class="modal-backdrop fixed inset-0 z-50 hidden items-center justify-center bg-navy-900/50 p-4" style="display:none">
     <div class="card w-full max-w-lg" role="dialog" aria-modal="true" aria-labelledby="createTitle">
-        <div class="card-header"><h2 class="card-title" id="createTitle">Create admin account</h2><button type="button" class="btn-ghost btn-sm" aria-label="Close" onclick="closeModal('createAdminModal')">✕</button></div>
+        <div class="card-header"><h2 class="card-title" id="createTitle">Create admin account</h2><button type="button" class="btn-ghost btn-sm" aria-label="Close" onclick="closeModal('createAdminModal')">{{ icon('x') }}</button></div>
         <form method="POST" action="{{ url_for('super_admin.manage_admins') }}" class="card-body space-y-4">
             <div><label class="label" for="c_name">Full name</label><input id="c_name" type="text" name="name" class="input" required></div>
             <div><label class="label" for="c_email">Email</label><input id="c_email" type="email" name="email" class="input" required></div>
@@ -46,7 +46,7 @@
 <!-- Reset password -->
 <div id="resetPasswordModal" class="modal-backdrop fixed inset-0 z-50 hidden items-center justify-center bg-navy-900/50 p-4" style="display:none">
     <div class="card w-full max-w-md" role="dialog" aria-modal="true" aria-labelledby="resetTitle">
-        <div class="card-header"><h2 class="card-title" id="resetTitle">Reset password</h2><button type="button" class="btn-ghost btn-sm" aria-label="Close" onclick="closeModal('resetPasswordModal')">✕</button></div>
+        <div class="card-header"><h2 class="card-title" id="resetTitle">Reset password</h2><button type="button" class="btn-ghost btn-sm" aria-label="Close" onclick="closeModal('resetPasswordModal')">{{ icon('x') }}</button></div>
         <form id="resetPasswordForm" method="POST" action="" class="card-body space-y-4">
             <p class="text-sm text-slate-600">New password for <strong id="resetName"></strong> (<span id="resetEmail"></span>).</p>
             <div><label class="label" for="new_password">New password</label><input id="new_password" type="text" name="new_password" class="input font-mono" minlength="6" required></div>

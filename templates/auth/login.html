@@ -17,7 +17,7 @@
     <!-- form panel -->
     <section class="px-4 sm:px-10 lg:px-16 py-10 lg:py-16 flex flex-col justify-center">
         <div class="w-full max-w-xl">
-            <div class="{{ 'badge-danger' if portal == 'super_admin' else 'badge-navy' }} mb-4">{{ '🛡️ Super Admin · developer' if portal == 'super_admin' else '🛠️ Admin · operations team' }}</div>
+            <div class="{{ 'badge-danger' if portal == 'super_admin' else 'badge-navy' }} mb-4">{{ icon('shield') ~ 'Super Admin · developer' if portal == 'super_admin' else icon('wrench') ~ 'Admin · operations team' }}</div>
             <h1 class="font-display text-2xl sm:text-3xl font-bold text-navy-900">{{ portal_label }} sign in</h1>
             <p class="mt-2 text-slate-600 text-sm">{% if portal == 'super_admin' %}For the developer only: admin accounts, system switches and the full audit trail.{% else %}For the operations team: teams, judges, scoring and results.{% endif %}</p>
             <form method="POST" action="{{ url_for('super_admin.login' if portal == 'super_admin' else 'admin.login') }}" class="mt-8 grid gap-5 sm:grid-cols-2">

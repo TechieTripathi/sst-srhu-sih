@@ -6,6 +6,16 @@ function closeModal(id) { var m = document.getElementById(id); if (!m) return; m
 document.addEventListener('click', function (e) { if (e.target.classList && e.target.classList.contains('modal-backdrop')) closeModal(e.target.id); });
 document.addEventListener('keydown', function (e) { if (e.key === 'Escape') document.querySelectorAll('.modal-backdrop').forEach(function (m) { if (m.style.display === 'flex') closeModal(m.id); }); });
 
+function uiIcon(name, className) {
+    var paths = {
+        check: '<path d="M20 6 9 17l-5-5"/>',
+        'x-circle': '<circle cx="12" cy="12" r="10"/><path d="m15 9-6 6"/><path d="m9 9 6 6"/>',
+        'chevron-down': '<path d="m6 9 6 6 6-6"/>',
+        'chevron-up': '<path d="m18 15-6-6-6 6"/>'
+    };
+    return '<svg class="icon ' + (className || 'h-4 w-4') + '" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">' + (paths[name] || '') + '</svg>';
+}
+
 // Toast: transient confirmation (success/info). Anything needing action is rendered server-side as a persistent alert.
 function showToast(message, type) {
     type = type || 'info';
@@ -18,7 +28,7 @@ function showToast(message, type) {
 // Copy text to clipboard with feedback. Works on http://LAN-IP too (no navigator.clipboard there).
 function copyText(text, btn) {
     var done = function (ok) {
-        if (btn) { var orig = btn.innerHTML; btn.innerHTML = ok ? '✓ Copied' : '✗ Copy failed'; setTimeout(function () { btn.innerHTML = orig; }, 1800); }
+        if (btn) { var orig = btn.innerHTML; btn.innerHTML = uiIcon(ok ? 'check' : 'x-circle') + (ok ? 'Copied' : 'Copy failed'); setTimeout(function () { btn.innerHTML = orig; }, 1800); }
         if (!ok) showToast('Could not copy — select the text and press Ctrl+C', 'error');
     };
     var legacy = function () {
@@ -46,7 +56,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     td.classList.add('row-more');
                     if (!td.querySelector(':scope > .row-more-panel')) {
                         var btn = document.createElement('button'), box = document.createElement('div');
-                        btn.type = 'button'; btn.className = 'row-more-toggle'; btn.textContent = 'More ▾'; btn.setAttribute('aria-expanded', 'false');
+                        btn.type = 'button'; btn.className = 'row-more-toggle'; btn.innerHTML = uiIcon('chevron-down') + 'More'; btn.setAttribute('aria-expanded', 'false');
                         box.className = 'row-more-panel';
                         // secondary cells (data-more) appear inside the panel on phones, as labelled lines
                         var extra = document.createElement('dl'); extra.className = 'only-cards';
@@ -59,7 +69,7 @@ document.addEventListener('DOMContentLoaded', function () {
                         if (extra.children.length) box.appendChild(extra);
                         while (td.firstChild) box.appendChild(td.firstChild);
                         td.appendChild(btn); td.appendChild(box);
-                        btn.addEventListener('click', function () { var open = td.classList.toggle('is-open'); btn.textContent = open ? 'Less ▴' : 'More ▾'; btn.setAttribute('aria-expanded', open ? 'true' : 'false'); });
+                        btn.addEventListener('click', function () { var open = td.classList.toggle('is-open'); btn.innerHTML = uiIcon(open ? 'chevron-up' : 'chevron-down') + (open ? 'Less' : 'More'); btn.setAttribute('aria-expanded', open ? 'true' : 'false'); });
                     }
                     continue;
                 }

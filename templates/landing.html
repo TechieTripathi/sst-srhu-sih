@@ -20,7 +20,7 @@
                     {% if registration_open %}
                     <a href="{{ url_for('teams.register') }}" class="btn-primary btn-lg">Register your team</a>
                     {% else %}
-                    <span class="btn-lg inline-flex items-center gap-2 rounded-lg bg-white/10 text-navy-100 px-6 min-h-12 font-semibold cursor-default">🔒 Registration closed</span>
+                    <span class="btn-lg inline-flex items-center gap-2 rounded-lg bg-white/10 text-navy-100 px-6 min-h-12 font-semibold cursor-default">{{ icon('lock') }} Registration closed</span>
                     {% endif %}
                     <a href="{{ url_for('judge.login') }}" class="btn-lg inline-flex items-center rounded-lg ring-1 ring-inset ring-white/30 text-white px-6 min-h-12 font-semibold hover:bg-white/10">Jury sign in</a>
                 </div>
@@ -66,12 +66,12 @@
             </div>
             <ul class="grid sm:grid-cols-2 gap-4">
                 {% for icon, title, text in [
-                    ('👥', 'Exactly 6 students', 'All currently enrolled at SST, SRHU (UG or PG).'),
-                    ('♀', 'At least one female member', 'Required by SIH national guidelines.'),
-                    ('🧭', 'One team leader', 'The single contact for registration, announcements and submissions.'),
-                    ('🛠️', 'A working prototype', 'Demonstrate real, running code. Idea-only entries are not scored.'),
-                    ('🙋', 'One team per student', 'Being in two teams invalidates both entries.'),
-                    ('📎', 'Declare what you reused', 'Existing code, libraries, APIs and AI tools must be disclosed to the jury.')
+                    (icon('users', 'h-5 w-5'), 'Exactly 6 students', 'All currently enrolled at SST, SRHU (UG or PG).'),
+                    (icon('venus', 'h-5 w-5'), 'At least one female member', 'Required by SIH national guidelines.'),
+                    (icon('compass', 'h-5 w-5'), 'One team leader', 'The single contact for registration, announcements and submissions.'),
+                    (icon('wrench', 'h-5 w-5'), 'A working prototype', 'Demonstrate real, running code. Idea-only entries are not scored.'),
+                    (icon('user', 'h-5 w-5'), 'One team per student', 'Being in two teams invalidates both entries.'),
+                    (icon('paperclip', 'h-5 w-5'), 'Declare what you reused', 'Existing code, libraries, APIs and AI tools must be disclosed to the jury.')
                 ] %}
                 <li class="flex gap-3 rounded-xl border border-navy-100 p-4">
                     <span class="text-xl shrink-0" aria-hidden="true">{{ icon }}</span>
@@ -117,7 +117,7 @@
             {% if registration_open %}
             <a href="{{ url_for('teams.register') }}" class="btn-primary btn-lg shrink-0">Register your team</a>
             {% else %}
-            <span class="badge-neutral text-sm px-4 py-2">🔒 Registration closed</span>
+            <span class="badge-neutral text-sm px-4 py-2">{{ icon('lock') }} Registration closed</span>
             {% endif %}
         </div>
     </section>

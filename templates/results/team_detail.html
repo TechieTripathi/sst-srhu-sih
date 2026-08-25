@@ -4,7 +4,7 @@
 {% set names = {'problem_understanding': 'Problem understanding', 'innovation': 'Innovation', 'technical_design': 'Technical design', 'prototype': 'Prototype', 'impact': 'Impact & scalability', 'presentation': 'Presentation'} %}
 
 {% block content %}
-<a href="{{ url_for('results.leaderboard') }}" class="text-sm font-medium text-navy-700 hover:underline">← Leaderboard</a>
+<a href="{{ url_for('results.leaderboard') }}" class="inline-flex items-center gap-1 text-sm font-medium text-navy-700 hover:underline">{{ icon('arrow-left') }} Leaderboard</a>
 <div class="mt-2 mb-6 flex flex-wrap items-end justify-between gap-4">
     <div>
         <h1 class="font-display text-2xl sm:text-3xl font-bold text-navy-900">{{ result.team.team_name }}</h1>
@@ -46,6 +46,6 @@
 {% endfor %}
 </div>
 {% else %}
-{{ empty_state('📝', 'No evaluations yet', 'This team has not been scored by any jury member.') }}
+{{ empty_state(icon('file-text'), 'No evaluations yet', 'This team has not been scored by any jury member.') }}
 {% endif %}
 {% endblock %}

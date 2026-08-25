@@ -5,8 +5,8 @@
 <div class="mb-6 flex flex-wrap items-end justify-between gap-4">
     <div><h1 class="font-display text-2xl sm:text-3xl font-bold text-navy-900">Today at a glance</h1><p class="mt-1 text-slate-600">{{ event_name }} · {{ school_name }}</p></div>
     <div class="flex flex-wrap gap-2">
-        <span class="{{ 'badge-danger' if stats.judging_locked else 'badge-success' }} text-sm px-3 py-1.5">{{ '🔒 Judging locked' if stats.judging_locked else '🟢 Judging open' }}</span>
-        <span class="{{ 'badge-success' if stats.results_published else 'badge-neutral' }} text-sm px-3 py-1.5">{{ '📢 Results published' if stats.results_published else '🔒 Results unpublished' }}</span>
+        <span class="{{ 'badge-danger' if stats.judging_locked else 'badge-success' }} text-sm px-3 py-1.5">{{ icon('lock') ~ 'Judging locked' if stats.judging_locked else icon('check-circle') ~ 'Judging open' }}</span>
+        <span class="{{ 'badge-success' if stats.results_published else 'badge-neutral' }} text-sm px-3 py-1.5">{{ icon('megaphone') ~ 'Results published' if stats.results_published else icon('lock') ~ 'Results unpublished' }}</span>
     </div>
 </div>
 
@@ -21,13 +21,13 @@
     <div class="card-header"><h2 class="card-title">Scoring progress</h2><span class="text-sm text-slate-600">{{ stats.teams_evaluated }} of {{ stats.total_teams }} teams have at least one evaluation</span></div>
     <div class="card-body">
         <div class="h-3 rounded-full bg-navy-100 overflow-hidden"><div class="h-full bg-navy-700 rounded-full transition-all" style="width: {{ stats.completion_percentage }}%"></div></div>
-        <div class="mt-2 text-sm text-slate-600 flex justify-between"><span>{{ stats.completion_percentage }}% covered</span><a href="{{ url_for('admin.results_overview') }}" class="font-semibold text-navy-700 hover:underline">See rankings →</a></div>
+        <div class="mt-2 text-sm text-slate-600 flex justify-between"><span>{{ stats.completion_percentage }}% covered</span><a href="{{ url_for('admin.results_overview') }}" class="inline-flex items-center gap-1 font-semibold text-navy-700 hover:underline">See rankings {{ icon('arrow-right') }}</a></div>
     </div>
 </div>
 
 <div class="grid lg:grid-cols-3 gap-6 mt-6 min-w-0">
     <div class="lg:col-span-2 card min-w-0">
-        <div class="card-header"><h2 class="card-title">Recently registered teams</h2><a href="{{ url_for('admin.teams_list') }}" class="btn-ghost btn-sm">All teams →</a></div>
+        <div class="card-header"><h2 class="card-title">Recently registered teams</h2><a href="{{ url_for('admin.teams_list') }}" class="btn-ghost btn-sm">All teams {{ icon('arrow-right') }}</a></div>
         {% if recent_teams %}
         <div class="overflow-x-auto"><table class="table-base table-cards">
             <thead><tr><th>Team</th><th>Leader</th><th>Contact</th><th>Registered</th></tr></thead>
@@ -43,23 +43,23 @@
         <div class="card-header"><h2 class="card-title">Quick actions</h2><span class="text-xs text-slate-500">one click each</span></div>
         <div class="card-body grid gap-2">
             <div class="text-[11px] font-semibold uppercase tracking-wider text-slate-500">Event switches</div>
-            <form method="POST" action="{{ url_for('admin.toggle_judging') }}" data-confirm="{{ 'Jury members will be able to submit scores again.' if stats.judging_locked else 'No new scores can be submitted until you unlock. Judges keep read-only access to their dashboard.' }}" data-confirm-title="{{ 'Unlock judging?' if stats.judging_locked else 'Lock judging?' }}" data-confirm-button="{{ 'Unlock judging' if stats.judging_locked else 'Lock judging' }}" data-confirm-tone="{{ 'navy' if stats.judging_locked else 'danger' }}" data-confirm-icon="{{ '🔓' if stats.judging_locked else '🔒' }}">
-                <button class="{{ 'btn-navy' if stats.judging_locked else 'btn-danger' }} w-full justify-start">{{ '🔓 Unlock judging' if stats.judging_locked else '🔒 Lock judging' }}</button></form>
-            <form method="POST" action="{{ url_for('admin.toggle_results') }}" data-confirm="{{ 'The leaderboard hides final scores again. Nothing is deleted.' if stats.results_published else 'Final rankings become visible on the leaderboard to everyone who can open it.' }}" data-confirm-title="{{ 'Unpublish results?' if stats.results_published else 'Publish results?' }}" data-confirm-button="{{ 'Unpublish results' if stats.results_published else 'Publish results' }}" data-confirm-tone="{{ 'navy' if stats.results_published else 'primary' }}" data-confirm-icon="{{ '🙈' if stats.results_published else '📢' }}">
-                <button class="{{ 'btn-secondary' if stats.results_published else 'btn-primary' }} w-full justify-start">{{ '🙈 Unpublish results' if stats.results_published else '📢 Publish results' }}</button></form>
-            <form method="POST" action="{{ url_for('admin.toggle_registration') }}" data-confirm="{{ 'The public Register button disappears and the form stops accepting new teams. Existing teams are unaffected.' if stats.registration_open else 'Students can register new teams on the public site again.' }}" data-confirm-title="{{ 'Close registration?' if stats.registration_open else 'Open registration?' }}" data-confirm-button="{{ 'Close registration' if stats.registration_open else 'Open registration' }}" data-confirm-tone="{{ 'danger' if stats.registration_open else 'navy' }}" data-confirm-icon="{{ '🚫' if stats.registration_open else '✅' }}">
-                <button class="btn-secondary w-full justify-start">{{ '🚫 Close registration' if stats.registration_open else '✅ Open registration' }}</button></form>
+            <form method="POST" action="{{ url_for('admin.toggle_judging') }}" data-confirm="{{ 'Jury members will be able to submit scores again.' if stats.judging_locked else 'No new scores can be submitted until you unlock. Judges keep read-only access to their dashboard.' }}" data-confirm-title="{{ 'Unlock judging?' if stats.judging_locked else 'Lock judging?' }}" data-confirm-button="{{ 'Unlock judging' if stats.judging_locked else 'Lock judging' }}" data-confirm-tone="{{ 'navy' if stats.judging_locked else 'danger' }}" data-confirm-icon="{{ 'unlock' if stats.judging_locked else 'lock' }}">
+                <button class="{{ 'btn-navy' if stats.judging_locked else 'btn-danger' }} w-full justify-start">{{ icon('unlock') ~ 'Unlock judging' if stats.judging_locked else icon('lock') ~ 'Lock judging' }}</button></form>
+            <form method="POST" action="{{ url_for('admin.toggle_results') }}" data-confirm="{{ 'The leaderboard hides final scores again. Nothing is deleted.' if stats.results_published else 'Final rankings become visible on the leaderboard to everyone who can open it.' }}" data-confirm-title="{{ 'Unpublish results?' if stats.results_published else 'Publish results?' }}" data-confirm-button="{{ 'Unpublish results' if stats.results_published else 'Publish results' }}" data-confirm-tone="{{ 'navy' if stats.results_published else 'primary' }}" data-confirm-icon="{{ 'eye-off' if stats.results_published else 'megaphone' }}">
+                <button class="{{ 'btn-secondary' if stats.results_published else 'btn-primary' }} w-full justify-start">{{ icon('eye-off') ~ 'Unpublish results' if stats.results_published else icon('megaphone') ~ 'Publish results' }}</button></form>
+            <form method="POST" action="{{ url_for('admin.toggle_registration') }}" data-confirm="{{ 'The public Register button disappears and the form stops accepting new teams. Existing teams are unaffected.' if stats.registration_open else 'Students can register new teams on the public site again.' }}" data-confirm-title="{{ 'Close registration?' if stats.registration_open else 'Open registration?' }}" data-confirm-button="{{ 'Close registration' if stats.registration_open else 'Open registration' }}" data-confirm-tone="{{ 'danger' if stats.registration_open else 'navy' }}" data-confirm-icon="{{ 'ban' if stats.registration_open else 'check-circle' }}">
+                <button class="btn-secondary w-full justify-start">{{ icon('ban') ~ 'Close registration' if stats.registration_open else icon('check-circle') ~ 'Open registration' }}</button></form>
 
             <div class="text-[11px] font-semibold uppercase tracking-wider text-slate-500 mt-2">Judges</div>
-            <a href="{{ url_for('admin.create_judge_form') }}" class="btn-navy justify-start">＋ Add a judge</a>
-            <a href="{{ url_for('admin.judges_list', type='internal') }}" class="btn-secondary justify-start">✉️ Email internal judges their sign-in details</a>
-            <a href="{{ url_for('admin.judges_list', type='external') }}" class="btn-secondary justify-start">🔑 External judges: copy passwords</a>
-            <button type="button" class="btn-secondary justify-start" onclick="copyText('{{ jury_login_url }}', this)">📋 Copy jury sign-in link</button>
+            <a href="{{ url_for('admin.create_judge_form') }}" class="btn-navy justify-start">{{ icon('plus') }} Add a judge</a>
+            <a href="{{ url_for('admin.judges_list', type='internal') }}" class="btn-secondary justify-start">{{ icon('mail') }} Email internal judges their sign-in details</a>
+            <a href="{{ url_for('admin.judges_list', type='external') }}" class="btn-secondary justify-start">{{ icon('key') }} External judges: copy passwords</a>
+            <button type="button" class="btn-secondary justify-start" onclick="copyText('{{ jury_login_url }}', this)">{{ icon('clipboard-list') }} Copy jury sign-in link</button>
 
             <div class="text-[11px] font-semibold uppercase tracking-wider text-slate-500 mt-2">Results</div>
-            <a href="{{ url_for('admin.results_overview') }}" class="btn-secondary justify-start">🏆 Live rankings</a>
-            <a href="{{ url_for('admin.export_results') }}" class="btn-secondary justify-start">⬇️ Export results CSV</a>
-            <a href="{{ url_for('admin.export_teams') }}" class="btn-secondary justify-start">⬇️ Export teams CSV</a>
+            <a href="{{ url_for('admin.results_overview') }}" class="btn-secondary justify-start">{{ icon('trophy') }} Live rankings</a>
+            <a href="{{ url_for('admin.export_results') }}" class="btn-secondary justify-start">{{ icon('download') }} Export results CSV</a>
+            <a href="{{ url_for('admin.export_teams') }}" class="btn-secondary justify-start">{{ icon('download') }} Export teams CSV</a>
         </div>
     </div>
 </div>

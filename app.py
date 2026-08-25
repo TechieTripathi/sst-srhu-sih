@@ -12,6 +12,8 @@ from models.database import Database
 def create_app():
     """Application factory"""
     app = Flask(__name__)
+    from utils.icons import icon
+    app.jinja_env.globals['icon'] = icon
     app.config.from_object(get_config())
     
     # Initialize MongoDB

@@ -5,8 +5,8 @@
 <div class="mb-6 flex flex-wrap items-end justify-between gap-4">
     <div><h1 class="font-display text-2xl sm:text-3xl font-bold text-navy-900">Teams <span class="text-slate-400 font-normal">({{ teams|length }})</span></h1><p class="mt-1 text-slate-600">Every registered team and its leader's contact details.</p></div>
     <div class="flex gap-2">
-        <div class="relative"><input type="search" id="teamSearch" class="input min-h-10 pl-9 text-sm w-64" placeholder="Find team, code, leader…" aria-label="Find team"><span class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" aria-hidden="true">🔍</span></div>
-        <a href="{{ url_for('admin.export_teams') }}" class="btn-secondary">⬇️ CSV</a>
+        <div class="relative"><input type="search" id="teamSearch" class="input min-h-10 pl-9 text-sm w-64" placeholder="Find team, code, leader…" aria-label="Find team"><span class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" aria-hidden="true">{{ icon('search') }}</span></div>
+        <a href="{{ url_for('admin.export_teams') }}" class="btn-secondary">{{ icon('download') }} CSV</a>
     </div>
 </div>
 {% if teams %}
@@ -20,7 +20,7 @@
         <td class=" text-slate-600" data-more>{{ team.leader_email }}</td>
         <td class=" text-slate-600 tabular-nums" data-more>{{ team.leader_mobile }}</td>
         <td class=" text-slate-600" data-more>{{ team.created_at.strftime('%d %b %Y, %H:%M') if team.created_at else '—' }}</td>
-        <td class="text-right"><a href="{{ url_for('admin.team_detail', team_id=team._id) }}" class="btn-ghost btn-sm">Details →</a></td>
+        <td class="text-right"><a href="{{ url_for('admin.team_detail', team_id=team._id) }}" class="btn-ghost btn-sm">Details {{ icon('arrow-right') }}</a></td>
     </tr>{% endfor %}</tbody>
 </table></div></div>
 <p id="noMatch" class="hidden mt-4 text-center text-slate-500">No teams match.</p>
@@ -32,6 +32,6 @@ document.getElementById('teamSearch').addEventListener('input', function () {
 });
 </script>
 {% else %}
-{{ empty_state('👥', 'No teams yet', 'Teams appear here as soon as a leader registers on the public site.', url_for('index'), 'Open the public site') }}
+{{ empty_state(icon('users'), 'No teams yet', 'Teams appear here as soon as a leader registers on the public site.', url_for('index'), 'Open the public site') }}
 {% endif %}
 {% endblock %}

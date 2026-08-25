@@ -20,10 +20,10 @@
         <td>{% if log.metadata %}<details><summary class="text-sm font-medium text-navy-700 cursor-pointer">View</summary><pre class="mt-2 text-xs bg-navy-50 rounded p-2 max-w-md overflow-x-auto">{{ log.metadata|tojson(indent=2) }}</pre></details>{% else %}<span class="text-slate-400">—</span>{% endif %}</td></tr>
     {% endfor %}</tbody></table></div>
     {% if total_pages > 1 %}<div class="flex items-center justify-between px-5 py-3 border-t border-navy-100 text-sm">
-        {% if page > 1 %}<a class="btn-secondary btn-sm" href="{{ url_for('super_admin.audit_logs', page=page-1, action=action_filter) }}">← Previous</a>{% else %}<span></span>{% endif %}
+        {% if page > 1 %}<a class="btn-secondary btn-sm" href="{{ url_for('super_admin.audit_logs', page=page-1, action=action_filter) }}">{{ icon('arrow-left') }} Previous</a>{% else %}<span></span>{% endif %}
         <span class="text-slate-600">Page {{ page }} of {{ total_pages }}</span>
-        {% if page < total_pages %}<a class="btn-secondary btn-sm" href="{{ url_for('super_admin.audit_logs', page=page+1, action=action_filter) }}">Next →</a>{% else %}<span></span>{% endif %}
+        {% if page < total_pages %}<a class="btn-secondary btn-sm" href="{{ url_for('super_admin.audit_logs', page=page+1, action=action_filter) }}">Next {{ icon('arrow-right') }}</a>{% else %}<span></span>{% endif %}
     </div>{% endif %}
 </div>
-{% else %}{{ empty_state('📋', 'Nothing logged' ~ (' for that filter' if action_filter else ' yet'), 'Activity is recorded here automatically.') }}{% endif %}
+{% else %}{{ empty_state(icon('clipboard-list'), 'Nothing logged' ~ (' for that filter' if action_filter else ' yet'), 'Activity is recorded here automatically.') }}{% endif %}
 {% endblock %}

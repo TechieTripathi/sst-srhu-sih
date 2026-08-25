@@ -43,6 +43,7 @@
 }
 
 @layer base {
+  .icon { display: inline-block; vertical-align: -0.15em; flex-shrink: 0; }
   .card, .stat { min-width: 0; }
   dd, td, .card-body { overflow-wrap: anywhere; }
   html { font-family: var(--font-sans); color: var(--color-ink); background: var(--color-snow); -webkit-font-smoothing: antialiased; }
@@ -74,6 +75,7 @@
   .stat        { @apply card p-5 border-l-4 border-l-navy-700; }
   .stat-value  { @apply font-display text-3xl font-bold text-navy-900 leading-none; }
   .stat-label  { @apply mt-2 text-sm text-slate-600; }
+  .empty-state-icon .icon { @apply h-10 w-10; }
 
   /* Status: always colour + icon/word together */
   .badge-navy     { @apply badge bg-navy-100 text-navy-800; }

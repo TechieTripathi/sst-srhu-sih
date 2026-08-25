@@ -2,7 +2,7 @@
 {% from 'partials/ui.html' import empty_state %}
 {% block admin_title %}{{ team.team_name }}{% endblock %}
 {% block admin_content %}
-<a href="{{ url_for('admin.teams_list') }}" class="text-sm font-medium text-navy-700 hover:underline">← Teams</a>
+<a href="{{ url_for('admin.teams_list') }}" class="inline-flex items-center gap-1 text-sm font-medium text-navy-700 hover:underline">{{ icon('arrow-left') }} Teams</a>
 <div class="mt-2 mb-6 flex flex-wrap items-end justify-between gap-4">
     <div><h1 class="font-display text-2xl sm:text-3xl font-bold text-navy-900">{{ team.team_name }}</h1><p class="mt-1 text-slate-600 font-mono">{{ team.team_code }}</p></div>
     <span class="badge-success">{{ team.status|capitalize }}</span>
@@ -30,11 +30,11 @@
     <tr><td class="font-mono text-xs text-slate-600">{{ ev.judge_id[:8] }}…</td>
         <td>{% if 'internal' in (ev.judge_type or '')|lower %}<span class="badge-success">Internal</span>{% else %}<span class="badge-info">External</span>{% endif %}</td>
         <td class="text-right font-display font-bold tabular-nums">{{ ev.weighted_total if ev.weighted_total is defined else (ev.weighted_score * 10)|round(2) }}<span class="text-xs text-slate-500 font-normal">/100</span></td>
-        <td>{% if ev.status == 'submitted' %}<span class="badge-success">✓ Submitted</span>{% elif ev.status == 'reopened' %}<span class="badge-warning">↺ Reopened</span>{% else %}<span class="badge-neutral">{{ ev.status }}</span>{% endif %}</td>
+        <td>{% if ev.status == 'submitted' %}<span class="badge-success">{{ icon('check-circle') }} Submitted</span>{% elif ev.status == 'reopened' %}<span class="badge-warning">{{ icon('refresh-cw') }} Reopened</span>{% else %}<span class="badge-neutral">{{ ev.status }}</span>{% endif %}</td>
         <td class="text-slate-600" data-more>{{ ev.submitted_at.strftime('%d %b, %H:%M') if ev.submitted_at else '—' }}</td>
-        <td class="text-right">{% if ev.status == 'submitted' %}<form method="POST" action="{{ url_for('admin.reopen_evaluation', evaluation_id=ev._id|string) }}" onsubmit="return confirm('Reopen this evaluation? The judge will have to score this team again.')"><button class="btn-ghost btn-sm">↺ Reopen</button></form>{% endif %}</td></tr>
+        <td class="text-right">{% if ev.status == 'submitted' %}<form method="POST" action="{{ url_for('admin.reopen_evaluation', evaluation_id=ev._id|string) }}" onsubmit="return confirm('Reopen this evaluation? The judge will have to score this team again.')"><button class="btn-ghost btn-sm">{{ icon('refresh-cw') }} Reopen</button></form>{% endif %}</td></tr>
     {% endfor %}</tbody></table></div></div>
 {% else %}
-{{ empty_state('📝', 'Not scored yet', 'No jury member has submitted an evaluation for this team.') }}
+{{ empty_state(icon('file-text'), 'Not scored yet', 'No jury member has submitted an evaluation for this team.') }}
 {% endif %}
 {% endblock %}

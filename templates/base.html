@@ -23,9 +23,9 @@
             {% for category, message in messages %}
             {% set kind = 'error' if category in ['error', 'danger'] else ('success' if category == 'success' else ('warning' if category == 'warning' else 'info')) %}
             <div class="alert-{{ kind }} shadow-lg bg-opacity-100" role="{{ 'alert' if kind != 'success' else 'status' }}" data-flash="{{ kind }}">
-                <span aria-hidden="true" class="shrink-0">{{ {'success': '✅', 'warning': '⚠️', 'error': '⛔', 'info': 'ℹ️'}[kind] }}</span>
+                <span aria-hidden="true" class="shrink-0">{{ icon({'success': 'check-circle', 'warning': 'alert-triangle', 'error': 'x-circle', 'info': 'info'}[kind], 'h-5 w-5') }}</span>
                 <div class="flex-1 leading-snug">{{ message }}</div>
-                <button type="button" class="shrink-0 -my-1 -mr-1 p-1 rounded hover:bg-black/5" aria-label="Dismiss" onclick="this.closest('[data-flash]').remove()">✕</button>
+                <button type="button" class="shrink-0 -my-1 -mr-1 p-1 rounded hover:bg-black/5" aria-label="Dismiss" onclick="this.closest('[data-flash]').remove()">{{ icon('x') }}</button>
             </div>
             {% endfor %}
         </div>

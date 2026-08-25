@@ -7,10 +7,10 @@
 <form method="POST" action="{{ url_for('super_admin.system_settings') }}">
     <div class="grid gap-4 md:grid-cols-2">
         {% set rows = [
-            ('judging_locked', '🔒 Lock Judging Submissions', 'When locked, jury members cannot submit scores. Lock it when the presentation round ends.', settings.judging_locked, 'Locked', 'Open', 'danger'),
-            ('results_published', '📢 Publish final results', 'Final rankings become visible on the leaderboard.', settings.results_published, 'Published', 'Draft', 'success'),
-            ('registration_open', '👥 Team registration portal', 'Students can register new teams on the public site.', settings.get('registration_open', True), 'Open', 'Closed', 'navy'),
-            ('bulk_credentials_enabled', '✉️ Bulk "Send credentials to all judges"', 'Lets Admins email new passwords to every judge in one click. Disable once the event starts to prevent accidental resets.', settings.get('bulk_credentials_enabled', True), 'Enabled', 'Disabled', 'navy')
+            ('judging_locked', icon('lock') ~ 'Lock Judging Submissions', 'When locked, jury members cannot submit scores. Lock it when the presentation round ends.', settings.judging_locked, 'Locked', 'Open', 'danger'),
+            ('results_published', icon('megaphone') ~ 'Publish final results', 'Final rankings become visible on the leaderboard.', settings.results_published, 'Published', 'Draft', 'success'),
+            ('registration_open', icon('users') ~ 'Team registration portal', 'Students can register new teams on the public site.', settings.get('registration_open', True), 'Open', 'Closed', 'navy'),
+            ('bulk_credentials_enabled', icon('mail') ~ 'Bulk "Send credentials to all judges"', 'Lets Admins email new passwords to every judge in one click. Disable once the event starts to prevent accidental resets.', settings.get('bulk_credentials_enabled', True), 'Enabled', 'Disabled', 'navy')
         ] %}
         {% for name, title, desc, on, on_label, off_label, tone in rows %}
         <label class="card p-5 flex items-center justify-between gap-4 cursor-pointer has-[:checked]:border-navy-300">
@@ -25,7 +25,7 @@
     </div>
     <div class="mt-6 flex items-center justify-between gap-4">
         <p class="text-sm text-slate-500">Changes are logged in the audit trail with your account.</p>
-        <button type="submit" class="btn-primary">💾 Save settings</button>
+        <button type="submit" class="btn-primary">{{ icon('save') }} Save settings</button>
     </div>
 </form>
 {% endblock %}

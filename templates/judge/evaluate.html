@@ -2,7 +2,7 @@
 {% block title %}Score {{ team.team_name }}{% endblock %}
 
 {% block content %}
-<a href="{{ url_for('judge.dashboard') }}" class="text-sm font-medium text-navy-700 hover:underline">← My teams</a>
+<a href="{{ url_for('judge.dashboard') }}" class="inline-flex items-center gap-1 text-sm font-medium text-navy-700 hover:underline">{{ icon('arrow-left') }} My teams</a>
 <div class="mt-2 mb-6 flex flex-wrap items-end justify-between gap-4">
     <div>
         <h1 class="font-display text-2xl sm:text-3xl font-bold text-navy-900">{{ team.team_name }}</h1>
@@ -12,7 +12,7 @@
 </div>
 
 {% if already_evaluated %}
-<div class="alert-success mb-6" role="status"><span aria-hidden="true">✓</span><div><strong>You've already scored this team.</strong> Submissions are final. If something is wrong, tell the organising team — an admin can reopen it.</div></div>
+<div class="alert-success mb-6" role="status"><span aria-hidden="true">{{ icon('check-circle') }}</span><div><strong>You've already scored this team.</strong> Submissions are final. If something is wrong, tell the organising team — an admin can reopen it.</div></div>
 <a href="{{ url_for('judge.dashboard') }}" class="btn-navy">Back to my teams</a>
 {% else %}
 <form method="POST" action="{{ url_for('evaluations.submit_evaluation') }}" id="evaluationForm" class="pb-28">

@@ -13,7 +13,7 @@
 
 {% macro empty_state(icon, title, text, cta_href='', cta_text='') -%}
 <div class="card py-12 px-6 text-center">
-    <div class="text-4xl mb-3" aria-hidden="true">{{ icon }}</div>
+    <div class="empty-state-icon mb-3 text-navy-700" aria-hidden="true">{{ icon }}</div>
     <h3 class="font-display text-lg font-semibold text-navy-900">{{ title }}</h3>
     <p class="mt-1.5 text-sm text-slate-600 max-w-md mx-auto">{{ text }}</p>
     {% if cta_href %}<a href="{{ cta_href }}" class="btn-navy mt-5">{{ cta_text }}</a>{% endif %}
@@ -21,9 +21,9 @@
 {%- endmacro %}
 
 {% macro alert(message, kind='info') -%}
-{% set icons = {'success': '✅', 'warning': '⚠️', 'error': '⛔', 'danger': '⛔', 'info': 'ℹ️'} %}
+{% set icons = {'success': icon('check-circle'), 'warning': icon('alert-triangle'), 'error': icon('x-circle'), 'danger': icon('x-circle'), 'info': icon('info')} %}
 <div class="alert-{{ 'error' if kind == 'danger' else kind }}" role="{{ 'alert' if kind in ['error', 'danger', 'warning'] else 'status' }}">
-    <span aria-hidden="true" class="shrink-0">{{ icons.get(kind, 'ℹ️') }}</span>
+    <span aria-hidden="true" class="shrink-0">{{ icons.get(kind, icon('info')) }}</span>
     <div class="flex-1 leading-snug">{{ message }}</div>
 </div>
 {%- endmacro %}
@@ -31,7 +31,7 @@
 {% macro page_header(title, subtitle='', back_href='', back_text='') -%}
 <div class="mb-6 flex flex-wrap items-end justify-between gap-4">
     <div>
-        {% if back_href %}<a href="{{ back_href }}" class="text-sm font-medium text-navy-700 hover:underline">← {{ back_text or 'Back' }}</a>{% endif %}
+        {% if back_href %}<a href="{{ back_href }}" class="inline-flex items-center gap-1 text-sm font-medium text-navy-700 hover:underline">{{ icon('arrow-left') }} {{ back_text or 'Back' }}</a>{% endif %}
         <h1 class="font-display text-2xl md:text-3xl font-bold text-navy-900">{{ title }}</h1>
         {% if subtitle %}<p class="mt-1 text-slate-600">{{ subtitle }}</p>{% endif %}
     </div>

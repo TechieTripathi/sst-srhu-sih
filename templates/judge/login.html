@@ -18,7 +18,7 @@
     <!-- form panel -->
     <section class="px-4 sm:px-10 lg:px-16 py-10 lg:py-16 flex flex-col justify-center">
         <div class="w-full max-w-xl">
-            <div class="badge-navy mb-4">⚖️ Jury</div>
+            <div class="badge-navy mb-4">{{ icon('scale') }} Jury</div>
             <h1 class="font-display text-2xl sm:text-3xl font-bold text-navy-900">Sign in to score teams</h1>
             <p class="mt-2 text-slate-600 text-sm">Use the email and password the organisers sent you. Every registered team is open to you; your draft is saved on your device until you submit.</p>
             <form method="POST" action="{{ url_for('judge.login') }}" class="mt-8 grid gap-5 sm:grid-cols-2">

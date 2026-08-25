@@ -9,44 +9,44 @@
         <div class="h-16 px-5 flex items-center gap-3 border-b border-white/10">
             <img src="{{ url_for('static', filename='images/srhu-logo.png') }}" alt="SRHU" class="h-9 w-auto rounded bg-white p-0.5">
             <div class="min-w-0"><div class="font-display font-bold leading-tight truncate">{{ event_name }}</div><div class="text-[11px] text-navy-200 leading-tight">{{ role_label }}</div></div>
-            <button type="button" class="ml-auto lg:hidden p-2 rounded hover:bg-white/10" aria-label="Close menu" onclick="toggleAdminSidebar(false)">✕</button>
+            <button type="button" class="ml-auto lg:hidden p-2 rounded hover:bg-white/10" aria-label="Close menu" onclick="toggleAdminSidebar(false)">{{ icon('x') }}</button>
         </div>
         {% block sidebar_nav %}
         <nav class="flex-1 overflow-y-auto px-3 py-4 space-y-5 text-sm sidebar-scroll">
             {% set ep = request.endpoint or '' %}
             <div>
                 <div class="px-3 mb-1 text-[11px] font-semibold uppercase tracking-wider text-navy-300">Overview</div>
-                <a href="{{ url_for('admin.dashboard') }}" class="sidebar-link {% if ep == 'admin.dashboard' %}sidebar-link-active{% endif %}">📊 Dashboard</a>
+                <a href="{{ url_for('admin.dashboard') }}" class="sidebar-link {% if ep == 'admin.dashboard' %}sidebar-link-active{% endif %}">{{ icon('layout-dashboard') }} Dashboard</a>
             </div>
             <div>
                 <div class="px-3 mb-1 text-[11px] font-semibold uppercase tracking-wider text-navy-300">People</div>
-                <a href="{{ url_for('admin.teams_list') }}" class="sidebar-link {% if 'teams' in ep or ep == 'admin.team_detail' %}sidebar-link-active{% endif %}">👥 Teams</a>
-                <a href="{{ url_for('admin.judges_list') }}" class="sidebar-link {% if 'judge' in ep or 'credentials' in ep %}sidebar-link-active{% endif %}">⚖️ Judges</a>
+                <a href="{{ url_for('admin.teams_list') }}" class="sidebar-link {% if 'teams' in ep or ep == 'admin.team_detail' %}sidebar-link-active{% endif %}">{{ icon('users') }} Teams</a>
+                <a href="{{ url_for('admin.judges_list') }}" class="sidebar-link {% if 'judge' in ep or 'credentials' in ep %}sidebar-link-active{% endif %}">{{ icon('scale') }} Judges</a>
             </div>
             <div>
                 <div class="px-3 mb-1 text-[11px] font-semibold uppercase tracking-wider text-navy-300">Scoring</div>
-                <a href="{{ url_for('admin.evaluations_list') }}" class="sidebar-link {% if ep == 'admin.evaluations_list' %}sidebar-link-active{% endif %}">📝 Evaluations</a>
-                <a href="{{ url_for('admin.results_overview') }}" class="sidebar-link {% if ep == 'admin.results_overview' %}sidebar-link-active{% endif %}">🏆 Rankings</a>
-                <a href="{{ url_for('results.leaderboard') }}" class="sidebar-link">📈 Leaderboard</a>
+                <a href="{{ url_for('admin.evaluations_list') }}" class="sidebar-link {% if ep == 'admin.evaluations_list' %}sidebar-link-active{% endif %}">{{ icon('file-text') }} Evaluations</a>
+                <a href="{{ url_for('admin.results_overview') }}" class="sidebar-link {% if ep == 'admin.results_overview' %}sidebar-link-active{% endif %}">{{ icon('trophy') }} Rankings</a>
+                <a href="{{ url_for('results.leaderboard') }}" class="sidebar-link">{{ icon('bar-chart') }} Leaderboard</a>
             </div>
             <div>
                 <div class="px-3 mb-1 text-[11px] font-semibold uppercase tracking-wider text-navy-300">Event</div>
-                <a href="{{ url_for('admin.settings') }}" class="sidebar-link {% if ep == 'admin.settings' %}sidebar-link-active{% endif %}">⚙️ Settings</a>
-                <a href="{{ url_for('admin.audit_logs') }}" class="sidebar-link {% if ep == 'admin.audit_logs' %}sidebar-link-active{% endif %}">📋 Audit log</a>
-                <a href="{{ url_for('admin.export_teams') }}" class="sidebar-link">⬇️ Export teams (CSV)</a>
-                <a href="{{ url_for('admin.export_results') }}" class="sidebar-link">⬇️ Export results (CSV)</a>
+                <a href="{{ url_for('admin.settings') }}" class="sidebar-link {% if ep == 'admin.settings' %}sidebar-link-active{% endif %}">{{ icon('settings') }} Settings</a>
+                <a href="{{ url_for('admin.audit_logs') }}" class="sidebar-link {% if ep == 'admin.audit_logs' %}sidebar-link-active{% endif %}">{{ icon('clipboard-list') }} Audit log</a>
+                <a href="{{ url_for('admin.export_teams') }}" class="sidebar-link">{{ icon('download') }} Export teams (CSV)</a>
+                <a href="{{ url_for('admin.export_results') }}" class="sidebar-link">{{ icon('download') }} Export results (CSV)</a>
             </div>
             {% if current_role == 'super_admin' %}
             <div>
                 <div class="px-3 mb-1 text-[11px] font-semibold uppercase tracking-wider text-crimson-100/80">Developer</div>
-                <a href="{{ url_for('super_admin.dashboard') }}" class="sidebar-link">🛡️ Super Admin panel</a>
+                <a href="{{ url_for('super_admin.dashboard') }}" class="sidebar-link">{{ icon('shield') }} Super Admin panel</a>
             </div>
             {% endif %}
         </nav>
         {% endblock %}
         <div class="p-3 border-t border-white/10">
             <div class="px-3 py-2 text-xs text-navy-200 truncate">Signed in as <span class="text-white font-medium">{{ user_name }}</span></div>
-            <a href="{{ url_for('auth.logout') }}" class="sidebar-link">🚪 Sign out</a>
+            <a href="{{ url_for('auth.logout') }}" class="sidebar-link">{{ icon('log-out') }} Sign out</a>
         </div>
     </aside>
     <div id="sidebarBackdrop" class="fixed inset-0 z-30 bg-navy-900/50 hidden lg:hidden" onclick="toggleAdminSidebar(false)"></div>
@@ -54,11 +54,11 @@
     <!-- Main -->
     <div class="min-w-0 flex flex-col min-h-screen lg:pl-64">
         <header class="h-16 bg-white border-b border-navy-100 flex items-center gap-3 px-4 sm:px-6 sticky top-0 z-20">
-            <button type="button" class="lg:hidden btn-ghost btn-sm -ml-2" aria-label="Open menu" aria-controls="sidebar" onclick="toggleAdminSidebar(true)">☰ Menu</button>
+            <button type="button" class="lg:hidden btn-ghost btn-sm -ml-2" aria-label="Open menu" aria-controls="sidebar" onclick="toggleAdminSidebar(true)">{{ icon('menu') }} Menu</button>
             <h2 class="font-display font-semibold text-navy-900 truncate">{% block admin_page_heading %}{{ self.admin_title() }}{% endblock %}</h2>
             <div class="ml-auto flex items-center gap-3">
                 <span class="hidden sm:inline-flex {{ 'badge-danger' if current_role == 'super_admin' else 'badge-navy' }}">{{ role_label }}</span>
-                <a href="{{ url_for('index') }}" class="btn-ghost btn-sm hidden sm:inline-flex" title="Public homepage">↗ Public site</a>
+                <a href="{{ url_for('index') }}" class="btn-ghost btn-sm hidden sm:inline-flex" title="Public homepage">{{ icon('external-link') }} Public site</a>
             </div>
         </header>
         <div class="{{ 'h-1 bg-crimson-600' if current_role == 'super_admin' else 'ridge !h-3' }}" role="presentation"></div>
@@ -73,7 +73,7 @@
     <div class="card w-full max-w-md" role="dialog" aria-modal="true" aria-labelledby="cmTitle" aria-describedby="cmBody">
         <div class="card-body">
             <div class="flex items-start gap-4">
-                <span id="cmIcon" class="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-navy-100 text-navy-800 text-xl" aria-hidden="true">⚙️</span>
+                <span id="cmIcon" class="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-navy-100 text-navy-800 text-xl" aria-hidden="true">{{ icon('settings') }}</span>
                 <div class="min-w-0">
                     <h2 id="cmTitle" class="font-display text-lg font-semibold text-navy-900">Are you sure?</h2>
                     <p id="cmBody" class="mt-1 text-sm text-slate-600"></p>
@@ -91,6 +91,18 @@
 (function () {
     var modal = document.getElementById('confirmModal'), ok = document.getElementById('cmOk'), pending = null;
     var tones = {danger: ['bg-crimson-100 text-crimson-700', 'btn-danger'], primary: ['bg-saffron-100 text-saffron-700', 'btn-primary'], navy: ['bg-navy-100 text-navy-800', 'btn-navy']};
+    var iconPaths = {
+        'lock': '<rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>',
+        'unlock': '<rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 9.9-1"/>',
+        'eye-off': '<path d="M9.88 9.88a3 3 0 1 0 4.24 4.24"/><path d="M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68"/><path d="M6.61 6.61A13.526 13.526 0 0 0 2 12s3 7 10 7a9.74 9.74 0 0 0 5.39-1.61"/><line x1="2" x2="22" y1="2" y2="22"/>',
+        'megaphone': '<path d="m3 11 18-5v12L3 14v-3z"/><path d="M11.6 16.8a3 3 0 1 1-5.8-1.6"/>',
+        'ban': '<circle cx="12" cy="12" r="10"/><path d="m4.9 4.9 14.2 14.2"/>',
+        'check-circle': '<path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><path d="m9 11 3 3L22 4"/>'
+    };
+    function confirmIcon(name) {
+        var paths = iconPaths[name] || iconPaths.lock;
+        return '<svg class="icon h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">' + paths + '</svg>';
+    }
     document.addEventListener('submit', function (e) {
         var f = e.target; if (!(f instanceof HTMLFormElement) || !f.hasAttribute('data-confirm') || f.dataset.confirmed === '1') return;
         e.preventDefault(); pending = f;
@@ -99,7 +111,7 @@
         document.getElementById('cmBody').textContent = f.dataset.confirm;
         var eff = document.getElementById('cmEffect'); eff.textContent = f.dataset.confirmEffect || ''; eff.classList.toggle('hidden', !f.dataset.confirmEffect);
         document.getElementById('cmIcon').className = 'inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-xl ' + tone[0];
-        document.getElementById('cmIcon').textContent = f.dataset.confirmIcon || '⚙️';
+        document.getElementById('cmIcon').innerHTML = confirmIcon(f.dataset.confirmIcon);
         ok.className = tone[1]; ok.textContent = f.dataset.confirmButton || 'Confirm';
         openModal('confirmModal'); ok.focus();
     }, true);

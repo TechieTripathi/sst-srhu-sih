@@ -1,7 +1,7 @@
 {% extends "admin/base_admin.html" %}
 {% block admin_title %}Add judge{% endblock %}
 {% block admin_content %}
-<a href="{{ url_for('admin.judges_list') }}" class="text-sm font-medium text-navy-700 hover:underline">← Judges</a>
+<a href="{{ url_for('admin.judges_list') }}" class="inline-flex items-center gap-1 text-sm font-medium text-navy-700 hover:underline">{{ icon('arrow-left') }} Judges</a>
 <h1 class="font-display text-2xl sm:text-3xl font-bold text-navy-900 mt-2 mb-6">Add a judge</h1>
 <div class="card"><div class="card-body sm:p-8">
     {% include 'partials/judge_form.html' %}

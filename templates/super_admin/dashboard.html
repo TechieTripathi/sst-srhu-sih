@@ -4,21 +4,21 @@
 {% block super_admin_content %}
 <div class="mb-6 flex flex-wrap items-end justify-between gap-4">
     <div><h1 class="font-display text-2xl sm:text-3xl font-bold text-navy-900">System overview</h1><p class="mt-1 text-slate-600">Developer view: accounts, switches and system health. Day-to-day operations live in the Admin panel.</p></div>
-    <div class="flex gap-2"><a href="{{ url_for('super_admin.manage_admins') }}" class="btn-navy">👤 Admin accounts</a><a href="{{ url_for('super_admin.system_settings') }}" class="btn-secondary">⚙️ System settings</a></div>
+    <div class="flex gap-2"><a href="{{ url_for('super_admin.manage_admins') }}" class="btn-navy">{{ icon('user') }} Admin accounts</a><a href="{{ url_for('super_admin.system_settings') }}" class="btn-secondary">{{ icon('settings') }} System settings</a></div>
 </div>
 
 <div class="stat-group grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-4">
     {{ stat(stats.total_teams, stats.registered_teams ~ ' registered teams') }}
     {{ stat(stats.total_judges, stats.internal_judges ~ ' internal · ' ~ stats.external_judges ~ ' external judges', 'info') }}
-    {{ stat(stats.total_admins, 'admin accounts (' ~ stats.admin_users_count ~ ' ops admins)', 'danger') }}
+    {{ stat(stats.total_admins, 'operations admin accounts', 'danger') }}
     {{ stat(stats.evaluations_completed, 'evaluations · ' ~ stats.teams_pending ~ ' teams unscored', 'success') }}
 </div>
 
 <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 mt-4">
     <div class="card p-4"><div class="text-xs font-semibold uppercase tracking-wide text-slate-500">Teams evaluated</div><div class="font-display text-xl font-bold text-navy-900 mt-1">{{ stats.teams_evaluated }} / {{ stats.total_teams }}</div><div class="mt-2 h-1.5 rounded-full bg-navy-100 overflow-hidden"><div class="h-full bg-navy-700" style="width: {{ stats.completion_percentage }}%"></div></div></div>
-    <div class="card p-4"><div class="text-xs font-semibold uppercase tracking-wide text-slate-500">Judging</div><div class="mt-2">{% if stats.judging_locked %}<span class="badge-danger">🔒 Locked</span>{% else %}<span class="badge-success">🟢 Open</span>{% endif %}</div></div>
-    <div class="card p-4"><div class="text-xs font-semibold uppercase tracking-wide text-slate-500">Results</div><div class="mt-2">{% if stats.results_published %}<span class="badge-success">📢 Published</span>{% else %}<span class="badge-neutral">🔒 Not published</span>{% endif %}</div></div>
-    <div class="card p-4"><div class="text-xs font-semibold uppercase tracking-wide text-slate-500">Registration</div><div class="mt-2">{% if stats.registration_open %}<span class="badge-success">🟢 Open</span>{% else %}<span class="badge-neutral">🔒 Closed</span>{% endif %}</div></div>
+    <div class="card p-4"><div class="text-xs font-semibold uppercase tracking-wide text-slate-500">Judging</div><div class="mt-2">{% if stats.judging_locked %}<span class="badge-danger">{{ icon('lock') }} Locked</span>{% else %}<span class="badge-success">{{ icon('check-circle') }} Open</span>{% endif %}</div></div>
+    <div class="card p-4"><div class="text-xs font-semibold uppercase tracking-wide text-slate-500">Results</div><div class="mt-2">{% if stats.results_published %}<span class="badge-success">{{ icon('megaphone') }} Published</span>{% else %}<span class="badge-neutral">{{ icon('lock') }} Not published</span>{% endif %}</div></div>
+    <div class="card p-4"><div class="text-xs font-semibold uppercase tracking-wide text-slate-500">Registration</div><div class="mt-2">{% if stats.registration_open %}<span class="badge-success">{{ icon('check-circle') }} Open</span>{% else %}<span class="badge-neutral">{{ icon('lock') }} Closed</span>{% endif %}</div></div>
 </div>
 
 <div class="grid lg:grid-cols-2 gap-6 mt-6 min-w-0">
@@ -33,7 +33,7 @@
             <dt class="text-slate-500">Environment</dt><dd class="text-navy-900">{{ system_status.env }}</dd>
             <dt class="text-slate-500">Server time</dt><dd class="text-navy-900 font-mono text-xs">{{ system_status.server_time }}</dd>
         </dl></div>
-    <div class="card min-w-0"><div class="card-header"><h2 class="card-title">Recent activity</h2><a href="{{ url_for('super_admin.audit_logs') }}" class="btn-ghost btn-sm">Full audit trail →</a></div>
+    <div class="card min-w-0"><div class="card-header"><h2 class="card-title">Recent activity</h2><a href="{{ url_for('super_admin.audit_logs') }}" class="btn-ghost btn-sm">Full audit trail {{ icon('arrow-right') }}</a></div>
         {% if recent_logs %}<ul class="divide-y divide-navy-100">{% for log in recent_logs %}
         <li class="px-5 py-3 flex items-start gap-3 text-sm min-w-0"><span class="badge-neutral shrink-0">{{ log.action|replace('_', ' ') }}</span><span class="text-slate-700 flex-1 min-w-0 truncate">{{ log.actor_name }} <span class="text-slate-400">· {{ log.actor_role }}</span></span><span class="ml-auto text-xs text-slate-500 whitespace-nowrap">{{ log.created_at.strftime('%d %b %H:%M') if log.created_at else '' }}</span></li>
         {% endfor %}</ul>{% else %}<div class="card-body text-sm text-slate-600">Nothing logged yet.</div>{% endif %}</div>

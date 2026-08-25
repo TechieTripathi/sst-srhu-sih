@@ -28,7 +28,7 @@
 
 {% if locked %}
 <div class="alert-error mb-6" role="alert">
-    <span aria-hidden="true">🔒</span>
+    <span aria-hidden="true">{{ icon('lock') }}</span>
     <div><strong>Judging is locked.</strong> {{ judging_status.lock_reason or 'The organisers have closed scoring. You can still see which teams you scored, but nothing can be submitted.' }}</div>
 </div>
 {% endif %}
@@ -38,24 +38,24 @@
 <div class="card mb-4"><div class="card-body py-3 flex flex-wrap items-center gap-2">
     <span class="text-[11px] font-semibold uppercase tracking-wider text-slate-500 mr-1">Quick actions</span>
     {% if next_team and not locked %}
-        <a href="{{ url_for('judge.evaluate_team', team_id=next_team._id) }}" class="btn-primary">▶ Score next team: {{ next_team.team_name }}</a>
+        <a href="{{ url_for('judge.evaluate_team', team_id=next_team._id) }}" class="btn-primary">{{ icon('play') }} Score next team: {{ next_team.team_name }}</a>
     {% elif locked %}
-        <span class="btn-secondary opacity-70 cursor-default">🔒 Judging is locked</span>
+        <span class="btn-secondary opacity-70 cursor-default">{{ icon('lock') }} Judging is locked</span>
     {% else %}
-        <span class="btn-secondary opacity-70 cursor-default">✓ All {{ total }} teams scored — thank you</span>
+        <span class="btn-secondary opacity-70 cursor-default">{{ icon('check-circle') }} All {{ total }} teams scored — thank you</span>
     {% endif %}
-    <button type="button" class="btn-secondary" onclick="document.querySelector('[data-filter=pending]').click(); document.getElementById('teamList').scrollIntoView({behavior:'smooth'})">⏳ Show teams to score ({{ pending_count }})</button>
-    <button type="button" class="btn-secondary" onclick="document.getElementById('teamSearch').focus()">🔍 Find a team</button>
-    <button type="button" class="btn-ghost" onclick="document.querySelector('details.card').open = true; document.querySelector('details.card').scrollIntoView({behavior:'smooth'})">❓ How scoring works</button>
+    <button type="button" class="btn-secondary" onclick="document.querySelector('[data-filter=pending]').click(); document.getElementById('teamList').scrollIntoView({behavior:'smooth'})">{{ icon('hourglass') }} Show teams to score ({{ pending_count }})</button>
+    <button type="button" class="btn-secondary" onclick="document.getElementById('teamSearch').focus()">{{ icon('search') }} Find a team</button>
+    <button type="button" class="btn-ghost" onclick="document.querySelector('details.card').open = true; document.querySelector('details.card').scrollIntoView({behavior:'smooth'})">{{ icon('help-circle') }} How scoring works</button>
     <a href="{{ url_for('auth.logout') }}" class="btn-ghost ml-auto">Sign out</a>
 </div></div>
 <div class="flex flex-wrap items-center gap-2 mb-4" role="group" aria-label="Filter teams">
     <button type="button" class="tab tab-active" data-filter="all">All <span class="opacity-80">({{ total }})</span></button>
-    <button type="button" class="tab" data-filter="pending">⏳ To score <span class="opacity-80">({{ pending_count }})</span></button>
-    <button type="button" class="tab" data-filter="done">✓ Scored <span class="opacity-80">({{ evaluations_count }})</span></button>
+    <button type="button" class="tab" data-filter="pending">{{ icon('hourglass') }} To score <span class="opacity-80">({{ pending_count }})</span></button>
+    <button type="button" class="tab" data-filter="done">{{ icon('check-circle') }} Scored <span class="opacity-80">({{ evaluations_count }})</span></button>
     <div class="ml-auto relative w-full sm:w-64 mt-2 sm:mt-0">
         <input type="search" id="teamSearch" class="input min-h-10 pl-9 text-sm" placeholder="Find team name or code" aria-label="Find team">
-        <span class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" aria-hidden="true">🔍</span>
+        <span class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" aria-hidden="true">{{ icon('search') }}</span>
     </div>
 </div>
 
@@ -68,15 +68,15 @@
                 <div class="text-xs text-slate-500 mt-0.5"><span class="font-mono">{{ team.team_code }}</span> · {{ team.leader_name }}</div>
                 {% if team.theme_name or team.theme %}<div class="text-xs text-slate-600 mt-1 truncate">{{ team.theme_name or team.theme }}</div>{% endif %}
             </div>
-            {% if team.evaluated %}<span class="badge-success shrink-0">✓ Scored</span>{% else %}<span class="badge-warning shrink-0">⏳ To score</span>{% endif %}
+            {% if team.evaluated %}<span class="badge-success shrink-0">{{ icon('check-circle') }} Scored</span>{% else %}<span class="badge-warning shrink-0">{{ icon('hourglass') }} To score</span>{% endif %}
         </div>
         <div class="mt-auto">
             {% if team.evaluated %}
                 <span class="btn-secondary btn-sm w-full opacity-70 cursor-default">Submitted</span>
             {% elif locked %}
-                <span class="btn-secondary btn-sm w-full opacity-70 cursor-default">🔒 Locked</span>
+                <span class="btn-secondary btn-sm w-full opacity-70 cursor-default">{{ icon('lock') }} Locked</span>
             {% else %}
-                <a href="{{ url_for('judge.evaluate_team', team_id=team._id) }}" class="btn-primary btn-sm w-full">Score this team →</a>
+                <a href="{{ url_for('judge.evaluate_team', team_id=team._id) }}" class="btn-primary btn-sm w-full">Score this team {{ icon('arrow-right') }}</a>
             {% endif %}
         </div>
     </li>
@@ -84,11 +84,11 @@
 </ul>
 <p id="noMatch" class="hidden mt-6 text-center text-slate-500">No teams match. Try a different name or clear the filter.</p>
 {% else %}
-{{ empty_state('📋', 'No teams registered yet', 'Teams appear here as soon as they register. Check back on event day.') }}
+{{ empty_state(icon('clipboard-list'), 'No teams registered yet', 'Teams appear here as soon as they register. Check back on event day.') }}
 {% endif %}
 
 <details class="card mt-8 group">
-    <summary class="card-header cursor-pointer list-none select-none"><span class="card-title">How scoring works</span><span class="text-slate-400 group-open:rotate-180 transition-transform" aria-hidden="true">▾</span></summary>
+    <summary class="card-header cursor-pointer list-none select-none"><span class="card-title">How scoring works</span><span class="text-slate-400 group-open:rotate-180 transition-transform" aria-hidden="true">{{ icon('chevron-down') }}</span></summary>
     <div class="card-body grid sm:grid-cols-2 gap-6 text-sm text-slate-700">
         <div>
             <p class="font-semibold text-navy-900 mb-2">Six criteria, each 0–10</p>

@@ -5,13 +5,13 @@
 <div class="mb-6 flex flex-wrap items-end justify-between gap-4">
     <div><h1 class="font-display text-2xl sm:text-3xl font-bold text-navy-900">Rankings</h1><p class="mt-1 text-slate-600">Live standings from submitted scores. Publish when the jury is done.</p></div>
     <div class="flex flex-wrap gap-2">
-        <a href="{{ url_for('admin.export_results', stage_id=stage_id) }}" class="btn-secondary">⬇️ CSV</a>
-        <form method="POST" action="{{ url_for('admin.toggle_results') }}" data-confirm="{{ 'The leaderboard hides final scores again. Nothing is deleted.' if event_settings.results_published else 'Final rankings become visible on the leaderboard to everyone who can open it.' }}" data-confirm-title="{{ 'Unpublish results?' if event_settings.results_published else 'Publish results?' }}" data-confirm-button="{{ 'Unpublish results' if event_settings.results_published else 'Publish results' }}" data-confirm-tone="{{ 'navy' if event_settings.results_published else 'primary' }}" data-confirm-icon="{{ '🙈' if event_settings.results_published else '📢' }}">
-            <button class="{{ 'btn-secondary' if event_settings.results_published else 'btn-primary' }}">{{ 'Unpublish results' if event_settings.results_published else '📢 Publish results' }}</button>
+        <a href="{{ url_for('admin.export_results', stage_id=stage_id) }}" class="btn-secondary">{{ icon('download') }} CSV</a>
+        <form method="POST" action="{{ url_for('admin.toggle_results') }}" data-confirm="{{ 'The leaderboard hides final scores again. Nothing is deleted.' if event_settings.results_published else 'Final rankings become visible on the leaderboard to everyone who can open it.' }}" data-confirm-title="{{ 'Unpublish results?' if event_settings.results_published else 'Publish results?' }}" data-confirm-button="{{ 'Unpublish results' if event_settings.results_published else 'Publish results' }}" data-confirm-tone="{{ 'navy' if event_settings.results_published else 'primary' }}" data-confirm-icon="{{ 'eye-off' if event_settings.results_published else 'megaphone' }}">
+            <button class="{{ 'btn-secondary' if event_settings.results_published else 'btn-primary' }}">{{ 'Unpublish results' if event_settings.results_published else icon('megaphone') ~ 'Publish results' }}</button>
         </form>
     </div>
 </div>
-<div class="{{ 'alert-success' if event_settings.results_published else 'alert-info' }} mb-6"><span aria-hidden="true">{{ '📢' if event_settings.results_published else '🔒' }}</span><div>{% if event_settings.results_published %}<strong>Results are published</strong> — final scores are visible on the leaderboard.{% else %}<strong>Results are not published</strong> — only admins can see final scores.{% endif %}</div></div>
+<div class="{{ 'alert-success' if event_settings.results_published else 'alert-info' }} mb-6"><span aria-hidden="true">{{ icon('megaphone') if event_settings.results_published else icon('lock') }}</span><div>{% if event_settings.results_published %}<strong>Results are published</strong> — final scores are visible on the leaderboard.{% else %}<strong>Results are not published</strong> — only admins can see final scores.{% endif %}</div></div>
 
 <div class="stat-group grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-4 mb-6">
     {{ stat(coverage.total_teams, 'teams') }}{{ stat(coverage.teams_evaluated, 'teams with scores', 'success') }}{{ stat(coverage.total_evaluations, 'evaluations submitted', 'info') }}{{ stat("%.0f"|format(coverage.completion_percentage) ~ '%', 'coverage', 'warning' if coverage.completion_percentage < 100 else 'success') }}
@@ -22,16 +22,16 @@
     <thead><tr><th class="w-14">Rank</th><th>Team</th><th>Leader</th><th class="text-right">Internal</th><th class="text-right">External</th><th class="text-right">Final</th><th>Actions</th></tr></thead>
     <tbody>{% for team in rankings %}
     <tr class="{% if team.rank|int <= 3 and team.internal_count and team.external_count %}bg-saffron-100/40{% endif %}">
-        <td class="font-display font-bold text-lg tabular-nums">{% if team.rank|int == 1 %}🥇{% elif team.rank|int == 2 %}🥈{% elif team.rank|int == 3 %}🥉{% else %}{{ team.rank }}{% endif %}</td>
+        <td class="font-display font-bold text-lg tabular-nums">{% if team.rank|int <= 3 and team.is_complete %}<span class="inline-flex items-center gap-1">{{ icon('medal', 'h-5 w-5 text-saffron-600') }} {{ team.rank }}</span>{% else %}{{ team.rank }}{% endif %}</td>
         <td data-primary><div class="font-semibold text-navy-900">{{ team.team_name }}</div><div class="text-xs font-mono text-slate-500">{{ team.team_code }}</div></td>
         <td class=" text-slate-600" data-more>{{ team.leader_name }}</td>
         <td class="text-right tabular-nums" data-more>{% if team.internal_count > 0 %}{{ "%.2f"|format(team.internal_average) }}<div class="text-xs text-slate-500">{{ team.internal_count }} jury</div>{% else %}<span class="badge-warning">none yet</span>{% endif %}</td>
         <td class="text-right tabular-nums" data-more>{% if team.external_count > 0 %}{{ "%.2f"|format(team.external_average) }}<div class="text-xs text-slate-500">{{ team.external_count }} jury</div>{% else %}<span class="badge-warning">none yet</span>{% endif %}</td>
         <td class="text-right font-display font-bold text-lg tabular-nums">{{ "%.2f"|format(team.final_score) }}</td>
-        <td class="text-right"><a href="{{ url_for('results.team_result', team_id=team.team_id, stage_id=stage_id) }}" class="btn-ghost btn-sm">Details →</a></td>
+        <td class="text-right"><a href="{{ url_for('results.team_result', team_id=team.team_id, stage_id=stage_id) }}" class="btn-ghost btn-sm">Details {{ icon('arrow-right') }}</a></td>
     </tr>{% endfor %}</tbody></table></div></div>
 <p class="help mt-3">Ties are broken by Prototype, then Technical design, then Innovation score. A final score is only meaningful once both jury types have scored the team.</p>
 {% else %}
-{{ empty_state('🏆', 'No rankings yet', 'Rankings appear as soon as the first evaluation is submitted.') }}
+{{ empty_state(icon('trophy'), 'No rankings yet', 'Rankings appear as soon as the first evaluation is submitted.') }}
 {% endif %}
 {% endblock %}

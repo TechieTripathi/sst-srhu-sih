@@ -11,7 +11,7 @@
     {% if session.get('role') == 'admin' %}
     <form method="POST" action="{{ url_for('results.recalculate') }}" onsubmit="return confirm('Recalculate all team scores from the submitted evaluations?')">
         <input type="hidden" name="stage_id" value="{{ stage_id }}">
-        <button type="submit" class="btn-secondary">↻ Recalculate scores</button>
+        <button type="submit" class="btn-secondary">{{ icon('refresh-cw') }} Recalculate scores</button>
     </form>
     {% endif %}
 </div>
@@ -37,7 +37,7 @@
         <tbody>
         {% for team in rankings %}
         <tr class="{% if team.rank|int <= 3 and team.is_complete %}bg-saffron-100/40{% endif %}">
-            <td class="font-display font-bold text-navy-900 text-lg tabular-nums">{% if team.rank|int == 1 %}🥇{% elif team.rank|int == 2 %}🥈{% elif team.rank|int == 3 %}🥉{% else %}{{ team.rank }}{% endif %}</td>
+            <td class="font-display font-bold text-navy-900 text-lg tabular-nums">{% if team.rank|int <= 3 and team.is_complete %}<span class="inline-flex items-center gap-1">{{ icon('medal', 'h-5 w-5 text-saffron-600') }} {{ team.rank }}</span>{% else %}{{ team.rank }}{% endif %}</td>
             <td data-primary>
                 <div class="font-semibold text-navy-900">{{ team.team_name }}</div>
                 <div class="text-xs text-slate-500 flex flex-wrap gap-x-2"><span class="font-mono">{{ team.team_code }}</span>{% if team.theme_name %}<span>· {{ team.theme_name }}</span>{% endif %}</div>
@@ -46,8 +46,8 @@
             <td class="text-right tabular-nums" data-more>{% if team.internal_count > 0 %}{{ team.internal_average }}<div class="text-xs text-slate-500">{{ team.internal_count }} score{{ 's' if team.internal_count != 1 else '' }}</div>{% else %}<span class="text-slate-400">—</span>{% endif %}</td>
             <td class="text-right tabular-nums" data-more>{% if team.external_count > 0 %}{{ team.external_average }}<div class="text-xs text-slate-500">{{ team.external_count }} score{{ 's' if team.external_count != 1 else '' }}</div>{% else %}<span class="text-slate-400">—</span>{% endif %}</td>
             <td class="text-right"><span class="font-display font-bold text-lg text-navy-900 tabular-nums">{{ team.final_score if team.is_complete else '—' }}</span></td>
-            <td>{% if team.is_complete %}<span class="badge-success">✓ Complete</span>{% else %}<span class="badge-warning">⏳ Awaiting jury</span>{% endif %}</td>
-            {% if session.get('role') == 'admin' %}<td class="text-right"><a class="btn-ghost btn-sm" href="{{ url_for('results.team_result', team_id=team.team_id) }}">Details →</a></td>{% endif %}
+            <td>{% if team.is_complete %}<span class="badge-success">{{ icon('check-circle') }} Complete</span>{% else %}<span class="badge-warning">{{ icon('hourglass') }} Awaiting jury</span>{% endif %}</td>
+            {% if session.get('role') == 'admin' %}<td class="text-right"><a class="btn-ghost btn-sm" href="{{ url_for('results.team_result', team_id=team.team_id) }}">Details {{ icon('arrow-right') }}</a></td>{% endif %}
         </tr>
         {% endfor %}
         </tbody>
@@ -56,6 +56,6 @@
 </div>
 <p class="help mt-3">A team shows a final score only once both an internal and an external jury member have scored it. Ties: Prototype, then Technical design, then Innovation.</p>
 {% else %}
-{{ empty_state('🏆', 'No scores yet', 'The leaderboard fills in as jury members submit evaluations.') }}
+{{ empty_state(icon('trophy'), 'No scores yet', 'The leaderboard fills in as jury members submit evaluations.') }}
 {% endif %}
 {% endblock %}

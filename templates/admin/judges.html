@@ -4,20 +4,20 @@
 {% block admin_content %}
 <div class="mb-6 flex flex-wrap items-end justify-between gap-4">
     <div><h1 class="font-display text-2xl sm:text-3xl font-bold text-navy-900">Judges</h1><p class="mt-1 text-slate-600">Create jury accounts and send them their sign-in details.</p></div>
-    <button type="button" class="btn-primary" onclick="openModal('addJudgeModal')">＋ Add judge</button>
+    <button type="button" class="btn-primary" onclick="openModal('addJudgeModal')">{{ icon('plus') }} Add judge</button>
 </div>
 
 {% if credential_notices %}
 <div class="card border-l-4 border-l-saffron-500 mb-6" id="credentialNotice">
     <div class="card-header">
-        <div><div class="card-title">🔑 Sign-in details not emailed ({{ credential_notices|length }})</div><div class="text-sm text-slate-600 mt-1">{{ credential_notices[0].reason }} Share these securely.</div></div>
-        <div class="flex gap-2 shrink-0"><button type="button" class="btn-navy btn-sm" onclick="copyText(allCredsText(), this)">📋 Copy all</button><button type="button" class="btn-ghost btn-sm" onclick="document.getElementById('credentialNotice').remove()">Dismiss</button></div>
+        <div><div class="card-title">{{ icon('key') }} Sign-in details not emailed ({{ credential_notices|length }})</div><div class="text-sm text-slate-600 mt-1">{{ credential_notices[0].reason }} Share these securely.</div></div>
+        <div class="flex gap-2 shrink-0"><button type="button" class="btn-navy btn-sm" onclick="copyText(allCredsText(), this)">{{ icon('clipboard-list') }} Copy all</button><button type="button" class="btn-ghost btn-sm" onclick="document.getElementById('credentialNotice').remove()">Dismiss</button></div>
     </div>
     <div class="overflow-x-auto"><table class="table-base table-cards" id="credTable">
         <thead><tr><th>Judge</th><th>Sign-in email</th><th>Password</th><th>Actions</th></tr></thead>
         <tbody>{% for n in credential_notices %}
         <tr><td>{{ n.name }}</td><td><code class="cred-email code-chip">{{ n.email }}</code></td><td><code class="cred-password code-chip font-semibold">{{ n.password }}</code></td>
-            <td class="text-right"><button type="button" class="btn-ghost btn-sm" onclick="copyText(credText('{{ n.email|e }}', '{{ n.password|e }}'), this)">Copy</button></td></tr>
+            <td class="text-right"><button type="button" class="btn-ghost btn-sm" onclick="copyText(credText('{{ n.email|e }}', '{{ n.password|e }}'), this)">{{ icon('copy') }} Copy</button></td></tr>
         {% endfor %}</tbody></table></div>
     <div class="px-5 py-3 text-xs text-slate-500">Jury sign-in page: <code id="juryLoginUrl" class="font-mono">{{ jury_login_url }}</code></div>
 </div>
@@ -42,7 +42,7 @@
         <label class="text-sm text-slate-600 flex items-center gap-2"><input type="checkbox" name="include_sent" class="rounded border-navy-300" {% if not bulk_enabled %}disabled{% endif %}> include already-emailed</label>
         <label class="text-sm text-slate-600 flex items-center gap-1.5" title="Emails per batch (max 10)">batch <input type="number" name="batch_size" value="5" min="1" max="10" class="input min-h-9 w-16 py-1 text-sm text-center" {% if not bulk_enabled %}disabled{% endif %}></label>
         <label class="text-sm text-slate-600 flex items-center gap-1.5" title="Pause between batches, in seconds (0 = none)">pause <input type="number" name="interval" value="3" min="0" max="300" class="input min-h-9 w-16 py-1 text-sm text-center" {% if not bulk_enabled %}disabled{% endif %}> s</label>
-        <button type="submit" class="btn-navy btn-sm" {% if not bulk_enabled or counts[tab] == 0 %}disabled{% endif %} title="{{ 'Disabled by the Super Admin in System Settings' if not bulk_enabled else 'Emails new sign-in details to every judge in this tab, in batches' }}">✉️ Email passwords to {{ 'internal' if tab == 'all' else tab }} judges</button>
+        <button type="submit" class="btn-navy btn-sm" {% if not bulk_enabled or counts[tab] == 0 %}disabled{% endif %} title="{{ 'Disabled by the Super Admin in System Settings' if not bulk_enabled else 'Emails new sign-in details to every judge in this tab, in batches' }}">{{ icon('mail') }} Email passwords to {{ 'internal' if tab == 'all' else tab }} judges</button>
         {% if not bulk_enabled %}<span class="badge-neutral">Disabled by Super Admin</span>{% endif %}
     </form>
 </div>
@@ -67,7 +67,7 @@
     <tr>
         <td><div class="font-semibold text-navy-900">{{ judge.name or 'N/A' }}{% if judge.is_overall_jury_coordinator %} <span class="badge-warning ml-1">Coordinator</span>{% endif %}</div><div class="text-xs text-slate-500">{{ judge.email }}</div></td>
         <td>{% if judge.kind == 'internal' %}<span class="badge-success">Internal</span>{% else %}<span class="badge-info">External</span>{% endif %}</td>
-        <td class="text-sm" data-cred-cell data-more>{% if judge.credentials_sent %}<span class="badge-success">✓ Emailed</span><div class="text-xs text-slate-500 mt-1">to {{ judge.credentials_sent_to or judge.email }}{% if judge.credentials_sent_at %} · {{ judge.credentials_sent_at.strftime('%d %b %H:%M') }}{% endif %}</div>{% else %}<span class="badge-neutral">Not emailed yet</span>{% endif %}</td>
+        <td class="text-sm" data-cred-cell data-more>{% if judge.credentials_sent %}<span class="badge-success">{{ icon('check-circle') }} Emailed</span><div class="text-xs text-slate-500 mt-1">to {{ judge.credentials_sent_to or judge.email }}{% if judge.credentials_sent_at %} · {{ judge.credentials_sent_at.strftime('%d %b %H:%M') }}{% endif %}</div>{% else %}<span class="badge-neutral">Not emailed yet</span>{% endif %}</td>
         <td data-more>{% if judge.status|lower == 'inactive' %}<span class="badge-danger">Inactive</span>{% else %}<span class="badge-success">Active</span>{% endif %}</td>
         <td class="text-right"><div class="inline-flex flex-wrap justify-end gap-2">
             {% if judge.kind == 'external' %}
@@ -75,31 +75,31 @@
                 {% if judge.temp_password %}
                 <span class="inline-flex items-center gap-1 rounded-lg border border-navy-200 bg-white pl-2 pr-1 py-0.5">
                     <code class="font-mono text-sm text-navy-900 select-all" data-pw="{{ judge.temp_password|e }}" aria-label="Current password">••••••••••••</code>
-                    <button type="button" class="btn-ghost btn-sm !min-h-8 px-2" onclick="togglePw(this)" aria-label="Show current password">👁 Show password</button>
-                    <button type="button" class="btn-navy btn-sm !min-h-8" onclick="copyText(credText('{{ judge.email|e }}', '{{ judge.temp_password|e }}'), this)">📋 Copy sign-in details</button>
+                    <button type="button" class="btn-ghost btn-sm !min-h-8 px-2" onclick="togglePw(this)" aria-label="Show current password">{{ icon('eye') }} Show password</button>
+                    <button type="button" class="btn-navy btn-sm !min-h-8" onclick="copyText(credText('{{ judge.email|e }}', '{{ judge.temp_password|e }}'), this)">{{ icon('clipboard-list') }} Copy sign-in details</button>
                 </span>
                 {% endif %}
-                <form method="POST" action="{{ url_for('admin.regenerate_password', judge_id=judge._id) }}" onsubmit="return confirm('Generate a new password for {{ judge.name|e }}? The current one stops working.')"><button class="btn-secondary btn-sm" title="New password, kept in this table">{{ '↻ Regenerate password' if judge.temp_password else '🔑 Generate password' }}</button></form>
+                <form method="POST" action="{{ url_for('admin.regenerate_password', judge_id=judge._id) }}" onsubmit="return confirm('Generate a new password for {{ judge.name|e }}? The current one stops working.')"><button class="btn-secondary btn-sm" title="New password, kept in this table">{{ icon('refresh-cw') ~ 'Regenerate password' if judge.temp_password else icon('key') ~ 'Generate password' }}</button></form>
                 <form method="POST" action="{{ url_for('admin.send_credentials', judge_id=judge._id) }}" class="inline-flex gap-1" data-email-form data-judge="{{ judge.name|e }}" data-judge-email="{{ judge.email|e }}" onsubmit="return confirm('Generate a new password for {{ judge.name|e }} and email it to ' + this.recipient.value + '?')">
-                    <input type="email" name="recipient" class="input min-h-9 text-sm w-44 py-1" placeholder="Email address" aria-label="Email sign-in details to this address" required><button class="btn-secondary btn-sm">✉️ Email sign-in details</button></form>
+                    <input type="email" name="recipient" class="input min-h-9 text-sm w-44 py-1" placeholder="Email address" aria-label="Email sign-in details to this address" required><button class="btn-secondary btn-sm">{{ icon('mail') }} Email sign-in details</button></form>
             {% else %}
-                <form method="POST" action="{{ url_for('admin.send_credentials', judge_id=judge._id) }}" data-email-form data-judge="{{ judge.name|e }}" data-judge-email="{{ judge.email|e }}" onsubmit="return confirm('Generate a new password for {{ judge.name|e }} and email it to {{ judge.email|e }}?')"><button class="btn-secondary btn-sm">✉️ Email password to judge</button></form>
+                <form method="POST" action="{{ url_for('admin.send_credentials', judge_id=judge._id) }}" data-email-form data-judge="{{ judge.name|e }}" data-judge-email="{{ judge.email|e }}" onsubmit="return confirm('Generate a new password for {{ judge.name|e }} and email it to {{ judge.email|e }}?')"><button class="btn-secondary btn-sm">{{ icon('mail') }} Email password to judge</button></form>
                 <form method="POST" action="{{ url_for('admin.send_credentials', judge_id=judge._id) }}" class="inline-flex gap-1" data-email-form data-judge="{{ judge.name|e }}" data-judge-email="{{ judge.email|e }}" onsubmit="return confirm('Generate a new password for {{ judge.name|e }} and email it to ' + this.recipient.value + '?')">
-                    <input type="email" name="recipient" class="input min-h-9 text-sm w-44 py-1" placeholder="Other email address" aria-label="Email sign-in details to another address" required><button class="btn-secondary btn-sm">✉️ Email to this address</button></form>
-                <form method="POST" action="{{ url_for('admin.regenerate_password', judge_id=judge._id) }}" onsubmit="return confirm('Generate a new password for {{ judge.name|e }} and show it once? The current one stops working.')"><button class="btn-ghost btn-sm" title="Generate a new password and show it once on screen">🔑 Show password once</button></form>
+                    <input type="email" name="recipient" class="input min-h-9 text-sm w-44 py-1" placeholder="Other email address" aria-label="Email sign-in details to another address" required><button class="btn-secondary btn-sm">{{ icon('mail') }} Email to this address</button></form>
+                <form method="POST" action="{{ url_for('admin.regenerate_password', judge_id=judge._id) }}" onsubmit="return confirm('Generate a new password for {{ judge.name|e }} and show it once? The current one stops working.')"><button class="btn-ghost btn-sm" title="Generate a new password and show it once on screen">{{ icon('key') }} Show password once</button></form>
             {% endif %}
         </div></td>
     </tr>{% endfor %}</tbody></table></div></div>
 <p class="help mt-3">Every action here creates a <strong>new</strong> password; the old one stops working.<br><strong>External judges:</strong> the current password is kept, so use <em>Show password</em> / <em>Copy sign-in details</em> any time — e.g. to hand over on event day. <strong>Internal judges:</strong> passwords are never stored — email them, or use <em>Show password once</em> and copy immediately.</p>
 {% else %}
-{{ empty_state('⚖️', 'No ' ~ (tab if tab != 'all' else '') ~ ' judges yet', 'Add judges and email them their sign-in details from here.', url_for('admin.create_judge_form'), 'Add a judge') }}
+{{ empty_state(icon('scale'), 'No ' ~ (tab if tab != 'all' else '') ~ ' judges yet', 'Add judges and email them their sign-in details from here.', url_for('admin.create_judge_form'), 'Add a judge') }}
 {% endif %}
 
 
 <!-- Add judge (modal). Same form and route as /admin/judges/create; that page stays as the no-JS fallback. -->
 <div id="addJudgeModal" class="modal-backdrop fixed inset-0 z-50 hidden items-center justify-center bg-navy-900/50 p-4 overflow-y-auto" style="display:none">
     <div class="card w-full max-w-5xl my-4" role="dialog" aria-modal="true" aria-labelledby="ajTitle">
-        <div class="card-header"><h2 class="card-title" id="ajTitle">Add a judge</h2><button type="button" class="btn-ghost btn-sm" aria-label="Close" onclick="closeModal('addJudgeModal')">✕</button></div>
+        <div class="card-header"><h2 class="card-title" id="ajTitle">Add a judge</h2><button type="button" class="btn-ghost btn-sm" aria-label="Close" onclick="closeModal('addJudgeModal')">{{ icon('x') }}</button></div>
         <div class="card-body max-h-[75vh] overflow-y-auto">
             {% include 'partials/judge_form.html' %}
         </div>
@@ -109,12 +109,12 @@
 <!-- Email sign-in details: confirm → sending → sent / not sent -->
 <div id="emailModal" class="modal-backdrop fixed inset-0 z-50 hidden items-center justify-center bg-navy-900/50 p-4" style="display:none">
     <div class="card w-full max-w-md" role="dialog" aria-modal="true" aria-labelledby="emTitle" aria-describedby="emBody">
-        <div class="card-header"><h2 class="card-title" id="emTitle">Email sign-in details</h2><button type="button" class="btn-ghost btn-sm" aria-label="Close" onclick="closeModal('emailModal')">✕</button></div>
+        <div class="card-header"><h2 class="card-title" id="emTitle">Email sign-in details</h2><button type="button" class="btn-ghost btn-sm" aria-label="Close" onclick="closeModal('emailModal')">{{ icon('x') }}</button></div>
         <div class="card-body" id="emBody">
             <!-- confirm -->
             <div data-state="confirm">
                 <p class="text-sm text-slate-700">A <strong>new password</strong> will be generated for <strong id="emJudge"></strong> and emailed to <strong id="emTo"></strong>. The current password stops working.</p>
-                <div class="mt-5 flex justify-end gap-2"><button type="button" class="btn-secondary" onclick="closeModal('emailModal')">Cancel</button><button type="button" class="btn-primary" id="emSend">✉️ Send email</button></div>
+                <div class="mt-5 flex justify-end gap-2"><button type="button" class="btn-secondary" onclick="closeModal('emailModal')">Cancel</button><button type="button" class="btn-primary" id="emSend">{{ icon('mail') }} Send email</button></div>
             </div>
             <!-- sending -->
             <div data-state="sending" class="hidden">
@@ -123,16 +123,16 @@
             </div>
             <!-- sent -->
             <div data-state="sent" class="hidden">
-                <div class="flex items-center gap-3"><span class="inline-flex h-8 w-8 items-center justify-center rounded-full bg-green-100 text-green-700" aria-hidden="true">✓</span><div><div class="font-semibold text-navy-900">Sent</div><div class="text-sm text-slate-600" id="emSentTo"></div></div></div>
+                <div class="flex items-center gap-3"><span class="inline-flex h-8 w-8 items-center justify-center rounded-full bg-green-100 text-green-700" aria-hidden="true">{{ icon('check-circle') }}</span><div><div class="font-semibold text-navy-900">Sent</div><div class="text-sm text-slate-600" id="emSentTo"></div></div></div>
                 <p class="mt-3 text-sm text-slate-600">The judge can sign in with the new password as soon as the email arrives (check spam if not within a minute).</p>
                 <div class="mt-5 flex justify-end"><button type="button" class="btn-navy" onclick="closeModal('emailModal')">Done</button></div>
             </div>
             <!-- failed -->
             <div data-state="failed" class="hidden">
-                <div class="flex items-center gap-3"><span class="inline-flex h-8 w-8 items-center justify-center rounded-full bg-crimson-100 text-crimson-700" aria-hidden="true">✗</span><div><div class="font-semibold text-navy-900">Not sent</div><div class="text-sm text-slate-600" id="emReason"></div></div></div>
+                <div class="flex items-center gap-3"><span class="inline-flex h-8 w-8 items-center justify-center rounded-full bg-crimson-100 text-crimson-700" aria-hidden="true">{{ icon('x-circle') }}</span><div><div class="font-semibold text-navy-900">Not sent</div><div class="text-sm text-slate-600" id="emReason"></div></div></div>
                 <div id="emPwWrap" class="mt-4 rounded-lg bg-navy-50 border border-navy-100 p-3 hidden">
                     <div class="text-xs text-slate-500">A new password was still generated — share it securely (shown only now):</div>
-                    <div class="mt-1 flex items-center justify-between gap-3"><code class="font-mono font-semibold text-navy-900" id="emPw"></code><button type="button" class="btn-navy btn-sm" id="emCopy">📋 Copy sign-in details</button></div>
+                    <div class="mt-1 flex items-center justify-between gap-3"><code class="font-mono font-semibold text-navy-900" id="emPw"></code><button type="button" class="btn-navy btn-sm" id="emCopy">{{ icon('clipboard-list') }} Copy sign-in details</button></div>
                 </div>
                 <div class="mt-5 flex justify-end gap-2"><button type="button" class="btn-ghost" onclick="closeModal('emailModal')">Close</button><button type="button" class="btn-secondary" id="emRetry">Try again</button></div>
             </div>
@@ -153,7 +153,7 @@
                 if (d.success) {
                     document.getElementById('emSentTo').textContent = 'to ' + d.recipient + ' · ' + d.sent_at; show('sent');
                     var cell = current.row.querySelector('[data-cred-cell]');
-                    if (cell) cell.innerHTML = '<span class="badge-success">✓ Emailed</span><div class="text-xs text-slate-500 mt-1">to ' + d.recipient + ' · ' + d.sent_at + '</div>';
+                    if (cell) { cell.innerHTML = '<span class="badge-success">{{ icon('check-circle') }} Emailed</span><div class="text-xs text-slate-500 mt-1"></div>'; cell.lastElementChild.textContent = 'to ' + d.recipient + ' · ' + d.sent_at; }
                     if (current.input) current.input.value = '';
                 } else {
                     document.getElementById('emReason').textContent = d.reason || d.error || 'The mail server did not accept the message.';
@@ -186,7 +186,7 @@
     var status = document.getElementById('bulkStatus'), log = document.getElementById('bulkLog'), cancelBtn = document.getElementById('bulkCancel');
     var stop = false, timer = null;
     function post(body) { return fetch(url, {method: 'POST', headers: {'Content-Type': 'application/json'}, credentials: 'same-origin', body: JSON.stringify(body)}).then(function (r) { return r.json(); }); }
-    function line(text, ok) { var li = document.createElement('li'); li.textContent = (ok === false ? '✗ ' : ok === true ? '✓ ' : '') + text; if (ok === false) li.className = 'text-crimson-700'; log.prepend(li); }
+    function line(text, ok) { var li = document.createElement('li'); if (ok !== undefined) { var mark = document.createElement('span'); mark.className = 'mr-1 inline-flex'; mark.innerHTML = ok ? '{{ icon('check-circle') }}' : '{{ icon('x-circle') }}'; li.appendChild(mark); } li.appendChild(document.createTextNode(text)); if (ok === false) li.className = 'text-crimson-700'; log.prepend(li); }
     function finish(msg) { document.getElementById('bulkTitle').textContent = msg; cancelBtn.textContent = 'Refresh list'; cancelBtn.onclick = function () { location.reload(); }; }
     function run(res, interval) {
         if (res.error) { line(res.error, false); finish('Bulk send stopped'); return; }
@@ -200,7 +200,7 @@
         var tick = function () { status.textContent = done + ' of ' + res.total + ' processed · next batch of ' + Math.min(res.queued, form.batch_size.value) + ' in ' + left + 's'; if (left-- <= 0) { clearInterval(timer); post({action: 'next'}).then(function (r) { run(r, interval); }); } };
         tick(); timer = setInterval(tick, 1000);
     }
-    if (form.include_external) form.include_external.addEventListener('change', function () { form.querySelector('button[type=submit]').textContent = '✉️ Email passwords to ' + (this.checked ? 'all' : 'internal') + ' judges'; });
+    if (form.include_external) form.include_external.addEventListener('change', function () { form.querySelector('button[type=submit]').innerHTML = '{{ icon('mail') }} Email passwords to ' + (this.checked ? 'all' : 'internal') + ' judges'; });
     form.addEventListener('submit', function (e) {
         e.preventDefault();
         var inc = form.include_sent.checked, ext = form.include_external && form.include_external.checked;
@@ -215,7 +215,7 @@
             .catch(function () { line('Network error — nothing more was sent.', false); finish('Bulk send stopped'); });
     });
 })();
-function togglePw(btn) { var c = btn.parentElement.querySelector('[data-pw]'); var shown = c.textContent !== '••••••••••••'; c.textContent = shown ? '••••••••••••' : c.dataset.pw; btn.textContent = shown ? 'Show' : 'Hide'; }
+function togglePw(btn) { var c = btn.parentElement.querySelector('[data-pw]'); var shown = c.textContent !== '••••••••••••'; c.textContent = shown ? '••••••••••••' : c.dataset.pw; btn.innerHTML = shown ? '{{ icon('eye') }} Show password' : '{{ icon('eye-off') }} Hide password'; }
 function credText(email, password) { return 'TechForge 3.0 jury sign-in\nEmail: ' + email + '\nPassword: ' + password + '\nSign in: ' + document.getElementById('juryLoginUrl').textContent; }
 function allCredsText() { var out = []; document.querySelectorAll('#credTable tbody tr').forEach(function (r) { out.push(credText(r.querySelector('.cred-email').textContent, r.querySelector('.cred-password').textContent)); }); return out.join('\n\n'); }
 </script>

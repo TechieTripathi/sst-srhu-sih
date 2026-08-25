@@ -4,7 +4,7 @@
 {% block content %}
 <div class="w-full">
     <ol class="flex items-center gap-3 text-sm mb-6 max-w-3xl" aria-label="Progress">
-        <li class="flex items-center gap-2 text-slate-500"><span class="inline-flex h-6 w-6 items-center justify-center rounded-full bg-green-600 text-white text-xs">✓</span> Team details</li>
+        <li class="flex items-center gap-2 text-slate-500"><span class="inline-flex h-6 w-6 items-center justify-center rounded-full bg-green-600 text-white" aria-hidden="true">{{ icon('check') }}</span> Team details</li>
         <li class="h-px flex-1 bg-navy-200" aria-hidden="true"></li>
         <li class="flex items-center gap-2 font-semibold text-navy-900"><span class="inline-flex h-6 w-6 items-center justify-center rounded-full bg-navy-700 text-white text-xs">2</span> Your team code</li>
     </ol>
@@ -12,7 +12,7 @@
     <div class="card">
         <div class="card-body sm:p-8 lg:p-10 text-center lg:text-left lg:grid lg:grid-cols-2 lg:gap-12 lg:items-start">
             <div>
-            <div class="mx-auto lg:mx-0 h-14 w-14 rounded-full bg-green-100 text-green-700 flex items-center justify-center text-2xl" aria-hidden="true">✓</div>
+            <div class="mx-auto lg:mx-0 h-14 w-14 rounded-full bg-green-100 text-green-700 flex items-center justify-center" aria-hidden="true">{{ icon('check-circle', 'h-8 w-8') }}</div>
             <h1 class="font-display text-2xl sm:text-3xl font-bold text-navy-900 mt-4">Your team is registered</h1>
             <p class="mt-2 text-slate-600">Save your team code — it identifies your team to the jury on event day.</p>
 
@@ -20,7 +20,7 @@
             <div class="mt-8 rounded-xl bg-navy-900 text-white p-6 sm:p-8">
                 <div class="text-xs font-semibold uppercase tracking-widest text-navy-200">Team code</div>
                 <div class="font-mono text-3xl sm:text-4xl font-semibold tracking-wider mt-2" id="teamCode">{{ team_code }}</div>
-                <button type="button" class="btn-primary mt-5" onclick="copyText(document.getElementById('teamCode').textContent, this)">📋 Copy team code</button>
+                <button type="button" class="btn-primary mt-5" onclick="copyText(document.getElementById('teamCode').textContent, this)">{{ icon('clipboard-list') }} Copy team code</button>
                 <p class="mt-3 text-xs text-navy-200">Screenshot this or copy it into your team's group chat now — it isn't emailed automatically.</p>
             </div>
             {% endif %}
