@@ -10,7 +10,8 @@ from models.database import (
     get_teams_collection,
     get_evaluations_collection,
     get_judges_collection,
-    get_team_results_collection
+    get_team_results_collection,
+    get_users_collection
 )
 from services.audit import log_audit
 
@@ -345,18 +346,24 @@ def get_team_detailed_result(team_id, stage_id='final_presentation'):
     
     detailed_evaluations = []
     for evaluation in evaluations:
-        judge = judges_col.find_one({'user_id': evaluation['judge_id']})
-        user = users_col.find_one({'_id': ObjectId(evaluation['judge_id'])})
-        
-        if judge and user:
-            detailed_evaluations.append({
-                'judge_name': user['name'],
-                'judge_type': judge_kind(judge),
-                'weighted_total': evaluation['weighted_total'],
-                'raw_scores': evaluation.get('raw_scores', {}),
-                'comments': evaluation.get('comments', {}),
-                'submitted_at': evaluation['submitted_at']
-            })
+        jid = str(evaluation.get('judge_id', ''))
+        judge = judges_col.find_one({'user_id': jid})
+        user = None
+        try:
+            user = users_col.find_one({'_id': ObjectId(jid)})
+        except Exception:
+            user = None
+        if not user and judge:
+            user = users_col.find_one({'email': judge.get('email', '')})
+        # Never drop a submitted score from the detail view just because the judge record is odd
+        detailed_evaluations.append({
+            'judge_name': (user or {}).get('name') or (judge or {}).get('name') or f'Judge {jid[:8]}',
+            'judge_type': judge_kind(judge) if judge else str(evaluation.get('judge_type', 'internal')).lower().replace('_judge', ''),
+            'weighted_total': evaluation.get('weighted_total', round(float(evaluation.get('weighted_score', 0)) * 10, 2)),
+            'raw_scores': evaluation.get('raw_scores', {}),
+            'comments': evaluation.get('comments', {}),
+            'submitted_at': evaluation.get('submitted_at')
+        })
     
     return {
         'team': team,
