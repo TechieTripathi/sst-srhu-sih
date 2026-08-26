@@ -1,6 +1,4 @@
 from pymongo import MongoClient
-from pymongo.errors import ConnectionFailure
-from flask import current_app
 import logging
 
 logger = logging.getLogger(__name__)
@@ -14,30 +12,52 @@ class Database:
     
     @staticmethod
     def initialize(app):
-        """Initialize MongoDB connection"""
-        try:
-            Database.client = MongoClient(
-                app.config['MONGO_URI'],
-                serverSelectionTimeoutMS=5000
-            )
-            
-            # Test connection
-            Database.client.admin.command('ping')
-            
-            Database.db = Database.client[app.config['MONGO_DB_NAME']]
-            
-            logger.info(f"Connected to MongoDB: {app.config['MONGO_DB_NAME']}")
-            
-            # Create indexes
-            Database._create_indexes()
-            
-        except ConnectionFailure as e:
-            logger.error(f"Failed to connect to MongoDB: {e}")
-            raise
-    
+        """Attach a lazily-connecting MongoClient to the app.
+
+        Tuned for Vercel: the client is built once per instance at import time (not
+        per request) so warm invocations reuse its connections, and it is configured
+        for many small short-lived instances rather than one long-lived server.
+        """
+        Database.client = MongoClient(
+            app.config['MONGO_URI'],
+
+            # No network I/O at import time. PyMongo opens sockets in the background
+            # on first real use, so a cold Vercel instance starts serving immediately
+            # instead of blocking on a ping. Index creation moved to ensure_indexes().
+            connect=False,
+
+            # Each warm Vercel instance holds its own pool and handles one request at
+            # a time, so a large pool would just idle. Vercel scales by adding
+            # instances, and every instance costs (maxPoolSize + 2) connections per
+            # replica member against the M0 tier's 500-connection cap.
+            maxPoolSize=5,
+
+            # Zero, not 2: a frozen serverless instance cannot keep sockets warm, so
+            # pre-opening them only burns Atlas connections that will never be used.
+            minPoolSize=0,
+
+            maxIdleTimeMS=30_000,        # release sockets quickly; instances get frozen
+            connectTimeoutMS=10_000,     # tolerate a slow first handshake
+            socketTimeoutMS=30_000,      # these are short OLTP queries
+            serverSelectionTimeoutMS=5_000,
+            retryWrites=True,
+        )
+
+        Database.db = Database.client[app.config['MONGO_DB_NAME']]
+        logger.info("MongoDB client configured for %s", app.config['MONGO_DB_NAME'])
+
     @staticmethod
-    def _create_indexes():
-        """Create database indexes for performance and constraints"""
+    def ping():
+        """Verify the connection. Used by the health check, never on the hot path."""
+        Database.client.admin.command('ping')
+
+    @staticmethod
+    def ensure_indexes():
+        """Create database indexes for performance and constraints.
+
+        Run once from init_db.py after a schema change - never on a cold start.
+        Each create_index() is a separate round trip to Atlas, and there are twenty.
+        """
         try:
             # Users collection
             Database.db.users.create_index('email', unique=True)
@@ -75,10 +95,10 @@ class Database:
             Database.db.audit_logs.create_index('action')
             
             logger.info("Database indexes created successfully")
-            
+
         except Exception as e:
             logger.warning(f"Error creating indexes: {e}")
-    
+
     @staticmethod
     def get_collection(name):
         """Get a collection from the database"""

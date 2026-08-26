@@ -18,12 +18,12 @@
     <meta property="og:title" content="{{ og_title }}">
     <meta property="og:description" content="{% block og_description %}{{ event_name }} — 36-hour internal hackathon and Smart India Hackathon 2026 selection round at the {{ school_name }}, {{ university_name }}.{% endblock %}">
     <meta property="og:url" content="{{ frontend_url ~ request.path if frontend_url else request.url }}">
-    <meta property="og:image" content="{{ (frontend_url or request.url_root.rstrip('/')) ~ url_for('static', filename='images/og-image.png') }}">
+    <meta property="og:image" content="{{ (frontend_url or request.url_root.rstrip('/')) ~ static_url('images/og-image.png') }}">
     <meta property="og:image:width" content="1200"><meta property="og:image:height" content="630">
     <meta property="og:image:alt" content="{{ event_name }} — 36 hours, one working prototype, a shot at SIH 2026">
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="{{ og_title }}">
-    <meta name="twitter:image" content="{{ (frontend_url or request.url_root.rstrip('/')) ~ url_for('static', filename='images/og-image.png') }}">
+    <meta name="twitter:image" content="{{ (frontend_url or request.url_root.rstrip('/')) ~ static_url('images/og-image.png') }}">
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>

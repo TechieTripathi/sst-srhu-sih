@@ -1,1 +1,0 @@
-{ "name": "TechForge 3.0 — SRHU", "short_name": "TechForge 3.0", "icons": [{ "src": "/static/images/icon-512.png", "sizes": "512x512", "type": "image/png" }, { "src": "/static/images/apple-touch-icon.png", "sizes": "180x180", "type": "image/png" }], "theme_color": "#183878", "background_color": "#f6f8fb", "display": "standalone", "start_url": "/" }

@@ -2,6 +2,8 @@ from flask import Blueprint, render_template, request, redirect, url_for, flash,
 from datetime import datetime
 from bson.objectid import ObjectId
 import re
+import threading
+import time
 
 from models.database import get_teams_collection, get_users_collection, get_event_settings_collection
 from services.audit import log_audit
@@ -9,13 +11,46 @@ from services.audit import log_audit
 teams_bp = Blueprint('teams', __name__)
 
 
+# Every page render asks for this through the inject_globals context processor, so
+# an uncached lookup puts a MongoDB round trip on the critical path of the landing
+# page - which otherwise touches no data at all. The value only changes when an
+# admin flips the switch, and those routes call invalidate_registration_cache(),
+# so the short TTL is just a backstop for changes made outside the app.
+_REG_CACHE_TTL_SECONDS = 15.0
+_reg_cache = {'value': None, 'fetched_at': 0.0}
+_reg_cache_lock = threading.Lock()
+
+
+def invalidate_registration_cache():
+    """Drop the cached switch so the next render re-reads it from MongoDB."""
+    with _reg_cache_lock:
+        _reg_cache['value'] = None
+        _reg_cache['fetched_at'] = 0.0
+
+
 def is_registration_open():
     """Admin/Super Admin switch 'registration_open' in event_settings (default: open)."""
+    now = time.monotonic()
+
+    with _reg_cache_lock:
+        cached = _reg_cache['value']
+        if cached is not None and now - _reg_cache['fetched_at'] < _REG_CACHE_TTL_SECONDS:
+            return cached
+
+    # Queried outside the lock on purpose: holding it here would serialise every
+    # worker thread behind one network call. A rare duplicate fetch is cheaper.
     try:
-        settings = get_event_settings_collection().find_one({}) or {}
+        settings = get_event_settings_collection().find_one(
+            {}, {'registration_open': 1}
+        ) or {}
+        value = bool(settings.get('registration_open', True))
     except Exception:
         return True
-    return bool(settings.get('registration_open', True))
+
+    with _reg_cache_lock:
+        _reg_cache['value'] = value
+        _reg_cache['fetched_at'] = now
+    return value
 
 
 @teams_bp.route('/register', methods=['GET', 'POST'])

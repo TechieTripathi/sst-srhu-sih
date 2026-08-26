@@ -302,7 +302,10 @@ def system_settings():
             },
             upsert=True
         )
-        
+
+        from routes.teams import invalidate_registration_cache
+        invalidate_registration_cache()
+
         log_audit(
             session.get('user_id'),
             'system_settings_updated',

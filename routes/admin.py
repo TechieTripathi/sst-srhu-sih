@@ -545,6 +545,8 @@ def toggle_registration():
     current_open = event_settings.get('registration_open', True)
     new_open = not current_open
     settings_col.update_one({}, {'$set': {'registration_open': new_open}})
+    from routes.teams import invalidate_registration_cache
+    invalidate_registration_cache()
     flash(f'Registration has been {"opened" if new_open else "closed"}', 'success')
     return _back_to_settings()
 

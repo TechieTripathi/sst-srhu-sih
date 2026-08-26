@@ -5,9 +5,13 @@ Run this once to set up evaluation criteria, admin user, and event settings
 """
 
 from app import create_app
+from models.database import Database
 from services.init_data import init_database
 
 if __name__ == '__main__':
     app = create_app()
     with app.app_context():
+        # Indexes used to be rebuilt on every worker boot, which cost ~20 sequential
+        # round trips to Atlas before the app could serve anything. They belong here.
+        Database.ensure_indexes()
         init_database()
