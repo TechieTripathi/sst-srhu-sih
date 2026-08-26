@@ -19,15 +19,18 @@
 
 {% if rankings %}
 <div class="card overflow-hidden"><div class="overflow-x-auto"><table class="table-base table-cards">
-    <thead><tr><th class="w-14">Rank</th><th>Team</th><th>Leader</th><th class="text-right">Internal</th><th class="text-right">External</th><th class="text-right">Final</th><th>Actions</th></tr></thead>
+    <thead><tr><th class="w-14">Rank</th><th>Team</th><th>Leader</th><th class="text-right">Exception</th><th class="text-right">Panel</th><th class="text-right">Final</th><th>Actions</th></tr></thead>
     <tbody>{% for team in rankings %}
-    <tr class="{% if team.rank|int <= 3 and team.internal_count and team.external_count %}bg-saffron-100/40{% endif %}">
+    <tr class="{% if team.rank|int <= 3 and team.is_complete %}bg-saffron-100/40{% endif %}">
         <td class="font-display font-bold text-lg tabular-nums">{% if team.rank|int <= 3 and team.is_complete %}<span class="inline-flex items-center gap-1">{{ icon('medal', 'h-5 w-5 text-saffron-600') }} {{ team.rank }}</span>{% else %}{{ team.rank }}{% endif %}</td>
         <td data-primary><div class="font-semibold text-navy-900">{{ team.team_name }}</div><div class="text-xs font-mono text-slate-500">{{ team.team_code }}</div></td>
         <td class=" text-slate-600" data-more>{{ team.leader_name }}</td>
-        <td class="text-right tabular-nums" data-more>{% if team.internal_count > 0 %}{{ "%.2f"|format(team.internal_average) }}<div class="text-xs text-slate-500">{{ team.internal_count }} jury</div>{% else %}<span class="badge-warning">none yet</span>{% endif %}</td>
-        <td class="text-right tabular-nums" data-more>{% if team.external_count > 0 %}{{ "%.2f"|format(team.external_average) }}<div class="text-xs text-slate-500">{{ team.external_count }} jury</div>{% else %}<span class="badge-warning">none yet</span>{% endif %}</td>
-        <td class="text-right font-display font-bold text-lg tabular-nums">{{ "%.2f"|format(team.final_score) }}</td>
+        <td class="text-right tabular-nums" data-more>{% if team.exception_count > 0 %}{{ "%.2f"|format(team.exception_average) }}<div class="text-xs text-slate-500">{{ team.exception_count }} jury</div>{% else %}<span class="badge-warning">none yet</span>{% endif %}</td>
+        <td class="text-right tabular-nums" data-more>{% if team.group_count > 0 %}{{ "%.2f"|format(team.group_average) }}<div class="text-xs text-slate-500">{{ team.group_count }} of {{ team.group_expected }}</div>{% else %}<span class="badge-warning">none yet</span>{% endif %}</td>
+        {# Incomplete teams show a dash, matching the leaderboard. Printing the
+           blended figure here would read as a real-but-poor score when in fact
+           one whole bucket is missing - and format() on None raises anyway. #}
+        <td class="text-right font-display font-bold text-lg tabular-nums">{% if team.is_complete %}{{ "%.2f"|format(team.final_score) }}{% else %}<span class="text-slate-400" title="{{ team.status|replace('_', ' ')|lower }}">—</span>{% endif %}</td>
         <td class="text-right"><a href="{{ url_for('results.team_result', team_id=team.team_id, stage_id=stage_id) }}" class="btn-ghost btn-sm">Details {{ icon('arrow-right') }}</a></td>
     </tr>{% endfor %}</tbody></table></div></div>
 <p class="help mt-3">Ties are broken by Prototype, then Technical design, then Innovation score. A final score is only meaningful once both jury types have scored the team.</p>

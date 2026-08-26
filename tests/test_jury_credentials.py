@@ -307,11 +307,21 @@ class TestJuryCredentials(unittest.TestCase):
     # --------------------------------------------------
     # TEST 15 — ASSIGNED TEAM SECURITY
     # --------------------------------------------------
-    def test_15_judge_can_evaluate_any_team(self):
-        """Judge can open the evaluation form for every registered team (no assignment needed)"""
+    def test_15_group_judge_is_limited_to_their_panel(self):
+        """A group juror may open their own panel's teams and is refused the rest.
+
+        Replaces an earlier test that asserted every judge could score every
+        team. Panel scoping is now the intended behaviour, so the old assertion
+        was testing a policy the app deliberately no longer has.
+        """
         email = "test_judge_security@srhu.edu.in"
         pwd = "TF3-SecurityPwd1"
         now = datetime.now(timezone.utc).replace(tzinfo=None)
+
+        # Panel scoping is what is under test here, not the judging lock, which
+        # would block group jury for an unrelated reason.
+        from services.checkpoint_manager import unlock_judging
+        unlock_judging(actor_id=None)
 
         user_id = str(self.users_col.insert_one({
             'name': 'Security Judge',
@@ -328,17 +338,34 @@ class TestJuryCredentials(unittest.TestCase):
             'email': email,
             'judge_type': 'INTERNAL_JUDGE',
             'status': 'ACTIVE',
+            'jury_scope': 'assigned_only',
+            'panel_no': 1,
             'created_at': now
         })
 
-        team_ids = [str(self.teams_col.insert_one({
-            'team_name': name, 'leader_name': leader, 'status': 'registered', 'created_at': now
-        }).inserted_id) for name, leader in [('Credential Test Team Alpha', 'Alice'), ('Credential Test Team Beta', 'Bob')]]
+        own_id = str(self.teams_col.insert_one({
+            'team_name': 'Credential Test Team Alpha', 'leader_name': 'Alice',
+            'status': 'registered', 'panel_no': 1, 'created_at': now
+        }).inserted_id)
+        other_id = str(self.teams_col.insert_one({
+            'team_name': 'Credential Test Team Beta', 'leader_name': 'Bob',
+            'status': 'registered', 'panel_no': 3, 'created_at': now
+        }).inserted_id)
 
         with self.client as c:
             c.post('/judge/login', data={'email': email, 'password': pwd})
-            for team_id in team_ids:
-                self.assertEqual(c.get(f'/judge/evaluate/{team_id}').status_code, 200)
+            self.assertEqual(c.get(f'/judge/evaluate/{own_id}').status_code, 200)
+            # Another panel's team is refused, and the reason says so.
+            refused = c.get(f'/judge/evaluate/{other_id}')
+            self.assertEqual(refused.status_code, 403)
+            self.assertIn('Not Your Panel', refused.data.decode('utf-8'))
+            # And a forged POST is refused too - the form page is not the gate.
+            posted = c.post('/api/evaluations/submit', data={'team_id': other_id})
+            self.assertEqual(posted.status_code, 403)
+
+            dash = c.get('/judge/dashboard').data.decode('utf-8')
+            self.assertIn('Credential Test Team Alpha', dash)
+            self.assertNotIn('Credential Test Team Beta', dash)
 
     # --------------------------------------------------
     # TEST 16 — ADMIN SECURITY

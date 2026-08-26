@@ -84,9 +84,9 @@ class Config:
     MIN_SCORE = 0
     MAX_SCORE = 10
 
-    # Final score weights (Internal 40% + External 60%)
-    INTERNAL_WEIGHT = 0.40
-    EXTERNAL_WEIGHT = 0.60
+    # Scoring weights deliberately live in services/results_calculator.py only
+    # (EXCEPTION_WEIGHT / GROUP_WEIGHT). Duplicates here were dead code that
+    # nothing imported, and would now be wrong as well as unused.
 
 
 class DevelopmentConfig(Config):

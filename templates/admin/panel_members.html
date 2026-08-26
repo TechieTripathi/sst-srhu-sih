@@ -1,0 +1,94 @@
+{% extends 'admin/base_admin.html' %}
+{% from 'partials/ui.html' import stat %}
+{% from 'partials/jury.html' import panel_chip, jury_type_chip %}
+{% block admin_title %}Edit jury panels{% endblock %}
+{% block admin_content %}
+
+<a href="{{ url_for('admin.panels_list') }}" class="inline-flex items-center gap-1 text-sm font-medium text-navy-700 hover:underline">{{ icon('arrow-left') }} Jury panels</a>
+
+<div class="mt-4 mb-6 flex flex-wrap items-end justify-between gap-4">
+    <div>
+        <h1 class="font-display text-2xl sm:text-3xl font-bold text-navy-900">Edit jury panels</h1>
+        <p class="mt-1 text-slate-600">Move judges between panels, or make someone exception jury. One control sets both their panel and their scoring weight.</p>
+    </div>
+</div>
+
+<div class="stat-group grid grid-cols-2 sm:grid-cols-5 gap-2 sm:gap-4 mb-6">
+{% for panel in panels %}
+    {{ stat(panel.judge_count, 'in Panel ' ~ panel.panel_no, 'success' if panel.judge_count == 5 else 'warning') }}
+{% endfor %}
+</div>
+
+<div class="alert-info mb-6">
+    {{ icon('info') }}
+    A panel does not have to hold five judges — completeness is measured against however many it actually has.
+    A panel with <strong>no</strong> judges is the one to avoid: its teams can never be completed.
+</div>
+
+<form method="POST" action="{{ url_for('admin.panel_members') }}">
+    <div class="card overflow-hidden mb-6">
+        <div class="card-header">
+            <h2 class="card-title">{{ rows|length }} jury members</h2>
+            <input type="search" id="judgeSearch" class="input w-auto" placeholder="Search name or email" aria-label="Search judges">
+        </div>
+        <div class="overflow-x-auto">
+        <table class="table-base table-cards" id="judgeTable">
+            <thead><tr><th>Judge</th><th>Type</th><th>Scores in</th><th>Current role</th><th class="text-right">Actions</th></tr></thead>
+            <tbody>
+            {% for row in rows %}
+                <tr data-text="{{ (row.judge.name ~ ' ' ~ row.judge.email)|lower }}">
+                    <td data-primary>
+                        {{ row.judge.name }}
+                        {% if row.judge.is_overall_jury_coordinator %}<span class="badge-warning ml-1">Coordinator</span>{% endif %}
+                        <div class="text-xs text-slate-500">{{ row.judge.email }}</div>
+                    </td>
+                    <td data-more>{{ jury_type_chip(row.judge.judge_type) }}</td>
+                    <td data-more>
+                        {% if row.submitted %}
+                            <span class="badge-info">{{ row.submitted }} submitted</span>
+                            <div class="text-xs text-slate-500 mt-1">Those scores stay with the teams they were given to.</div>
+                        {% else %}
+                            <span class="text-slate-400 text-sm">nothing yet</span>
+                        {% endif %}
+                    </td>
+                    <td>{{ panel_chip(row.panel_no, row.is_exception) }}</td>
+                    <td class="text-right">
+                        <select name="panel_no_{{ row.judge._id }}" class="select w-auto" aria-label="Panel for {{ row.judge.name }}">
+                            {% for n in panel_numbers %}
+                                <option value="{{ n }}" {% if row.panel_no == n %}selected{% endif %}>Panel {{ n }}</option>
+                            {% endfor %}
+                            <option value="exception" {% if row.is_exception %}selected{% endif %}>Exception jury (all teams)</option>
+                        </select>
+                    </td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+        </div>
+        <p id="noJudgeMatch" class="hidden card-body text-sm text-slate-500">No judge matches that search.</p>
+    </div>
+
+    <div class="flex flex-wrap gap-3">
+        <button class="btn-primary">{{ icon('save') }} Save panel changes</button>
+        <a href="{{ url_for('admin.panels_list') }}" class="btn-ghost">Cancel</a>
+    </div>
+</form>
+
+<script>
+// Filtering only hides rows. Hidden selects still submit, which is deliberate:
+// a search must never silently drop somebody's panel assignment.
+(function () {
+    var box = document.getElementById('judgeSearch');
+    if (!box) return;
+    box.addEventListener('input', function () {
+        var q = this.value.trim().toLowerCase(), shown = 0;
+        document.querySelectorAll('#judgeTable tbody tr').forEach(function (tr) {
+            var hit = !q || (tr.dataset.text || '').indexOf(q) !== -1;
+            tr.classList.toggle('hidden', !hit);
+            if (hit) shown++;
+        });
+        document.getElementById('noJudgeMatch').classList.toggle('hidden', shown !== 0);
+    });
+})();
+</script>
+{% endblock %}

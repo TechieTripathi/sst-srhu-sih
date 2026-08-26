@@ -6,7 +6,7 @@
 <div class="mb-6 flex flex-wrap items-end justify-between gap-4">
     <div>
         <h1 class="font-display text-2xl sm:text-3xl font-bold text-navy-900">Leaderboard</h1>
-        <p class="mt-1 text-slate-600">Final score out of 100, combining the internal and external jury averages.</p>
+        <p class="mt-1 text-slate-600">Final score out of 100: exception jury 40% + panel jury 60%.</p>
     </div>
     {% if session.get('role') == 'admin' %}
     <form method="POST" action="{{ url_for('results.recalculate') }}" onsubmit="return confirm('Recalculate all team scores from the submitted evaluations?')">
@@ -31,7 +31,7 @@
     <table class="table-base table-cards">
         <thead><tr>
             <th class="w-16">Rank</th><th>Team</th><th>Leader</th>
-            <th class="text-right">Internal</th><th class="text-right">External</th><th class="text-right">Final</th><th>Status</th>
+            <th class="text-right">Exception</th><th class="text-right">Panel</th><th class="text-right">Final</th><th>Status</th>
             {% if session.get('role') == 'admin' %}<th>Actions</th>{% endif %}
         </tr></thead>
         <tbody>
@@ -43,10 +43,13 @@
                 <div class="text-xs text-slate-500 flex flex-wrap gap-x-2"><span class="font-mono">{{ team.team_code }}</span>{% if team.theme_name %}<span>· {{ team.theme_name }}</span>{% endif %}</div>
             </td>
             <td class=" text-slate-700" data-more>{{ team.leader_name }}</td>
-            <td class="text-right tabular-nums" data-more>{% if team.internal_count > 0 %}{{ team.internal_average }}<div class="text-xs text-slate-500">{{ team.internal_count }} score{{ 's' if team.internal_count != 1 else '' }}</div>{% else %}<span class="text-slate-400">—</span>{% endif %}</td>
-            <td class="text-right tabular-nums" data-more>{% if team.external_count > 0 %}{{ team.external_average }}<div class="text-xs text-slate-500">{{ team.external_count }} score{{ 's' if team.external_count != 1 else '' }}</div>{% else %}<span class="text-slate-400">—</span>{% endif %}</td>
+            <td class="text-right tabular-nums" data-more>{% if team.exception_count > 0 %}{{ team.exception_average }}<div class="text-xs text-slate-500">{{ team.exception_count }} score{{ 's' if team.exception_count != 1 else '' }}</div>{% else %}<span class="text-slate-400">—</span>{% endif %}</td>
+            <td class="text-right tabular-nums" data-more>{% if team.group_count > 0 %}{{ team.group_average }}<div class="text-xs text-slate-500">{{ team.group_count }} of {{ team.group_expected }}</div>{% else %}<span class="text-slate-400">—</span>{% endif %}</td>
             <td class="text-right"><span class="font-display font-bold text-lg text-navy-900 tabular-nums">{{ team.final_score if team.is_complete else '—' }}</span></td>
-            <td>{% if team.is_complete %}<span class="badge-success">{{ icon('check-circle') }} Complete</span>{% else %}<span class="badge-warning">{{ icon('hourglass') }} Awaiting jury</span>{% endif %}</td>
+            <td>{% if team.is_complete %}<span class="badge-success">{{ icon('check-circle') }} Complete</span>
+                {% elif team.status == 'AWAITING_EXCEPTION' %}<span class="badge-warning">{{ icon('hourglass') }} Awaiting exception jury</span>
+                {% elif team.status == 'NOT_SCORED' %}<span class="badge-neutral">Not scored yet</span>
+                {% else %}<span class="badge-warning">{{ icon('hourglass') }} Awaiting panel</span>{% endif %}</td>
             {% if session.get('role') == 'admin' %}<td class="text-right"><a class="btn-ghost btn-sm" href="{{ url_for('results.team_result', team_id=team.team_id) }}">Details {{ icon('arrow-right') }}</a></td>{% endif %}
         </tr>
         {% endfor %}
@@ -54,7 +57,7 @@
     </table>
     </div>
 </div>
-<p class="help mt-3">A team shows a final score only once both an internal and an external jury member have scored it. Ties: Prototype, then Technical design, then Innovation.</p>
+<p class="help mt-3">A team shows a final score only once every judge on its panel has scored it and at least one exception juror has. Ties: Prototype, then Technical design, then Innovation.</p>
 {% else %}
 {{ empty_state(icon('trophy'), 'No scores yet', 'The leaderboard fills in as jury members submit evaluations.') }}
 {% endif %}

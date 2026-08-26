@@ -22,6 +22,8 @@
                 <div class="px-3 mb-1 text-[11px] font-semibold uppercase tracking-wider text-navy-300">People</div>
                 <a href="{{ url_for('admin.teams_list') }}" class="sidebar-link {% if 'teams' in ep or ep == 'admin.team_detail' %}sidebar-link-active{% endif %}">{{ icon('users') }} Teams</a>
                 <a href="{{ url_for('admin.judges_list') }}" class="sidebar-link {% if 'judge' in ep or 'credentials' in ep %}sidebar-link-active{% endif %}">{{ icon('scale') }} Judges</a>
+                {# startswith catches panels_list / panel_detail / panel_members / panel_assign in one test #}
+                <a href="{{ url_for('admin.panels_list') }}" class="sidebar-link {% if ep.startswith('admin.panel') %}sidebar-link-active{% endif %}">{{ icon('list-checks') }} Jury panels</a>
             </div>
             <div>
                 <div class="px-3 mb-1 text-[11px] font-semibold uppercase tracking-wider text-navy-300">Scoring</div>

@@ -20,33 +20,14 @@ from models.database import (
     get_audit_logs_collection
 )
 
-# 25 Official SRHU Staff Jury Emails
+# Every official juror, derived from services/jury_roster.py rather than
+# hand-listed. A hardcoded list would treat any newly added juror as dummy data
+# and delete them - including the three outside guests and the exception jury,
+# who are exactly the accounts that must not disappear.
+from services.jury_roster import EXCEPTION_JURY, GROUP_JURY
+
 OFFICIAL_JURY_EMAILS = {
-    "neelmani@srhu.edu.in",
-    "deepaksrivastava@srhu.edu.in",
-    "vivekkatiyar@srhu.edu.in",
-    "shefalikhatri@srhu.edu.in",
-    "sanjaykumar@srhu.edu.in",
-    "lktyagi@srhu.edu.in",
-    "sumanpant@srhu.edu.in",
-    "akchoudhary@srhu.edu.in",
-    "radheshankar@srhu.edu.in",
-    "gauravaggarwal@srhu.edu.in",
-    "rohitkanauzia@srhu.edu.in",
-    "anupamamishra@srhu.edu.in",
-    "shivpreet@srhu.edu.in",
-    "rachitlakhera@srhu.edu.in",
-    "vinodraturi@srhu.edu.in",
-    "ashutoshbhatt@srhu.edu.in",
-    "shikhasingh@srhu.edu.in",
-    "poojajoshi@srhu.edu.in",
-    "vibhorsharma@srhu.edu.in",
-    "princytyagi@srhu.edu.in",
-    "gunjanchhabra@srhu.edu.in",
-    "gauravsharma@srhu.edu.in",
-    "vaishaligupta@srhu.edu.in",
-    "shivanipant@srhu.edu.in",
-    "neelamdanu@srhu.edu.in",
+    j['email'].strip().lower() for j in (EXCEPTION_JURY + GROUP_JURY)
 }
 
 # Administrative Whitelist

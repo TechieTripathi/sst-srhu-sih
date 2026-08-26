@@ -13,7 +13,8 @@ from services.password_generator import generate_secure_jury_password
 from services.email_service import send_jury_credentials_email
 
 
-def create_judge(name, email, phone, judge_type, actor_id=None):
+def create_judge(name, email, phone, judge_type, actor_id=None,
+                 jury_scope=None, panel_no=None, credentials_deliverable=True):
     """
     Create a new judge account with a freshly generated secure password.
 
@@ -21,8 +22,14 @@ def create_judge(name, email, phone, judge_type, actor_id=None):
         name: Judge's full name
         email: Email address (login username)
         phone: Phone number
-        judge_type: 'internal' or 'external'
+        judge_type: 'internal' or 'external' - decides credential delivery only
         actor_id: User ID performing this action
+        jury_scope: 'assigned_only' (group jury) or 'all_teams' (exception jury).
+            Independent of judge_type; this is what decides which teams they can
+            score and whether their marks weigh 60% or 40%.
+        panel_no: Panel 1-5. Required for group jury, ignored for exception jury.
+        credentials_deliverable: False for guests with no reachable mailbox, so
+            the bulk credential sender skips them.
 
     Returns:
         dict: {'success', 'judge_id', 'user_id', 'temp_password'} or {'error'}
@@ -38,6 +45,19 @@ def create_judge(name, email, phone, judge_type, actor_id=None):
     if clean_type not in ['internal', 'external']:
         return {'error': 'Invalid judge type. Must be "internal" or "external"'}
     db_judge_type = 'INTERNAL_JUDGE' if clean_type == 'internal' else 'EXTERNAL_JUDGE'
+
+    # Validated at the service boundary, the same way judge_type is, so no caller
+    # can create a group juror with no panel - who would be able to score nothing.
+    from services.jury_scope import PANEL_NUMBERS, SCOPE_ALL, SCOPE_ASSIGNED, DEFAULT_SCOPE
+    scope = jury_scope if jury_scope in (SCOPE_ALL, SCOPE_ASSIGNED) else DEFAULT_SCOPE
+    panel = None
+    if scope == SCOPE_ASSIGNED:
+        try:
+            panel = int(panel_no)
+        except (TypeError, ValueError):
+            panel = None
+        if panel not in PANEL_NUMBERS:
+            return {'error': 'Group jury must be assigned to a panel (1-5).'}
 
     temp_password = generate_secure_jury_password()
     now = datetime.utcnow()
@@ -60,8 +80,12 @@ def create_judge(name, email, phone, judge_type, actor_id=None):
         'judge_type': db_judge_type,
         'status': 'active',
         'credentials_sent': False,
+        'jury_scope': scope,
+        'credentials_deliverable': bool(credentials_deliverable),
         'created_at': now
     }
+    if panel is not None:
+        judge_doc['panel_no'] = panel
     if db_judge_type == 'EXTERNAL_JUDGE':
         # External jury are guests who are often handed their sign-in details in
         # person on event day, so admins can copy the current password any time.
@@ -70,7 +94,8 @@ def create_judge(name, email, phone, judge_type, actor_id=None):
     judge_id = judges_col.insert_one(judge_doc).inserted_id
 
     log_audit(actor_id, 'judge_created', 'judge', str(judge_id),
-              {'name': name, 'email': email, 'judge_type': db_judge_type})
+              {'name': name, 'email': email, 'judge_type': db_judge_type,
+               'jury_scope': scope, 'panel_no': panel})
 
     return {
         'success': True,

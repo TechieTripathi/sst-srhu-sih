@@ -23,16 +23,27 @@
 </div>
 {% endif %}
 
-<div class="stat-group grid grid-cols-1 sm:grid-cols-3 gap-2 sm:gap-4 mb-6">
+<div class="stat-group grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-4 mb-6">
     {{ stat(counts.all, 'judges in total') }}
-    {{ stat(counts.internal, 'internal jury', 'success') }}
-    {{ stat(counts.external, 'external jury', 'info') }}
+    {{ stat(counts.group, 'group jury · 60%', 'success') }}
+    {{ stat(counts.exception, 'exception jury · 40%', 'info') }}
+    {{ stat(counts.unset, 'no scope set', 'warning' if counts.unset else 'success') }}
 </div>
 
-<div class="flex flex-wrap items-center gap-3 mb-4">
+{% if counts.unset %}
+<div class="alert-warning mb-4">
+    {{ icon('alert-triangle') }}
+    {{ counts.unset }} judge(s) have no jury role yet, so they can score nothing.
+    <a href="{{ url_for('admin.panel_members') }}" class="underline font-medium">Assign them a panel</a>.
+</div>
+{% endif %}
+
+<div class="flex flex-wrap items-center gap-3 mb-3">
+    {# Type tabs keep their original ?type= vocabulary - the dashboard quick links
+       and the bulk credential sender both depend on these exact values. #}
     <div class="flex gap-1" role="tablist">
         {% for key, label in [('all', 'All'), ('internal', 'Internal'), ('external', 'External')] %}
-        <a href="{{ url_for('admin.judges_list', type=key) }}" role="tab" aria-selected="{{ 'true' if tab == key else 'false' }}" class="tab {% if tab == key %}tab-active{% endif %}">{{ label }} <span class="opacity-70">({{ counts[key] }})</span></a>
+        <a href="{{ url_for('admin.judges_list', type=key, scope=scope_tab) }}" role="tab" aria-selected="{{ 'true' if tab == key else 'false' }}" class="tab {% if tab == key %}tab-active{% endif %}">{{ label }} <span class="opacity-70">({{ counts[key] }})</span></a>
         {% endfor %}
     </div>
     <form method="POST" action="{{ url_for('admin.send_credentials_all') }}" id="bulkForm" class="ml-auto flex flex-wrap items-center gap-3"
@@ -61,15 +72,46 @@
 
 {% if not credential_notices %}<span id="juryLoginUrl" class="hidden">{{ jury_login_url }}</span>{% endif %}
 {% if judges %}
+<div class="flex flex-wrap items-center gap-3 mb-4">
+    <div class="flex gap-1" role="tablist" aria-label="Filter by jury role">
+        {% for key, label in [('all', 'Every role'), ('group', 'Group jury'), ('exception', 'Exception jury'), ('unset', 'No scope set')] %}
+        <a href="{{ url_for('admin.judges_list', type=tab, scope=key) }}" role="tab" aria-selected="{{ 'true' if scope_tab == key else 'false' }}" class="tab {% if scope_tab == key %}tab-active{% endif %}">{{ label }}{% if key != 'all' %} <span class="opacity-70">({{ counts[key] }})</span>{% endif %}</a>
+        {% endfor %}
+    </div>
+    <a href="{{ url_for('admin.panel_members') }}" class="btn-ghost btn-sm ml-auto">{{ icon('pencil') }} Edit panels</a>
+</div>
+
 <div class="card overflow-hidden"><div class="overflow-x-auto"><table class="table-base table-cards">
-    <thead><tr><th>Judge</th><th>Jury type</th><th>Credentials</th><th>Account</th><th class="text-right">Actions</th></tr></thead>
+    <thead><tr><th>Judge</th><th>Jury role</th><th>Credentials</th><th>Account</th><th class="text-right">Actions</th></tr></thead>
     <tbody>{% for judge in judges %}
     <tr>
         <td><div class="font-semibold text-navy-900">{{ judge.name or 'N/A' }}{% if judge.is_overall_jury_coordinator %} <span class="badge-warning ml-1">Coordinator</span>{% endif %}</div><div class="text-xs text-slate-500">{{ judge.email }}</div></td>
-        <td>{% if judge.kind == 'internal' %}<span class="badge-success">Internal</span>{% else %}<span class="badge-info">External</span>{% endif %}</td>
+        {# Type and role stacked in one cell. A sixth column would crowd the row,
+           and the last header must stay literally "Actions" for the mobile
+           collapse in main.js. No data-more: panel membership is primary info. #}
+        <td>
+            {% if judge.kind == 'internal' %}<span class="badge-success">Internal</span>{% else %}<span class="badge-info">External</span>{% endif %}
+            <div class="mt-1">
+            {% if judge.scope == 'exception' %}
+                <span class="badge-navy">{{ icon('compass') }} Exception jury</span>
+                <div class="text-xs text-slate-500 mt-1">All teams · 40%</div>
+            {% elif judge.scope == 'group' and judge.panel_no %}
+                <span class="badge-navy">Panel {{ judge.panel_no }}</span>
+                <div class="text-xs text-slate-500 mt-1">Assigned teams · 60%</div>
+            {% else %}
+                <span class="badge-warning">{{ icon('alert-triangle') }} No scope set</span>
+                <div class="text-xs text-slate-500 mt-1">Can score nothing</div>
+            {% endif %}
+            </div>
+        </td>
         <td class="text-sm" data-cred-cell data-more>{% if judge.credentials_sent %}<span class="badge-success">{{ icon('check-circle') }} Emailed</span><div class="text-xs text-slate-500 mt-1">to {{ judge.credentials_sent_to or judge.email }}{% if judge.credentials_sent_at %} · {{ judge.credentials_sent_at.strftime('%d %b %H:%M') }}{% endif %}</div>{% else %}<span class="badge-neutral">Not emailed yet</span>{% endif %}</td>
         <td data-more>{% if judge.status|lower == 'inactive' %}<span class="badge-danger">Inactive</span>{% else %}<span class="badge-success">Active</span>{% endif %}</td>
         <td class="text-right"><div class="inline-flex flex-wrap justify-end gap-2">
+            {% if judge.credentials_deliverable is defined and not judge.credentials_deliverable %}
+                {# No mailbox: the Show/Copy password controls below are the only
+                   way these credentials ever reach the judge. #}
+                <span class="text-xs text-slate-500 self-center">No mailbox — hand the password over in person</span>
+            {% endif %}
             {% if judge.kind == 'external' %}
                 {# External: password is kept, so the primary actions are show + copy. Nothing is emailed to the judge. #}
                 {% if judge.temp_password %}

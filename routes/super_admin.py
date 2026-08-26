@@ -14,6 +14,7 @@ from models.database import (
     get_audit_logs_collection
 )
 from services.audit import log_audit
+from services.jury_scope import FILTER_EXCEPTION, FILTER_GROUP
 from services.results_calculator import get_evaluation_coverage
 from services.email_service import get_email_status
 
@@ -53,6 +54,8 @@ def dashboard():
         'total_judges': judges_col.count_documents({}),
         'internal_judges': judges_col.count_documents({'judge_type': {'$in': ['internal', 'INTERNAL_JUDGE']}}),
         'external_judges': judges_col.count_documents({'judge_type': {'$in': ['external', 'EXTERNAL_JUDGE']}}),
+        'exception_judges': judges_col.count_documents(FILTER_EXCEPTION),
+        'group_judges': judges_col.count_documents(FILTER_GROUP),
         'total_admins': users_col.count_documents({'role': 'admin'}),
         'evaluations_completed': completed_evals,
         'teams_evaluated': coverage['teams_evaluated'],

@@ -21,7 +21,9 @@ def create_app():
     # but the requests no longer wake a Python function just to hand back a file.
     app = Flask(__name__, static_folder='public/static', static_url_path='/static')
     from utils.icons import icon
+    from services.jury_scope import panel_label
     app.jinja_env.globals['icon'] = icon
+    app.jinja_env.globals['panel_label'] = panel_label
     app.config.from_object(get_config())
 
     # Rendered HTML still comes out of this function, and the landing page is 19K

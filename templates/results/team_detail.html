@@ -15,9 +15,9 @@
 
 <div class="stat-group grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-4 mb-8">
     {% set s = result.score_result %}
-    {{ stat(s.internal_average, 'internal average · ' ~ s.internal_count ~ ' jury', 'info') }}
-    {{ stat(s.external_average, 'external average · ' ~ s.external_count ~ ' jury', 'info') }}
-    {{ stat((s.internal_average * 0.40)|round(2) ~ ' + ' ~ (s.external_average * 0.60)|round(2), '40 % internal + 60 % external') }}
+    {{ stat(s.exception_average, 'exception jury average · ' ~ s.exception_count ~ ' jury', 'info') }}
+    {{ stat(s.group_average, 'panel jury average · ' ~ s.group_count ~ ' of ' ~ s.group_expected, 'info') }}
+    {{ stat((s.exception_average * s.exception_weight)|round(2) ~ ' + ' ~ (s.group_average * s.group_weight)|round(2), (s.exception_weight * 100)|round|int ~ '% exception + ' ~ (s.group_weight * 100)|round|int ~ '% panel') }}
     {{ stat(s.final_score, 'final score / 100', 'success') }}
 </div>
 
@@ -29,7 +29,8 @@
         <div class="card-header">
             <div class="flex items-center gap-3">
                 <span class="font-semibold text-navy-900">{{ evaluation.judge_name }}</span>
-                {% if evaluation.judge_type == 'internal' %}<span class="badge-success">Internal jury</span>{% else %}<span class="badge-info">External jury</span>{% endif %}
+                {% if evaluation.judge_type == 'internal' %}<span class="badge-success">Internal</span>{% else %}<span class="badge-info">External</span>{% endif %}
+                {% if evaluation.judge_bucket == 'exception' %}<span class="badge-navy">Exception jury</span>{% elif evaluation.panel_no %}<span class="badge-navy">Panel {{ evaluation.panel_no }}</span>{% endif %}
             </div>
             <div class="text-right"><div class="font-display text-xl font-bold text-navy-900 tabular-nums">{{ evaluation.weighted_total }}<span class="text-sm text-slate-500 font-normal">/100</span></div><div class="text-xs text-slate-500">{{ evaluation.submitted_at.strftime('%d %b %Y, %I:%M %p') if evaluation.submitted_at else 'N/A' }}</div></div>
         </div>

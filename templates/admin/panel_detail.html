@@ -1,0 +1,101 @@
+{% extends 'admin/base_admin.html' %}
+{% from 'partials/ui.html' import stat, empty_state %}
+{% from 'partials/jury.html' import jury_type_chip, team_panel_chip %}
+{% block admin_title %}Panel {{ panel.panel_no }}{% endblock %}
+{% block admin_content %}
+
+<a href="{{ url_for('admin.panels_list') }}" class="inline-flex items-center gap-1 text-sm font-medium text-navy-700 hover:underline">{{ icon('arrow-left') }} Jury panels</a>
+
+<div class="mt-4 mb-6 flex flex-wrap items-end justify-between gap-4">
+    <div>
+        <h1 class="font-display text-2xl sm:text-3xl font-bold text-navy-900">Panel {{ panel.panel_no }}</h1>
+        <p class="mt-1 text-slate-600">{{ panel.judge_count }} judge{{ '' if panel.judge_count == 1 else 's' }} scoring {{ panel.team_count }} team{{ '' if panel.team_count == 1 else 's' }}, at 60% of the final mark.</p>
+    </div>
+    <a href="{{ url_for('admin.panel_members') }}" class="btn-primary">{{ icon('pencil') }} Edit panels</a>
+</div>
+
+<div class="stat-group grid grid-cols-1 sm:grid-cols-3 gap-2 sm:gap-4 mb-6">
+    {{ stat(panel.judge_count, 'judges', 'success' if panel.judge_count else 'danger') }}
+    {{ stat(panel.team_count, 'teams') }}
+    {{ stat(panel.submitted ~ ' / ' ~ panel.expected, 'evaluations submitted', 'success' if panel.expected and panel.submitted == panel.expected else 'warning') }}
+</div>
+
+<div class="card mb-6">
+    <div class="card-body">
+        <div class="flex items-center justify-between text-xs text-slate-500 mb-1">
+            <span>Panel progress</span><span>{{ panel.pct }}%</span>
+        </div>
+        <div class="h-3 rounded-full bg-navy-100 overflow-hidden">
+            <div class="h-full bg-navy-700 rounded-full transition-all" style="width: {{ panel.pct }}%"></div>
+        </div>
+    </div>
+</div>
+
+<div class="card overflow-hidden mb-6">
+    <div class="card-header"><h2 class="card-title">{{ icon('scale') }} Judges</h2></div>
+    <div class="overflow-x-auto">
+    <table class="table-base table-cards">
+        <thead><tr><th>Judge</th><th>Email</th><th>Type</th><th class="text-right">Actions</th></tr></thead>
+        <tbody>
+        {% for j in panel.judges %}
+            <tr>
+                <td data-primary>
+                    {{ j.name }}
+                    {% if j.is_overall_jury_coordinator %}<span class="badge-warning ml-1">Coordinator</span>{% endif %}
+                </td>
+                <td data-more>{{ j.email }}</td>
+                <td data-more>{{ jury_type_chip(j.judge_type) }}</td>
+                <td class="text-right">
+                    <form method="POST" action="{{ url_for('admin.judge_set_panel', judge_id=j._id) }}" class="inline-flex items-center gap-2 justify-end">
+                        <select name="panel_no" class="select w-auto" aria-label="Move {{ j.name }}">
+                            {% for n in panel_numbers %}
+                                <option value="{{ n }}" {% if n == panel.panel_no %}selected{% endif %}>Panel {{ n }}</option>
+                            {% endfor %}
+                            <option value="exception">Exception jury</option>
+                        </select>
+                        <button class="btn-navy btn-sm">{{ icon('check') }} Move</button>
+                    </form>
+                </td>
+            </tr>
+        {% else %}
+            <tr><td colspan="4">{{ empty_state(icon('scale'), 'No judges on this panel', 'Its teams cannot be marked complete until someone is assigned.', url_for('admin.panel_members'), 'Edit panels') }}</td></tr>
+        {% endfor %}
+        </tbody>
+    </table>
+    </div>
+</div>
+
+<div class="card overflow-hidden">
+    <div class="card-header">
+        <h2 class="card-title">{{ icon('users') }} Teams</h2>
+        <a href="{{ url_for('admin.panel_assign') }}" class="btn-secondary btn-sm">{{ icon('list-checks') }} Assign teams</a>
+    </div>
+    <div class="overflow-x-auto">
+    <table class="table-base table-cards">
+        <thead><tr><th>Team</th><th>Code</th><th>Leader</th><th class="text-right">Actions</th></tr></thead>
+        <tbody>
+        {% for t in panel.teams %}
+            <tr>
+                <td data-primary><a href="{{ url_for('admin.team_detail', team_id=t._id) }}" class="text-navy-700 hover:underline">{{ t.team_name }}</a></td>
+                <td data-more><span class="code-chip">{{ t.team_code or '—' }}</span></td>
+                <td data-more>{{ t.leader_name or '—' }}</td>
+                <td class="text-right">
+                    <form method="POST" action="{{ url_for('admin.team_set_panel', team_id=t._id) }}" class="inline-flex items-center gap-2 justify-end">
+                        <select name="panel_no" class="select w-auto" aria-label="Panel for {{ t.team_name }}">
+                            <option value="">— No panel —</option>
+                            {% for n in panel_numbers %}
+                                <option value="{{ n }}" {% if n == panel.panel_no %}selected{% endif %}>Panel {{ n }}</option>
+                            {% endfor %}
+                        </select>
+                        <button class="btn-navy btn-sm">{{ icon('check') }} Move</button>
+                    </form>
+                </td>
+            </tr>
+        {% else %}
+            <tr><td colspan="4">{{ empty_state(icon('users'), 'No teams on this panel', 'Assign teams so this panel has something to score.', url_for('admin.panel_assign'), 'Assign teams') }}</td></tr>
+        {% endfor %}
+        </tbody>
+    </table>
+    </div>
+</div>
+{% endblock %}

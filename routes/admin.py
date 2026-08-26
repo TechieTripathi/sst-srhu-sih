@@ -14,6 +14,22 @@ from models.database import (
 from services.audit import log_audit
 from services.judge_management import create_judge, send_judge_credentials, regenerate_external_password, reset_judge_password
 from services.results_calculator import get_evaluation_coverage
+from services.jury_panels import (
+    auto_assign_teams,
+    clear_assignments,
+    exception_judges,
+    judge_submitted_count,
+    list_panels,
+    panel_detail as panel_detail_data,
+    roster_overview,
+    set_judge_panel,
+    set_team_panel,
+    unassigned_teams,
+)
+from services.jury_scope import (
+    FILTER_EXCEPTION, FILTER_GROUP, PANEL_NUMBERS, SCOPE_ALL, SCOPE_ASSIGNED,
+    is_exception_jury, judge_panel_no, scope_label,
+)
 from utils.urls import public_url
 
 admin_bp = Blueprint('admin', __name__)
@@ -46,6 +62,13 @@ def dashboard():
         'registered_teams': teams.count_documents({'status': 'registered'}),
         'internal_judges': judges.count_documents({'judge_type': {'$in': ['internal', 'INTERNAL_JUDGE']}}),
         'external_judges': judges.count_documents({'judge_type': {'$in': ['external', 'EXTERNAL_JUDGE']}}),
+        # Filters built from the shared constants rather than hand-typed $in
+        # clauses, which is how the internal/external ones ended up duplicated
+        # across two route modules.
+        'exception_judges': judges.count_documents(FILTER_EXCEPTION),
+        'group_judges': judges.count_documents(FILTER_GROUP),
+        'teams_unassigned': coverage['unassigned_teams'],
+        'panel_coverage': coverage['panel_coverage'],
         'evaluations_completed': evaluations.count_documents({'status': 'submitted'}),
         'teams_evaluated': coverage['teams_evaluated'],
         'teams_pending': coverage['teams_pending'],
@@ -139,15 +162,38 @@ def judges_list():
         judge['kind'] = 'external' if 'external' in str(judge.get('judge_type', '')).lower() else 'internal'
         if judge['kind'] != 'external':
             judge.pop('temp_password', None)   # never expose anything for internal judges
+        # Scope is a separate axis from kind. A judge with no jury_scope at all is
+        # reported as 'unset' rather than guessed into a bucket - guessing would
+        # silently change the weight their scores carry.
+        raw_scope = judge.get('jury_scope')
+        if raw_scope == SCOPE_ALL:
+            judge['scope'] = 'exception'
+        elif raw_scope == SCOPE_ASSIGNED:
+            judge['scope'] = 'group'
+        else:
+            judge['scope'] = 'unset'
+        judge['panel_no'] = judge_panel_no(judge) if judge['scope'] == 'group' else None
 
     tab = request.args.get('type', 'all')
     if tab not in ('all', 'internal', 'external'):
         tab = 'all'
+    # Orthogonal to the type tabs, which the dashboard quick-links and the bulk
+    # credential sender both key off - those keep their existing vocabulary.
+    scope_tab = request.args.get('scope', 'all')
+    if scope_tab not in ('all', 'exception', 'group', 'unset'):
+        scope_tab = 'all'
+
     judges = all_judges if tab == 'all' else [j for j in all_judges if j['kind'] == tab]
+    if scope_tab != 'all':
+        judges = [j for j in judges if j['scope'] == scope_tab]
+
     counts = {
         'all': len(all_judges),
         'internal': sum(1 for j in all_judges if j['kind'] == 'internal'),
         'external': sum(1 for j in all_judges if j['kind'] == 'external'),
+        'exception': sum(1 for j in all_judges if j['scope'] == 'exception'),
+        'group': sum(1 for j in all_judges if j['scope'] == 'group'),
+        'unset': sum(1 for j in all_judges if j['scope'] == 'unset'),
         'not_sent': sum(1 for j in judges if not j.get('credentials_sent') and (tab != 'all' or j['kind'] != 'external')),
         'not_sent_all': sum(1 for j in judges if not j.get('credentials_sent')),
     }
@@ -155,6 +201,7 @@ def judges_list():
     settings = get_event_settings_collection().find_one({}) or {}
     credential_notices = session.pop('credential_notices', None)
     return render_template('admin/judges.html', judges=judges, tab=tab, counts=counts,
+                           scope_tab=scope_tab,
                            bulk_enabled=bool(settings.get('bulk_credentials_enabled', True)),
                            credential_notices=credential_notices)
 
@@ -207,16 +254,28 @@ def create_judge_form():
         judge_type = request.form.get('judge_type')
         deliver = request.form.get('deliver', 'judge_email')
         alt_email = request.form.get('alt_email', '').strip().lower()
+        jury_scope = request.form.get('jury_scope', SCOPE_ASSIGNED)
+        panel_no = request.form.get('panel_no')
+        # The form disables the email options when this is ticked, but the server
+        # must not trust the browser for it.
+        no_mailbox = request.form.get('no_mailbox') == 'on'
+        if no_mailbox:
+            deliver = 'none'
 
         if not all([name, email, judge_type]):
             flash('Name, email, and judge type are required', 'error')
+            return render_template('admin/create_judge.html')
+        if jury_scope not in (SCOPE_ALL, SCOPE_ASSIGNED):
+            flash('Please choose a jury role.', 'error')
             return render_template('admin/create_judge.html')
         if deliver == 'other_email' and not alt_email:
             flash('Please enter the email address that should receive the credentials', 'error')
             return render_template('admin/create_judge.html')
 
         result = create_judge(name=name, email=email, phone=phone, judge_type=judge_type,
-                              actor_id=session.get('user_id'))
+                              actor_id=session.get('user_id'),
+                              jury_scope=jury_scope, panel_no=panel_no,
+                              credentials_deliverable=not no_mailbox)
         if result.get('error'):
             flash(result['error'], 'error')
             return render_template('admin/create_judge.html')
@@ -302,7 +361,8 @@ BULK_BATCH_SIZE_DEFAULT = 5
 
 def _bulk_targets(tab, include_sent, include_external=False):
     """Active judges in the tab; skips already-emailed ones unless include_sent.
-    External judges are skipped unless include_external (or the External tab is selected)."""
+    External judges are skipped unless include_external (or the External tab is selected).
+    Judges with no reachable mailbox are always skipped."""
     judges_col = get_judges_collection()
     users_col = get_users_collection()
     targets = []
@@ -311,6 +371,11 @@ def _bulk_targets(tab, include_sent, include_external=False):
         if tab in ('internal', 'external') and kind != tab:
             continue
         if tab == 'all' and kind == 'external' and not include_external:
+            continue
+        # Outside guests have placeholder addresses. Queuing one would generate a
+        # brand-new password first - invalidating the one already handed over in
+        # person - and only then fail to deliver it.
+        if not judge.get('credentials_deliverable', True):
             continue
         if str(judge.get('status', 'active')).lower() != 'active':
             continue
@@ -591,9 +656,25 @@ def export_results():
     rankings = get_leaderboard(stage_id)
     output = io.StringIO()
     writer = csv.writer(output)
-    writer.writerow(['Rank', 'Team Code', 'Team Name', 'Leader Name', 'Internal Average (0-100)', 'External Average (0-100)', 'Final Score (0-100)', 'Internal Evaluations', 'External Evaluations', 'Stage'])
+    # Panel is included because this file is the artefact organisers actually
+    # work from, and 'which panel scored this team' is the first thing they ask.
+    writer.writerow(['Rank', 'Team Code', 'Team Name', 'Leader Name', 'Panel',
+                     'Exception Jury Average (0-100)', 'Panel Jury Average (0-100)',
+                     'Final Score (0-100)', 'Provisional Score (0-100)',
+                     'Exception Evaluations', 'Panel Evaluations', 'Panel Jury Expected',
+                     'Status', 'Stage'])
     for team in rankings:
-        writer.writerow([team.get('rank',''), team.get('team_code',''), team.get('team_name',''), team.get('leader_name',''), team.get('internal_average','INCOMPLETE'), team.get('external_average','INCOMPLETE'), team.get('final_score',''), team.get('internal_count',0), team.get('external_count',0), stage_id])
+        writer.writerow([
+            team.get('rank', ''), team.get('team_code', ''), team.get('team_name', ''),
+            team.get('leader_name', ''), team.get('panel_no') or 'UNASSIGNED',
+            team.get('exception_average', ''), team.get('group_average', ''),
+            # Empty rather than 0 for an incomplete team, so a blank cell cannot
+            # be mistaken for a genuine score of zero.
+            team.get('final_score') if team.get('is_complete') else '',
+            team.get('provisional_score', ''),
+            team.get('exception_count', 0), team.get('group_count', 0),
+            team.get('group_expected', 0), team.get('status', ''), stage_id,
+        ])
     log_audit(session.get('user_id'), 'results_exported', 'results', stage_id, {'format': 'csv', 'count': len(rankings)})
     output.seek(0)
     return Response(output.getvalue(), mimetype='text/csv', headers={'Content-Disposition': f'attachment;filename=techforge3_results_{stage_id}.csv'})
@@ -667,3 +748,158 @@ def results_overview():
     rankings = get_leaderboard(stage_id)
     coverage = get_evaluation_coverage()
     return render_template('admin/results_overview.html', rankings=rankings, coverage=coverage, stage_id=stage_id, event_settings=event_settings)
+
+
+# --------------------------------------------------------------------------- #
+# Jury panels
+# --------------------------------------------------------------------------- #
+
+@admin_bp.route('/panels')
+@require_auth(roles=['admin'])
+def panels_list():
+    """Five panels, their rosters, their teams and their scoring progress."""
+    return render_template(
+        'admin/panels.html',
+        panels=list_panels(),
+        counts=roster_overview(),
+        exception=exception_judges(),
+        unassigned=unassigned_teams(),
+    )
+
+
+@admin_bp.route('/panels/<int:panel_no>')
+@require_auth(roles=['admin'])
+def panel_detail(panel_no):
+    """One panel: its judges, its teams and who has scored what."""
+    panel = panel_detail_data(panel_no)
+    if not panel:
+        return render_template('errors/error.html', code=404, title='Panel Not Found',
+                               message='There are only five jury panels.'), 404
+    return render_template('admin/panel_detail.html', panel=panel,
+                           panel_numbers=PANEL_NUMBERS)
+
+
+@admin_bp.route('/panels/members', methods=['GET', 'POST'])
+@require_auth(roles=['admin'])
+def panel_members():
+    """Edit which panel each judge sits on, or move them to the exception jury."""
+    judges_col = get_judges_collection()
+
+    if request.method == 'POST':
+        moved = 0
+        for judge in list(judges_col.find({}, {'_id': 1})):
+            jid = str(judge['_id'])
+            raw = request.form.get(f'panel_no_{jid}')
+            if raw is None:
+                continue
+            try:
+                if set_judge_panel(jid, None if raw == 'exception' else raw,
+                                   actor_id=session.get('user_id')):
+                    moved += 1
+            except ValueError:
+                flash(f'Ignored an invalid panel value for judge {jid}.', 'warning')
+        flash(f'{moved} judge(s) updated.' if moved else 'No changes to save.',
+              'success' if moved else 'info')
+        return redirect(url_for('admin.panel_members'))
+
+    rows = []
+    for judge in judges_col.find().sort([('jury_scope', 1), ('panel_no', 1), ('name', 1)]):
+        rows.append({
+            'judge': judge,
+            'panel_no': judge_panel_no(judge),
+            'is_exception': is_exception_jury(judge),
+            'scope_display': scope_label(judge),
+            # Surfaced so an admin can see, before moving someone, that they
+            # already have scores on the board.
+            'submitted': judge_submitted_count(judge),
+        })
+    return render_template('admin/panel_members.html', rows=rows,
+                           panels=list_panels(), panel_numbers=PANEL_NUMBERS)
+
+
+@admin_bp.route('/panels/assign', methods=['GET', 'POST'])
+@require_auth(roles=['admin'])
+def panel_assign():
+    """Assign teams to panels, all in one screen."""
+    teams_col = get_teams_collection()
+
+    if request.method == 'POST':
+        moved = 0
+        for team in list(teams_col.find({}, {'_id': 1})):
+            tid = str(team['_id'])
+            raw = request.form.get(f'panel_no_{tid}')
+            if raw is None:
+                continue
+            try:
+                if set_team_panel(tid, raw or None, actor_id=session.get('user_id')):
+                    moved += 1
+            except ValueError:
+                flash(f'Ignored an invalid panel value for team {tid}.', 'warning')
+        flash(f'{moved} team(s) updated.' if moved else 'No changes to save.',
+              'success' if moved else 'info')
+        return redirect(url_for('admin.panel_assign'))
+
+    # Unassigned first - they are the ones needing attention.
+    teams = sorted(
+        teams_col.find(),
+        key=lambda t: (1 if t.get('panel_no') else 0,
+                       t.get('panel_no') or 0,
+                       str(t.get('team_name', '')).lower()),
+    )
+    return render_template('admin/panel_assign.html', teams=teams,
+                           panel_numbers=PANEL_NUMBERS, counts=roster_overview())
+
+
+@admin_bp.route('/panels/auto-assign', methods=['POST'])
+@require_auth(roles=['admin'])
+def panel_auto_assign():
+    """Distribute teams across the five panels."""
+    mode = request.form.get('mode', 'blocks')
+    overwrite = request.form.get('overwrite') == 'on'
+    if mode not in ('blocks', 'round_robin'):
+        mode = 'blocks'
+    result = auto_assign_teams(mode=mode, overwrite=overwrite,
+                               actor_id=session.get('user_id'))
+    spread = ', '.join(f'P{k}: {v}' for k, v in sorted(result['per_panel'].items()))
+    flash(f"Assigned {result['assigned']} team(s), left {result['skipped']} as they were. {spread}",
+          'success')
+    return redirect(url_for('admin.panels_list'))
+
+
+@admin_bp.route('/panels/clear-assignments', methods=['POST'])
+@require_auth(roles=['admin'])
+def panel_clear_assignments():
+    """Remove every team's panel."""
+    result = clear_assignments(actor_id=session.get('user_id'))
+    flash(f"Cleared the panel on {result['cleared']} team(s). No team can be scored "
+          f"by group jury until they are reassigned.", 'warning')
+    return redirect(url_for('admin.panels_list'))
+
+
+@admin_bp.route('/teams/<team_id>/panel', methods=['POST'])
+@require_auth(roles=['admin'])
+def team_set_panel(team_id):
+    """Set or clear one team's panel."""
+    try:
+        changed = set_team_panel(team_id, request.form.get('panel_no') or None,
+                                actor_id=session.get('user_id'))
+    except ValueError:
+        flash('That is not a valid panel.', 'error')
+        return redirect(request.referrer or url_for('admin.panels_list'))
+    flash('Panel updated.' if changed else 'No change.', 'success' if changed else 'info')
+    return redirect(request.referrer or url_for('admin.panels_list'))
+
+
+@admin_bp.route('/judges/<judge_id>/panel', methods=['POST'])
+@require_auth(roles=['admin'])
+def judge_set_panel(judge_id):
+    """Move one judge between panels, or to the exception jury."""
+    raw = request.form.get('panel_no')
+    try:
+        changed = set_judge_panel(judge_id, None if raw == 'exception' else (raw or None),
+                                 actor_id=session.get('user_id'))
+    except ValueError:
+        flash('That is not a valid panel.', 'error')
+        return redirect(request.referrer or url_for('admin.panel_members'))
+    flash('Jury role updated.' if changed else 'No change.', 'success' if changed else 'info')
+    return redirect(request.referrer or url_for('admin.panel_members'))

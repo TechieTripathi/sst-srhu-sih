@@ -1,0 +1,138 @@
+{% extends 'admin/base_admin.html' %}
+{% from 'partials/ui.html' import stat, empty_state %}
+{% from 'partials/jury.html' import panel_chip, jury_type_chip, team_panel_chip %}
+{% block admin_title %}Jury panels{% endblock %}
+{% block admin_content %}
+
+<div class="mb-6 flex flex-wrap items-end justify-between gap-4">
+    <div>
+        <h1 class="font-display text-2xl sm:text-3xl font-bold text-navy-900">Jury panels</h1>
+        <p class="mt-1 text-slate-600">Five panels of five judges. Each panel scores only its own teams; the exception jury scores every team.</p>
+    </div>
+    <a href="{{ url_for('admin.panel_assign') }}" class="btn-primary">{{ icon('list-checks') }} Assign teams</a>
+</div>
+
+<div class="stat-group grid grid-cols-1 sm:grid-cols-4 gap-2 sm:gap-4 mb-6">
+    {{ stat(counts.group, 'group jury · 60%') }}
+    {{ stat(counts.exception, 'exception jury · 40%', 'info') }}
+    {{ stat(counts.assigned, 'teams assigned', 'success') }}
+    {{ stat(counts.unassigned, 'teams with no panel', 'warning' if counts.unassigned else 'success') }}
+</div>
+
+{% if unassigned %}
+{# Same treatment as the credential notice on the Judges page - an unassigned
+   team can only be scored by exception jury, so it must not be quiet. #}
+<div class="card border-l-4 border-l-saffron-500 mb-6">
+    <div class="card-header">
+        <h2 class="card-title">{{ icon('alert-triangle') }} {{ unassigned|length }} team(s) have no panel</h2>
+        <a href="{{ url_for('admin.panel_assign') }}" class="btn-secondary btn-sm">{{ icon('arrow-right') }} Assign them</a>
+    </div>
+    <div class="card-body">
+        <p class="text-sm text-slate-600 mb-3">Only exception jury can score these. Group jury will not see them at all.</p>
+        <div class="overflow-x-auto">
+        <table class="table-base table-cards">
+            <thead><tr><th>Team</th><th>Code</th><th>Leader</th><th class="text-right">Actions</th></tr></thead>
+            <tbody>
+            {% for team in unassigned %}
+                <tr>
+                    <td data-primary>{{ team.team_name }}</td>
+                    <td data-more><span class="code-chip">{{ team.team_code or '—' }}</span></td>
+                    <td data-more>{{ team.leader_name or '—' }}</td>
+                    <td class="text-right">
+                        <form method="POST" action="{{ url_for('admin.team_set_panel', team_id=team._id) }}" class="inline-flex items-center gap-2 justify-end">
+                            <select name="panel_no" class="select w-auto" aria-label="Panel for {{ team.team_name }}">
+                                {% for n in range(1, 6) %}<option value="{{ n }}">Panel {{ n }}</option>{% endfor %}
+                            </select>
+                            <button class="btn-navy btn-sm">{{ icon('check') }} Set</button>
+                        </form>
+                    </td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
+{% for panel in panels %}
+    <div class="card">
+        <div class="card-header">
+            <h2 class="card-title">Panel {{ panel.panel_no }}</h2>
+            <a href="{{ url_for('admin.panel_detail', panel_no=panel.panel_no) }}" class="btn-ghost btn-sm">{{ icon('arrow-right') }} Open</a>
+        </div>
+        <div class="card-body">
+            <div class="flex flex-wrap items-center gap-2 mb-3 text-sm">
+                <span class="{{ 'badge-navy' if panel.judge_count == 5 else 'badge-warning' }}">{{ panel.judge_count }} judge{{ '' if panel.judge_count == 1 else 's' }}</span>
+                <span class="badge-neutral">{{ panel.team_count }} team{{ '' if panel.team_count == 1 else 's' }}</span>
+                {% if panel.judge_count == 0 %}<span class="badge-danger">{{ icon('alert-triangle') }} No judges — these teams cannot be completed</span>{% endif %}
+            </div>
+            <div class="flex items-center justify-between text-xs text-slate-500 mb-1">
+                <span>{{ panel.submitted }} of {{ panel.expected }} evaluations</span>
+                <span>{{ panel.pct }}%</span>
+            </div>
+            <div class="h-3 rounded-full bg-navy-100 overflow-hidden">
+                <div class="h-full bg-navy-700 rounded-full transition-all" style="width: {{ panel.pct }}%"></div>
+            </div>
+            <p class="mt-3 text-sm text-slate-600">
+                {% for j in panel.judges %}{{ j.name }}{% if not loop.last %} · {% endif %}{% else %}<span class="text-slate-400">No judges assigned</span>{% endfor %}
+            </p>
+        </div>
+    </div>
+{% endfor %}
+</div>
+
+<div class="card mb-6">
+    <div class="card-header">
+        <h2 class="card-title">{{ icon('compass') }} Exception jury</h2>
+        <a href="{{ url_for('admin.panel_members') }}" class="btn-secondary btn-sm">{{ icon('pencil') }} Edit panels</a>
+    </div>
+    <div class="card-body">
+        <p class="text-sm text-slate-600 mb-3">Score every team, carry 40% of the final mark, and can keep scoring while judging is locked.</p>
+        <div class="overflow-x-auto">
+        <table class="table-base table-cards">
+            <thead><tr><th>Judge</th><th>Email</th><th class="text-right">Details</th></tr></thead>
+            <tbody>
+            {% for j in exception %}
+                <tr>
+                    <td data-primary>{{ j.name }}</td>
+                    <td data-more>{{ j.email }}</td>
+                    <td class="text-right">{{ jury_type_chip(j.judge_type) }}</td>
+                </tr>
+            {% else %}
+                <tr><td colspan="3">{{ empty_state(icon('compass'), 'No exception jury', 'Nobody can score across panels yet.') }}</td></tr>
+            {% endfor %}
+            </tbody>
+        </table>
+        </div>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header"><h2 class="card-title">Bulk actions</h2></div>
+    <div class="card-body flex flex-wrap gap-3">
+        <form method="POST" action="{{ url_for('admin.panel_auto_assign') }}"
+              data-confirm="Teams with no panel are spread evenly, smallest panel first. Teams that already have a panel keep it."
+              data-confirm-title="Assign unassigned teams?"
+              data-confirm-button="Assign" data-confirm-tone="navy" data-confirm-icon="check-circle">
+            <input type="hidden" name="mode" value="blocks">
+            <button class="btn-navy">{{ icon('zap') }} Assign teams with no panel</button>
+        </form>
+        <form method="POST" action="{{ url_for('admin.panel_auto_assign') }}"
+              data-confirm="Every team is renumbered into contiguous blocks, discarding any manual assignment you have made."
+              data-confirm-title="Re-assign ALL teams?"
+              data-confirm-button="Re-assign everything" data-confirm-tone="danger" data-confirm-icon="ban">
+            <input type="hidden" name="mode" value="blocks">
+            <input type="hidden" name="overwrite" value="on">
+            <button class="btn-secondary">{{ icon('refresh-cw') }} Re-assign all teams</button>
+        </form>
+        <form method="POST" action="{{ url_for('admin.panel_clear_assignments') }}"
+              data-confirm="Every team loses its panel. Group jury will see no teams at all until you assign them again."
+              data-confirm-title="Clear all panel assignments?"
+              data-confirm-button="Clear everything" data-confirm-tone="danger" data-confirm-icon="ban">
+            <button class="btn-danger">{{ icon('x-circle') }} Clear all assignments</button>
+        </form>
+    </div>
+</div>
+{% endblock %}

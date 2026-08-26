@@ -106,7 +106,28 @@ def calculate_weighted_score(raw_scores, criteria_weights=None):
     }
 
 
-def create_evaluation(judge_id, team_id, stage_id, raw_scores, comments=None, actor_id=None):
+def _jury_stamp(judge):
+    """The jury facts to freeze onto an evaluation at submission time.
+
+    Without this the 40/60 bucket is recomputed from the judge's *current*
+    document on every leaderboard render, so an admin correcting someone's panel
+    at 4pm would silently re-weight scores submitted at 11am. Stamping also
+    removes a judges.find_one() per evaluation from every ranking calculation.
+    """
+    if not judge:
+        return {}
+    from services.jury_scope import judge_bucket, judge_panel_no, jury_scope
+    return {
+        'judge_doc_id': str(judge.get('_id')) if judge.get('_id') else None,
+        'judge_bucket': judge_bucket(judge),
+        'jury_scope': jury_scope(judge),
+        'panel_no': judge_panel_no(judge),
+        'judge_type': judge.get('judge_type'),
+    }
+
+
+def create_evaluation(judge_id, team_id, stage_id, raw_scores, comments=None, actor_id=None,
+                      judge=None):
     """
     Create a new evaluation with calculated weighted score
     
@@ -117,11 +138,14 @@ def create_evaluation(judge_id, team_id, stage_id, raw_scores, comments=None, ac
         raw_scores: Dictionary of criterion_id: score (0-10)
         comments: Optional dictionary of criterion_id: comment
         actor_id: User ID performing this action
+        judge: Optional judges document. When given, the judge's scoring bucket
+            and panel are frozen onto the evaluation - see _jury_stamp().
         
     Returns:
         dict: Created evaluation or error
     """
     evaluations_col = get_evaluations_collection()
+    stamp = _jury_stamp(judge)
     
     # Validate scores
     is_valid, error = validate_scores(raw_scores)
@@ -154,6 +178,7 @@ def create_evaluation(judge_id, team_id, stage_id, raw_scores, comments=None, ac
                 'status': 'submitted',
                 'submitted_at': now,
                 'resubmitted_at': now,
+                **stamp,
             },
             '$unset': {'reopened_at': '', 'reopened_by': ''}
         })
@@ -173,7 +198,8 @@ def create_evaluation(judge_id, team_id, stage_id, raw_scores, comments=None, ac
         'score_breakdown': scoring_result['breakdown'],
         'status': 'submitted',
         'submitted_at': datetime.utcnow(),
-        'created_at': datetime.utcnow()
+        'created_at': datetime.utcnow(),
+        **stamp,
     }
     
     evaluation_id = evaluations_col.insert_one(evaluation_data).inserted_id

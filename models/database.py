@@ -67,12 +67,19 @@ class Database:
             Database.db.teams.create_index('team_name', unique=True)
             Database.db.teams.create_index('team_code', unique=True, sparse=True)
             Database.db.teams.create_index('leader_id')
-            
+            # Compound and in this order so the group-jury dashboard query
+            # find({'panel_no': n}).sort('team_name') is served entirely by the
+            # index, sort included. Not unique - ten teams share each panel.
+            Database.db.teams.create_index([('panel_no', 1), ('team_name', 1)])
+
             # Judges collection
             Database.db.judges.create_index('user_id', unique=True)
             Database.db.judges.create_index('email', unique=True, sparse=True)
             Database.db.judges.create_index('judge_type')
             Database.db.judges.create_index('status')
+            Database.db.judges.create_index('panel_no')
+            # No index on jury_scope on purpose: two values across 28 documents
+            # has no selectivity, and no query filters on scope alone.
             
             # OTP sessions collection
             Database.db.otp_sessions.create_index('email')

@@ -1,0 +1,77 @@
+{% extends 'admin/base_admin.html' %}
+{% from 'partials/ui.html' import stat %}
+{% from 'partials/jury.html' import team_panel_chip %}
+{% block admin_title %}Assign teams to panels{% endblock %}
+{% block admin_content %}
+
+<a href="{{ url_for('admin.panels_list') }}" class="inline-flex items-center gap-1 text-sm font-medium text-navy-700 hover:underline">{{ icon('arrow-left') }} Jury panels</a>
+
+<div class="mt-4 mb-6 flex flex-wrap items-end justify-between gap-4">
+    <div>
+        <h1 class="font-display text-2xl sm:text-3xl font-bold text-navy-900">Assign teams to panels</h1>
+        <p class="mt-1 text-slate-600">A team is scored by exactly one panel, plus the exception jury. Teams with no panel are listed first.</p>
+    </div>
+</div>
+
+<div class="stat-group grid grid-cols-1 sm:grid-cols-3 gap-2 sm:gap-4 mb-6">
+    {{ stat(counts.total_teams, 'teams') }}
+    {{ stat(counts.assigned, 'assigned to a panel', 'success') }}
+    {{ stat(counts.unassigned, 'with no panel', 'warning' if counts.unassigned else 'success') }}
+</div>
+
+<form method="POST" action="{{ url_for('admin.panel_assign') }}">
+    <div class="card overflow-hidden mb-6">
+        <div class="card-header">
+            <h2 class="card-title">{{ teams|length }} teams</h2>
+            <input type="search" id="teamSearch" class="input w-auto" placeholder="Search team, code or leader" aria-label="Search teams">
+        </div>
+        <div class="overflow-x-auto">
+        <table class="table-base table-cards" id="teamTable">
+            <thead><tr><th>Team</th><th>Code</th><th>Leader</th><th>Current</th><th class="text-right">Actions</th></tr></thead>
+            <tbody>
+            {% for team in teams %}
+                <tr data-text="{{ (team.team_name ~ ' ' ~ (team.team_code or '') ~ ' ' ~ (team.leader_name or ''))|lower }}">
+                    <td data-primary>{{ team.team_name }}</td>
+                    <td data-more><span class="code-chip">{{ team.team_code or '—' }}</span></td>
+                    <td data-more>{{ team.leader_name or '—' }}</td>
+                    <td>{{ team_panel_chip(team.panel_no) }}</td>
+                    <td class="text-right">
+                        <select name="panel_no_{{ team._id }}" class="select w-auto" aria-label="Panel for {{ team.team_name }}">
+                            <option value="">— No panel —</option>
+                            {% for n in panel_numbers %}
+                                <option value="{{ n }}" {% if team.panel_no == n %}selected{% endif %}>Panel {{ n }}</option>
+                            {% endfor %}
+                        </select>
+                    </td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+        </div>
+        <p id="noTeamMatch" class="hidden card-body text-sm text-slate-500">No team matches that search.</p>
+    </div>
+
+    <div class="flex flex-wrap gap-3">
+        <button class="btn-primary">{{ icon('save') }} Save assignments</button>
+        <a href="{{ url_for('admin.panels_list') }}" class="btn-ghost">Cancel</a>
+    </div>
+</form>
+
+<script>
+// Hidden rows still submit their select, on purpose - filtering the list must
+// never wipe the assignments you cannot currently see.
+(function () {
+    var box = document.getElementById('teamSearch');
+    if (!box) return;
+    box.addEventListener('input', function () {
+        var q = this.value.trim().toLowerCase(), shown = 0;
+        document.querySelectorAll('#teamTable tbody tr').forEach(function (tr) {
+            var hit = !q || (tr.dataset.text || '').indexOf(q) !== -1;
+            tr.classList.toggle('hidden', !hit);
+            if (hit) shown++;
+        });
+        document.getElementById('noTeamMatch').classList.toggle('hidden', shown !== 0);
+    });
+})();
+</script>
+{% endblock %}

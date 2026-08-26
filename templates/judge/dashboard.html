@@ -5,7 +5,11 @@
 {% block content %}
 {% set total = teams|length %}
 {% set pct = (evaluations_count / total * 100)|round(0)|int if total else 0 %}
-{% set locked = judging_status and judging_status.is_locked %}
+{# Two distinct facts. globally_locked drives the banner, so an exception juror
+   still learns the event is locked; locked drives the buttons and is false for
+   them, because the server will accept their submission. #}
+{% set globally_locked = judging_status and judging_status.is_locked %}
+{% set locked = not can_submit %}
 
 <div class="flex flex-wrap items-end justify-between gap-4 mb-6">
     <div>
@@ -14,6 +18,15 @@
         <p class="mt-1 text-slate-600 flex flex-wrap items-center gap-2">
             {% if judge_type == 'INTERNAL_JUDGE' %}<span class="badge-success">Internal jury</span>
             {% else %}<span class="badge-info">External jury</span>{% endif %}
+            {% if is_exception %}
+                <span class="badge-navy">{{ icon('compass') }} Exception jury</span>
+                <span class="text-sm text-slate-500">every team</span>
+            {% elif panel_no %}
+                <span class="badge-navy">Panel {{ panel_no }}</span>
+                <span class="text-sm text-slate-500">your panel's {{ total }} team{{ '' if total == 1 else 's' }}</span>
+            {% else %}
+                <span class="badge-warning">{{ icon('alert-triangle') }} No panel assigned</span>
+            {% endif %}
         </p>
     </div>
     <!-- progress ring: the one glance that answers "how far am I?" -->
@@ -26,10 +39,22 @@
     </div>
 </div>
 
-{% if locked %}
+{% if globally_locked and not can_submit %}
 <div class="alert-error mb-6" role="alert">
     <span aria-hidden="true">{{ icon('lock') }}</span>
     <div><strong>Judging is locked.</strong> {{ judging_status.lock_reason or 'The organisers have closed scoring. You can still see which teams you scored, but nothing can be submitted.' }}</div>
+</div>
+{% elif globally_locked and can_submit %}
+<div class="alert-warning mb-6" role="alert">
+    <span aria-hidden="true">{{ icon('unlock') }}</span>
+    <div><strong>Judging is locked for panel jury.</strong> As exception jury you can still submit scores. {{ judging_status.lock_reason or '' }}</div>
+</div>
+{% endif %}
+
+{% if not teams and not is_exception and not panel_no %}
+<div class="alert-warning mb-6" role="alert">
+    <span aria-hidden="true">{{ icon('alert-triangle') }}</span>
+    <div><strong>You have no panel yet.</strong> Ask the organisers to assign you to a jury panel — until then there are no teams for you to score.</div>
 </div>
 {% endif %}
 
@@ -98,7 +123,7 @@
             </ul>
         </div>
         <div class="space-y-3">
-            <p>The form shows the weighted total out of 100 as you score. Final results combine the internal and external jury averages.</p>
+            <p>The form shows the weighted total out of 100 as you score. Final results combine the exception jury (40%) and panel jury (60%) averages.</p>
             <p><strong>Submissions are final.</strong> Your draft is saved on this device until you submit, so you can leave and come back.</p>
         </div>
     </div>

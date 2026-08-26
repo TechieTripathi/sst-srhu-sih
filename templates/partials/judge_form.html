@@ -13,6 +13,23 @@
                 </label>{% endfor %}
             </div>
         </fieldset>
+        <fieldset><legend class="label">Jury role</legend>
+            <p class="help mt-0 mb-3">This decides which teams they can score and what their marks are worth.</p>
+            <div class="grid sm:grid-cols-2 gap-3">
+                {% for v, t, d in [('assigned_only', 'Group jury', 'One panel, its assigned teams only. 60%'), ('all_teams', 'Exception jury', 'Every team, and can score while judging is locked. 40%')] %}
+                <label class="flex gap-3 rounded-lg border border-navy-200 p-4 cursor-pointer has-[:checked]:border-navy-700 has-[:checked]:bg-navy-50">
+                    <input type="radio" name="jury_scope" value="{{ v }}" class="mt-0.5" required onchange="togglePanel()" {% if (request.form.jury_scope or 'assigned_only') == v %}checked{% endif %}>
+                    <span><span class="block font-semibold text-navy-900">{{ t }}</span><span class="block text-sm text-slate-600">{{ d }}</span></span>
+                </label>{% endfor %}
+            </div>
+            <div id="panelWrap" class="mt-3">
+                <label for="panel_no" class="label">Panel</label>
+                <select id="panel_no" name="panel_no" class="select">
+                    {% for n in range(1, 6) %}<option value="{{ n }}" {% if request.form.panel_no == n|string %}selected{% endif %}>Panel {{ n }}</option>{% endfor %}
+                </select>
+                <p class="help">Group jury must be on a panel, or they will see no teams at all.</p>
+            </div>
+        </fieldset>
         </div>
         <fieldset class="rounded-lg bg-navy-50 border border-navy-100 p-4 md:self-start">
             <legend class="label px-1">Send sign-in details</legend>
@@ -23,10 +40,31 @@
                 <div id="altWrap" class="hidden ml-7"><input type="email" id="alt_email" name="alt_email" class="input" placeholder="coordinator@srhu.edu.in" aria-label="Email address to send the sign-in details to"></div>
                 <label class="flex gap-3 items-start cursor-pointer"><input type="radio" name="deliver" value="none" onchange="toggleAlt()" class="mt-1"><span><span class="font-semibold text-navy-900">Don't email — show me the password</span><span class="block text-sm text-slate-600">Shown once on the next screen</span></span></label>
             </div>
+            <label class="flex gap-3 items-start cursor-pointer mt-4 pt-3 border-t border-navy-100">
+                <input type="checkbox" name="no_mailbox" value="on" class="mt-1 rounded border-navy-300" onchange="toggleMailbox()" {% if request.form.no_mailbox %}checked{% endif %}>
+                <span><span class="font-semibold text-navy-900">This judge has no email address</span><span class="block text-sm text-slate-600">Outside guests with no mailbox. Nothing is ever emailed to them and the bulk sender skips them; their password stays retrievable here.</span></span>
+            </label>
         </fieldset>
         <div class="flex flex-col-reverse sm:flex-row gap-3 pt-2 md:col-span-2"><a href="{{ url_for('admin.judges_list') }}" class="btn-secondary" onclick="if (this.closest('#addJudgeModal')) { closeModal('addJudgeModal'); return false; }">Cancel</a><button type="submit" class="btn-primary sm:ml-auto sm:min-w-48">Add judge</button></div>
     </form>
 <script>
 document.getElementById('phone').addEventListener('input', function () { this.value = this.value.replace(/\D/g, '').slice(0, 10); });
 function toggleAlt() { var o = document.querySelector('input[name=deliver][value=other_email]').checked, w = document.getElementById('altWrap'), i = document.getElementById('alt_email'); w.classList.toggle('hidden', !o); i.required = o; if (o) i.focus(); }
+// A panel only means anything for group jury.
+function togglePanel() {
+    var group = document.querySelector('input[name=jury_scope][value=assigned_only]').checked;
+    document.getElementById('panelWrap').classList.toggle('hidden', !group);
+}
+// No mailbox implies "don't email"; the server enforces this too rather than
+// trusting the browser.
+function toggleMailbox() {
+    var none = document.querySelector('input[name=no_mailbox]').checked;
+    ['judge_email', 'other_email'].forEach(function (v) {
+        var r = document.querySelector('input[name=deliver][value=' + v + ']');
+        r.disabled = none;
+        if (none && r.checked) { document.querySelector('input[name=deliver][value=none]').checked = true; }
+    });
+    toggleAlt();
+}
+togglePanel(); toggleMailbox();
 </script>

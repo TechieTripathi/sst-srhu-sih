@@ -1,0 +1,36 @@
+{# Shared jury chips. Kept in one place so the five screens that show a judge's
+   role cannot drift apart the way the internal/external badge did.
+   Colours follow what admin/judges.html already established:
+   badge-success = Internal, badge-info = External, badge-warning = attention. #}
+
+{% macro panel_chip(panel_no, is_exception=False) -%}
+  {%- if is_exception -%}
+    <span class="badge-navy">{{ icon('compass') }} Exception jury</span>
+  {%- elif panel_no -%}
+    <span class="badge-navy">Panel {{ panel_no }}</span>
+  {%- else -%}
+    <span class="badge-warning">{{ icon('alert-triangle') }} No panel</span>
+  {%- endif -%}
+{%- endmacro %}
+
+{% macro jury_type_chip(judge_type) -%}
+  {%- if 'external' in (judge_type or '')|lower -%}
+    <span class="badge-info">External</span>
+  {%- else -%}
+    <span class="badge-success">Internal</span>
+  {%- endif -%}
+{%- endmacro %}
+
+{# The weight a judge's score carries, so the 40/60 split is legible on screen
+   rather than something you have to remember. #}
+{% macro weight_note(is_exception) -%}
+  <span class="text-xs text-slate-500">{{ 'All teams · 40%' if is_exception else '60%' }}</span>
+{%- endmacro %}
+
+{% macro team_panel_chip(panel_no) -%}
+  {%- if panel_no -%}
+    <span class="badge-navy">Panel {{ panel_no }}</span>
+  {%- else -%}
+    <span class="badge-warning">{{ icon('alert-triangle') }} No panel</span>
+  {%- endif -%}
+{%- endmacro %}

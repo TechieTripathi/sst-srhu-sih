@@ -20,43 +20,30 @@ from models.database import get_users_collection, get_judges_collection
 from services.password_generator import generate_secure_jury_password
 from services.email_service import send_jury_credentials_email
 
-# 25 Official SRHU Staff Jury Members
-OFFICIAL_INTERNAL_JUDGES = [
-    # Group 1
-    {'name': 'Dr. Neel Mani', 'email': 'neelmani@srhu.edu.in', 'is_coordinator': True},
-    {'name': 'Er. Deepak Srivastava', 'email': 'deepaksrivastava@srhu.edu.in'},
-    {'name': 'Er. Vivek Katiyar', 'email': 'vivekkatiyar@srhu.edu.in'},
-    {'name': 'Dr. Shefali Khatri', 'email': 'shefalikhatri@srhu.edu.in'},
-    {'name': 'Er. Sanjay Kumar', 'email': 'sanjaykumar@srhu.edu.in'},
+# The 25 jury members who have a real SRHU mailbox, from the shared roster in
+# services/jury_roster.py. Kept under this name and at exactly 25 entries
+# because tests/test_jury_credentials.py imports it and asserts the count.
+#
+# The three outside guests are deliberately absent: they have placeholder
+# addresses and their credentials are shown on screen, never emailed. They are
+# provisioned by migrate_jury_panels.py.
+from services.jury_roster import MAILBOX_JURY, EXCEPTION_JURY, GROUP_JURY
 
-    # Group 2
-    {'name': 'Dr. L.K. Tyagi', 'email': 'lktyagi@srhu.edu.in'},
-    {'name': 'Dr. Suman Pant', 'email': 'sumanpant@srhu.edu.in'},
-    {'name': 'Er. A.K. Choudhary', 'email': 'akchoudhary@srhu.edu.in'},
-    {'name': 'Er. Radhe Shankar', 'email': 'radheshankar@srhu.edu.in'},
-    {'name': 'Dr. Gaurav Aggarwal', 'email': 'gauravaggarwal@srhu.edu.in'},
+OFFICIAL_INTERNAL_JUDGES = MAILBOX_JURY
 
-    # Group 3
-    {'name': 'Dr. Rohit Kanauzia', 'email': 'rohitkanauzia@srhu.edu.in'},
-    {'name': 'Dr. Anupama Mishra', 'email': 'anupamamishra@srhu.edu.in'},
-    {'name': 'Dr. Shivpreet', 'email': 'shivpreet@srhu.edu.in'},
-    {'name': 'Er. Rachit Lakhera', 'email': 'rachitlakhera@srhu.edu.in'},
-    {'name': 'Er. Vinod Raturi', 'email': 'vinodraturi@srhu.edu.in'},
-
-    # Group 4
-    {'name': 'Dr. Ashutosh Bhatt', 'email': 'ashutoshbhatt@srhu.edu.in'},
-    {'name': 'Dr. Shikha Singh', 'email': 'shikhasingh@srhu.edu.in'},
-    {'name': 'Dr. Pooja Joshi', 'email': 'poojajoshi@srhu.edu.in'},
-    {'name': 'Er. Vibhor Sharma', 'email': 'vibhorsharma@srhu.edu.in'},
-    {'name': 'Er. Princy Tyagi', 'email': 'princytyagi@srhu.edu.in'},
-
-    # Group 5
-    {'name': 'Dr. Gunjan Chhabra', 'email': 'gunjanchhabra@srhu.edu.in'},
-    {'name': 'Dr. Gaurav Sharma', 'email': 'gauravsharma@srhu.edu.in'},
-    {'name': 'Dr. Vaishali Gupta', 'email': 'vaishaligupta@srhu.edu.in'},
-    {'name': 'Dr. Shivani Pant', 'email': 'shivanipant@srhu.edu.in'},
-    {'name': 'Dr. Neelam Danu', 'email': 'Neelamdanu@srhu.edu.in'},
-]
+# email -> the panel/scope fields to stamp, so a freshly seeded database comes
+# out already correct instead of needing the migration.
+_SCOPE_BY_EMAIL = {}
+for _j in EXCEPTION_JURY:
+    _SCOPE_BY_EMAIL[_j['email'].strip().lower()] = {
+        'jury_scope': 'all_teams', 'credentials_deliverable': True,
+    }
+for _j in GROUP_JURY:
+    _SCOPE_BY_EMAIL[_j['email'].strip().lower()] = {
+        'jury_scope': 'assigned_only',
+        'panel_no': _j['panel_no'],
+        'credentials_deliverable': _j.get('has_mailbox', True),
+    }
 
 
 def seed_judges(send_emails: bool = False):
@@ -139,9 +126,14 @@ def seed_judges(send_emails: bool = False):
                     'name': name,
                     'email': normalized_email,
                     'judge_type': 'INTERNAL_JUDGE',
-                        'status': 'ACTIVE',
+                    'status': 'ACTIVE',
                     'is_overall_jury_coordinator': is_coord,
-                    'updated_at': now
+                    'updated_at': now,
+                    # Panel and scope, so a fresh database is correct without
+                    # needing migrate_jury_panels.py. Existing databases are
+                    # stamped by that script instead - the early `continue`
+                    # above means this block never runs for them.
+                    **_SCOPE_BY_EMAIL.get(normalized_email, {}),
                 },
                 '$setOnInsert': {
                     'credentials_sent': False,

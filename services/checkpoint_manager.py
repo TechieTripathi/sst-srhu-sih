@@ -132,13 +132,28 @@ def unlock_judging(actor_id=None):
     return {'success': True, 'message': 'Judging has been unlocked'}
 
 
-def is_judging_allowed():
+def is_judging_allowed(judge=None):
     """
-    Check if judging is currently allowed
-    
+    Check whether judging is currently allowed.
+
+    Called with no argument this answers the global question - "is the switch
+    off" - which is what the dashboard banner and the admin screens want.
+
+    Called with a judge document it answers "may this person submit right now",
+    which additionally lets exception jury through while judging is locked.
+
+    Args:
+        judge: Optional judges document. Exception jury bypass the lock.
+
     Returns:
         bool: True if judging is allowed, False if locked
     """
     status = get_judging_status()
-    return not status['is_locked']
+    if not status['is_locked']:
+        return True
+
+    # Imported lazily so jury_scope stays a leaf module and cannot end up in an
+    # import cycle with this one.
+    from services.jury_scope import is_exception_jury
+    return is_exception_jury(judge)
 

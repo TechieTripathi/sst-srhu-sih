@@ -10,11 +10,35 @@
     </div>
 </div>
 
-<div class="stat-group grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-4">
+<div class="stat-group grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-2 sm:gap-4">
     {{ stat(stats.total_teams, 'teams registered') }}
-    {{ stat(stats.internal_judges ~ ' + ' ~ stats.external_judges, 'internal + external judges', 'info') }}
+    {{ stat(stats.group_judges ~ ' + ' ~ stats.exception_judges, 'panel + exception jury', 'info') }}
     {{ stat(stats.evaluations_completed, 'evaluations submitted', 'success') }}
     {{ stat(stats.teams_pending, 'teams still unscored', 'warning' if stats.teams_pending else 'success') }}
+    {{ stat(stats.teams_unassigned, 'teams with no panel', 'warning' if stats.teams_unassigned else 'success') }}
+</div>
+
+{% if stats.teams_unassigned %}
+<div class="alert-warning mt-4">
+    {{ icon('alert-triangle') }}
+    {{ stats.teams_unassigned }} team(s) have no jury panel, so no panel jury can score them.
+    <a href="{{ url_for('admin.panel_assign') }}" class="underline font-medium">Assign them now</a>.
+</div>
+{% endif %}
+
+<div class="card mt-6">
+    <div class="card-header"><h2 class="card-title">Panel progress</h2><a href="{{ url_for('admin.panels_list') }}" class="btn-ghost btn-sm">{{ icon('arrow-right') }} Jury panels</a></div>
+    <div class="card-body grid grid-cols-1 sm:grid-cols-5 gap-4">
+    {% for p in stats.panel_coverage %}
+        <div>
+            <div class="flex items-center justify-between text-xs text-slate-500 mb-1">
+                <span>Panel {{ p.panel_no }}</span><span>{{ p.pct }}%</span>
+            </div>
+            <div class="h-2 rounded-full bg-navy-100 overflow-hidden"><div class="h-full bg-navy-700 rounded-full" style="width: {{ p.pct }}%"></div></div>
+            <div class="mt-1 text-xs text-slate-500">{{ p.submitted }}/{{ p.expected }} · {{ p.judges }} judge{{ '' if p.judges == 1 else 's' }}, {{ p.teams }} team{{ '' if p.teams == 1 else 's' }}</div>
+        </div>
+    {% endfor %}
+    </div>
 </div>
 
 <div class="card mt-6">
