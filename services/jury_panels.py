@@ -142,6 +142,223 @@ def judge_submitted_count(judge, stage_id=DEFAULT_STAGE):
     })
 
 
+def build_panels_workbook(stage_id=DEFAULT_STAGE):
+    """Build the jury-panels Excel workbook and return it as a BytesIO.
+
+    Seven tabs: Overview, Panel 1..5 (judge roster + assigned teams, printable
+    per coordinator), and a flat All teams sheet for sorting and pivoting.
+    Includes live scoring progress so the same file doubles as the mid-event
+    tracking sheet.
+
+    openpyxl is imported here rather than at module level so the app's cold
+    start never pays for it - this module is on the judge-dashboard hot path.
+    """
+    from io import BytesIO
+    from openpyxl import Workbook
+    from openpyxl.styles import Font
+    from openpyxl.utils import get_column_letter
+
+    from services.results_calculator import calculate_all_teams_scores
+
+    panels = list_panels(stage_id=stage_id)
+    overview = roster_overview()
+    exceptions = exception_judges()
+    unassigned = unassigned_teams()
+    # One pass over all teams for the whole workbook, indexed by team_id -
+    # never recomputed per row.
+    scores_by_team = {r['team_id']: r for r in calculate_all_teams_scores(stage_id)}
+
+    TITLE = Font(bold=True, size=14)
+    H2 = Font(bold=True, size=11)
+    HEADER = Font(bold=True)
+    NOTE = Font(italic=True, color='666666')
+
+    def write_header(ws, row, headers, widths=None):
+        for col, text in enumerate(headers, start=1):
+            cell = ws.cell(row=row, column=col, value=text)
+            cell.font = HEADER
+        if widths:
+            for col, width in enumerate(widths, start=1):
+                ws.column_dimensions[get_column_letter(col)].width = width
+        return row + 1
+
+    def team_progress(team):
+        """(panel evals, expected, exception evals, status) for one team doc."""
+        s = scores_by_team.get(str(team['_id']))
+        if not s:
+            return 0, 0, 0, 'NOT_SCORED'
+        return s['group_count'], s['group_expected'], s['exception_count'], s['status']
+
+    wb = Workbook()
+
+    # ------------------------------------------------------------------ #
+    # Overview
+    # ------------------------------------------------------------------ #
+    ws = wb.active
+    ws.title = 'Overview'
+    ws.cell(row=1, column=1, value='TechForge 3.0 — Jury Panels').font = TITLE
+    ws.cell(row=2, column=1,
+            value=f"Exported {datetime.utcnow().strftime('%d %b %Y %H:%M')} UTC · "
+                  f"Stage: {stage_id}").font = NOTE
+
+    row = 4
+    ws.cell(row=row, column=1, value='PANEL SUMMARY').font = H2
+    row = write_header(ws, row + 1,
+                       ['Panel', 'Judges', 'Teams', 'Evaluations submitted',
+                        'Expected', 'Progress %'],
+                       widths=[10, 10, 10, 22, 12, 12])
+    for p in panels:
+        ws.cell(row=row, column=1, value=f"Panel {p['panel_no']}")
+        ws.cell(row=row, column=2, value=p['judge_count'])
+        ws.cell(row=row, column=3, value=p['team_count'])
+        ws.cell(row=row, column=4, value=p['submitted'])
+        ws.cell(row=row, column=5, value=p['expected'])
+        ws.cell(row=row, column=6, value=p['pct'])
+        row += 1
+
+    row += 1
+    ws.cell(row=row, column=1, value='EXCEPTION JURY').font = H2
+    ws.cell(row=row + 1, column=1,
+            value='Score every team, carry 40% of the final mark, and may keep '
+                  'scoring while judging is locked.').font = NOTE
+    row = write_header(ws, row + 2,
+                       ['Name', 'Email', 'Type',
+                        f"Teams scored (of {overview['total_teams']})"])
+    for judge in exceptions:
+        kind = 'External' if 'external' in str(judge.get('judge_type', '')).lower() else 'Internal'
+        ws.cell(row=row, column=1, value=judge.get('name', ''))
+        ws.cell(row=row, column=2, value=judge.get('email', ''))
+        ws.cell(row=row, column=3, value=kind)
+        ws.cell(row=row, column=4, value=judge_submitted_count(judge, stage_id))
+        row += 1
+
+    row += 1
+    ws.cell(row=row, column=1, value='TEAMS WITH NO PANEL').font = H2
+    ws.cell(row=row + 1, column=1,
+            value='Only exception jury can score these.').font = NOTE
+    row += 2
+    if unassigned:
+        row = write_header(ws, row, ['Team Code', 'Team Name', 'Leader'])
+        for team in unassigned:
+            ws.cell(row=row, column=1, value=team.get('team_code', ''))
+            ws.cell(row=row, column=2, value=team.get('team_name', ''))
+            ws.cell(row=row, column=3, value=team.get('leader_name', ''))
+            row += 1
+    else:
+        ws.cell(row=row, column=1, value='(none — every team has a panel)')
+        row += 1
+
+    row += 1
+    ws.cell(row=row, column=1,
+            value=f"Totals: {overview['judges']} judges "
+                  f"({overview['group']} group + {overview['exception']} exception) · "
+                  f"{overview['total_teams']} teams "
+                  f"({overview['assigned']} assigned, {overview['unassigned']} without a panel)"
+            ).font = NOTE
+
+    # ------------------------------------------------------------------ #
+    # Panel 1..5
+    # ------------------------------------------------------------------ #
+    for p in panels:
+        ws = wb.create_sheet(f"Panel {p['panel_no']}")
+        ws.cell(row=1, column=1, value=f"Panel {p['panel_no']} — "
+                f"{p['judge_count']} judges, {p['team_count']} teams, "
+                f"{p['submitted']}/{p['expected']} evaluations ({p['pct']}%)").font = TITLE
+
+        row = 3
+        ws.cell(row=row, column=1, value=f"JUDGES ({p['judge_count']})").font = H2
+        row = write_header(ws, row + 1,
+                           ['Name', 'Email', 'Type', 'Coordinator',
+                            f"Teams scored (of {p['team_count']})"],
+                           widths=[28, 34, 10, 12, 22])
+        if p['judges']:
+            for judge in p['judges']:
+                kind = 'External' if 'external' in str(judge.get('judge_type', '')).lower() else 'Internal'
+                ws.cell(row=row, column=1, value=judge.get('name', ''))
+                ws.cell(row=row, column=2, value=judge.get('email', ''))
+                ws.cell(row=row, column=3, value=kind)
+                ws.cell(row=row, column=4,
+                        value='Yes' if judge.get('is_overall_jury_coordinator') else '')
+                ws.cell(row=row, column=5, value=judge_submitted_count(judge, stage_id))
+                row += 1
+        else:
+            ws.cell(row=row, column=1, value='(no judges assigned — these teams '
+                                             'cannot be completed)')
+            row += 1
+
+        row += 1
+        ws.cell(row=row, column=1, value=f"TEAMS ({p['team_count']})").font = H2
+        row = write_header(ws, row + 1,
+                           ['#', 'Team Code', 'Team Name', 'Leader', 'Leader Mobile',
+                            'Leader Email', 'Panel Evals', 'Panel Expected',
+                            'Exception Evals', 'Status'])
+        if p['teams']:
+            for index, team in enumerate(p['teams'], start=1):
+                group_n, expected, exc_n, status = team_progress(team)
+                ws.cell(row=row, column=1, value=index)
+                ws.cell(row=row, column=2, value=team.get('team_code', ''))
+                ws.cell(row=row, column=3, value=team.get('team_name', ''))
+                ws.cell(row=row, column=4, value=team.get('leader_name', ''))
+                ws.cell(row=row, column=5, value=team.get('leader_mobile', ''))
+                ws.cell(row=row, column=6, value=team.get('leader_email', ''))
+                ws.cell(row=row, column=7, value=group_n)
+                ws.cell(row=row, column=8, value=expected)
+                ws.cell(row=row, column=9, value=exc_n)
+                ws.cell(row=row, column=10, value=status)
+                row += 1
+        else:
+            ws.cell(row=row, column=1, value='(no teams assigned)')
+            row += 1
+
+    # ------------------------------------------------------------------ #
+    # All teams (flat)
+    # ------------------------------------------------------------------ #
+    ws = wb.create_sheet('All teams')
+    headers = ['Panel', 'Team Code', 'Team Name', 'Leader', 'Leader Mobile',
+               'Leader Email', 'Panel Judges', 'Panel Evals', 'Panel Expected',
+               'Exception Evals', 'Status', 'Registered At']
+    write_header(ws, 1, headers,
+                 widths=[12, 14, 26, 20, 14, 30, 60, 12, 14, 15, 20, 18])
+    ws.freeze_panes = 'A2'
+
+    # The panel roster repeats on every row of its panel on purpose: it makes
+    # the flat sheet self-contained when sorted or filtered.
+    roster_by_panel = {
+        p['panel_no']: '; '.join(j.get('name', '') for j in p['judges'])
+        for p in panels
+    }
+    all_docs = sorted(
+        (team for p in panels for team in p['teams']),
+        key=lambda t: (t.get('panel_no') or 0, str(t.get('team_name', '')).lower()),
+    ) + unassigned
+
+    row = 2
+    for team in all_docs:
+        group_n, expected, exc_n, status = team_progress(team)
+        panel_no = team.get('panel_no')
+        created = team.get('created_at')
+        ws.cell(row=row, column=1,
+                value=f'Panel {panel_no}' if panel_no else 'UNASSIGNED')
+        ws.cell(row=row, column=2, value=team.get('team_code', ''))
+        ws.cell(row=row, column=3, value=team.get('team_name', ''))
+        ws.cell(row=row, column=4, value=team.get('leader_name', ''))
+        ws.cell(row=row, column=5, value=team.get('leader_mobile', ''))
+        ws.cell(row=row, column=6, value=team.get('leader_email', ''))
+        ws.cell(row=row, column=7, value=roster_by_panel.get(panel_no, ''))
+        ws.cell(row=row, column=8, value=group_n)
+        ws.cell(row=row, column=9, value=expected)
+        ws.cell(row=row, column=10, value=exc_n)
+        ws.cell(row=row, column=11, value=status)
+        ws.cell(row=row, column=12,
+                value=created.strftime('%Y-%m-%d %H:%M') if created else '')
+        row += 1
+
+    buffer = BytesIO()
+    wb.save(buffer)
+    buffer.seek(0)
+    return buffer
+
+
 # --------------------------------------------------------------------------- #
 # Writes
 # --------------------------------------------------------------------------- #

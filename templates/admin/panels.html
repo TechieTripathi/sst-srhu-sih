@@ -9,7 +9,10 @@
         <h1 class="font-display text-2xl sm:text-3xl font-bold text-navy-900">Jury panels</h1>
         <p class="mt-1 text-slate-600">Five panels of five judges. Each panel scores only its own teams; the exception jury scores every team.</p>
     </div>
-    <a href="{{ url_for('admin.panel_assign') }}" class="btn-primary">{{ icon('list-checks') }} Assign teams</a>
+    <div class="flex gap-2">
+        <a href="{{ url_for('admin.export_panels') }}" class="btn-secondary">{{ icon('download') }} Excel</a>
+        <a href="{{ url_for('admin.panel_assign') }}" class="btn-primary">{{ icon('list-checks') }} Assign teams</a>
+    </div>
 </div>
 
 <div class="stat-group grid grid-cols-1 sm:grid-cols-4 gap-2 sm:gap-4 mb-6">

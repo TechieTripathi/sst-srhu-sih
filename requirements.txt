@@ -4,3 +4,4 @@ python-dotenv==1.0.0
 Werkzeug==3.0.1
 dnspython==2.4.2
 Flask-Compress==1.14
+openpyxl==3.1.5

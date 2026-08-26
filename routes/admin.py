@@ -699,6 +699,28 @@ def export_teams():
     return Response(output.getvalue(), mimetype='text/csv', headers={'Content-Disposition': 'attachment;filename=techforge3_teams.csv'})
 
 
+@admin_bp.route('/export/panels')
+@require_auth(roles=['admin'])
+def export_panels():
+    """Export the jury panels as an Excel workbook.
+
+    Overview + one printable tab per panel (judges and their assigned teams,
+    with live scoring progress) + a flat All-teams sheet for sorting.
+    """
+    from flask import Response
+    from services.jury_panels import build_panels_workbook
+
+    stage_id = request.args.get('stage_id', 'final_presentation')
+    buffer = build_panels_workbook(stage_id=stage_id)
+    log_audit(session.get('user_id'), 'panels_exported', 'jury_panel', stage_id,
+              {'format': 'xlsx'})
+    return Response(
+        buffer.getvalue(),
+        mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        headers={'Content-Disposition': 'attachment;filename=techforge3_jury_panels.xlsx'},
+    )
+
+
 @admin_bp.route('/evaluations-list')
 @require_auth(roles=['admin'])
 def evaluations_list():

@@ -37,6 +37,7 @@
                 <a href="{{ url_for('admin.audit_logs') }}" class="sidebar-link {% if ep == 'admin.audit_logs' %}sidebar-link-active{% endif %}">{{ icon('clipboard-list') }} Audit log</a>
                 <a href="{{ url_for('admin.export_teams') }}" class="sidebar-link">{{ icon('download') }} Export teams (CSV)</a>
                 <a href="{{ url_for('admin.export_results') }}" class="sidebar-link">{{ icon('download') }} Export results (CSV)</a>
+                <a href="{{ url_for('admin.export_panels') }}" class="sidebar-link">{{ icon('download') }} Export panels (Excel)</a>
             </div>
             {% if current_role == 'super_admin' %}
             <div>
