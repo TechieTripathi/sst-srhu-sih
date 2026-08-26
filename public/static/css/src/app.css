@@ -1,6 +1,6 @@
 @import "tailwindcss";
 @plugin "@tailwindcss/forms";
-@source "../../../templates";
+@source "../../../../templates";
 @source "../../js";
 
 /* ---- TechForge 3.0 design tokens (SRHU brand) ----

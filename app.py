@@ -118,21 +118,34 @@ def register_error_handlers(app):
 def register_context_processors(app):
     """Register context processors"""
     
-    # Static files cannot change without a redeploy, so their mtimes are stat'ed
-    # once per process instead of on every asset of every page render. Debug builds
-    # keep stat'ing so edits show up locally without a restart.
+    # /static is served by Vercel's CDN with Cache-Control: immutable for a year, so
+    # every asset URL needs a version token or a changed file would never reach a
+    # returning visitor. On Vercel the files are NOT inside the function bundle
+    # (public/** ships to the CDN, and includeFiles only carries templates), so
+    # os.path.getmtime() cannot see them - fall back to the deployment's git SHA,
+    # which changes exactly once per deploy and is the same for every asset.
+    _deploy_token = (
+        (os.environ.get('VERCEL_GIT_COMMIT_SHA') or '')[:12]
+        or os.environ.get('VERCEL_DEPLOYMENT_ID')
+        or None
+    )
     _static_versions = {}
 
     @app.context_processor
     def inject_static_url():
         import os as _os
 
-        def _version(filename):
+        def _mtime(filename):
             path = _os.path.join(app.static_folder, filename)
             try:
                 return int(_os.path.getmtime(path))
             except OSError:
-                return 0
+                return None
+
+        def _version(filename):
+            # Locally the mtime is the more useful token: it changes per file as you
+            # edit, without needing a redeploy.
+            return _mtime(filename) or _deploy_token or 0
 
         def static_url(filename):
             if app.debug:

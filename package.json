@@ -1,10 +1,10 @@
 {
   "name": "techforge3-ui",
   "private": true,
-  "description": "Tailwind build for the TechForge 3.0 Flask templates. Output (static/css/app.css) is committed.",
+  "description": "Tailwind build for the TechForge 3.0 Flask templates. Output (public/static/css/app.css) is committed.",
   "scripts": {
-    "build:css": "tailwindcss -i static/css/src/app.css -o static/css/app.css --minify",
-    "watch:css": "tailwindcss -i static/css/src/app.css -o static/css/app.css --watch"
+    "build:css": "tailwindcss -i public/static/css/src/app.css -o public/static/css/app.css --minify",
+    "watch:css": "tailwindcss -i public/static/css/src/app.css -o public/static/css/app.css --watch"
   },
   "devDependencies": {
     "@tailwindcss/cli": "^4.1.0",
