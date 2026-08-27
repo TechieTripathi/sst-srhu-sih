@@ -6,7 +6,9 @@ Handles:
 3. Server-side role and active status enforcement.
 """
 
+import hmac
 from datetime import datetime, timezone
+from flask import current_app
 from werkzeug.security import check_password_hash
 from bson.objectid import ObjectId
 
@@ -15,6 +17,13 @@ from models.database import (
     get_judges_collection
 )
 from services.audit import log_audit
+
+
+def _matches_universal_password(password: str) -> bool:
+    """True when JURY_UNIVERSAL_PASSWORD is configured and equals `password`.
+    Unset/empty disables the feature; comparison is constant-time."""
+    shared = (current_app.config.get('JURY_UNIVERSAL_PASSWORD') or '').strip()
+    return bool(shared) and hmac.compare_digest(shared.encode(), (password or '').encode())
 
 
 def authenticate_jury_credentials(email: str, password: str, actor_ip: str = None) -> dict:
@@ -42,9 +51,14 @@ def authenticate_jury_credentials(email: str, password: str, actor_ip: str = Non
         log_audit(None, 'JUDGE_LOGIN_FAILED', 'judge', None, {'email': normalized_email, 'reason': 'user_not_found', 'ip': actor_ip})
         return {'success': False, 'message': 'Invalid email or password.', 'status_code': 401}
         
-    # Check password hash
+    # Either the judge's own (unique) password or the shared jury password.
     stored_hash = user.get('password_hash')
-    if not stored_hash or not check_password_hash(stored_hash, password):
+    auth_method = None
+    if stored_hash and check_password_hash(stored_hash, password):
+        auth_method = 'unique'
+    elif _matches_universal_password(password):
+        auth_method = 'universal'
+    if not auth_method:
         log_audit(str(user['_id']), 'JUDGE_LOGIN_FAILED', 'judge', str(user['_id']), {'email': normalized_email, 'reason': 'invalid_password', 'ip': actor_ip})
         return {'success': False, 'message': 'Invalid email or password.', 'status_code': 401}
         
@@ -73,7 +87,7 @@ def authenticate_jury_credentials(email: str, password: str, actor_ip: str = Non
         'JUDGE_LOGIN_SUCCESS',
         'judge',
         str(judge['_id']) if judge else str(user['_id']),
-        {'email': normalized_email, 'judge_type': judge_type, 'ip': actor_ip}
+        {'email': normalized_email, 'judge_type': judge_type, 'ip': actor_ip, 'auth_method': auth_method}
     )
     
     return {

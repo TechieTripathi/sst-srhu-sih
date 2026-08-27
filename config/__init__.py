@@ -30,6 +30,11 @@ class Config:
     SUPER_ADMIN_NAME = os.environ.get('SUPER_ADMIN_NAME', 'Super Administrator')
     SUPER_ADMIN_PASSWORD = os.environ.get('SUPER_ADMIN_PASSWORD', 'superadmin123')
 
+    # Optional shared password accepted on the Jury sign-in page for every
+    # active judge, in addition to each judge's own unique password. Leave
+    # empty to disable. Never accepted on the Admin / Super Admin portals.
+    JURY_UNIVERSAL_PASSWORD = os.environ.get('JURY_UNIVERSAL_PASSWORD', '').strip()
+
     # SMTP Configuration (judge credential emails)
     SMTP_HOST = os.environ.get('SMTP_HOST')
     SMTP_PORT = int(os.environ.get('SMTP_PORT', 587))
