@@ -41,6 +41,12 @@ GROUP_WEIGHT = 0.60
 # evaluations before any team could be ranked.
 EXCEPTION_QUORUM = 1
 
+# How many *panel* jurors must have scored a team before it can rank.
+# Not every panel judge reaches every team, so a team is ranked on the average
+# of whichever panel judges actually scored it (2, 3, 4 or 5). Coverage is still
+# reported as group_count / group_expected so thin panels remain visible.
+GROUP_QUORUM = 1
+
 
 def _is_internal(judge):
     """Display only. judge_type no longer decides access or scoring weight."""
@@ -170,10 +176,11 @@ def calculate_team_score(team_id, stage_id='final_presentation', panel_counts=No
     exception_avg = sum(exception_scores) / len(exception_scores) if exception_scores else 0
     group_avg = sum(group_scores) / len(group_scores) if group_scores else 0
 
-    # Complete means: every judge on the team's own panel has scored it, and at
-    # least one exception juror has. group_expected comes from the live panel
-    # roster, so a panel of four expects four scores, not five.
-    group_complete = group_expected > 0 and len(group_scores) >= group_expected
+    # Complete means: at least GROUP_QUORUM panel judges have scored the team,
+    # and at least EXCEPTION_QUORUM exception jurors have. The panel average is
+    # taken over the judges present; group_expected (live roster) is reported
+    # alongside purely as coverage information.
+    group_complete = len(group_scores) >= GROUP_QUORUM
     exception_complete = len(exception_scores) >= EXCEPTION_QUORUM
     is_complete = group_complete and exception_complete
 
